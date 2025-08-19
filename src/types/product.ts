@@ -8,6 +8,8 @@ export interface Product {
   sizes?: string[];
   colors?: string[];
   inStock: boolean;
+  stock?: number;
+  sales?: number;
   rating: number;
   reviewCount: number;
   isSuggested?: boolean;
