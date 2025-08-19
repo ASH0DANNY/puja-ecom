@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { menuItems } from "../constants/menuItems";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -32,18 +33,16 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </svg>
         </button>
         <div className="mt-8 space-y-4">
-          <Link to="/" className="block text-gray-800 hover:text-primary">
-            Home
-          </Link>
-          <Link to="/shop" className="block text-gray-800 hover:text-primary">
-            Shop
-          </Link>
-          <Link to="/categories" className="block text-gray-800 hover:text-primary">
-            Categories
-          </Link>
-          <Link to="/contact" className="block text-gray-800 hover:text-primary">
-            Contact
-          </Link>
+          {menuItems.map((item) => (
+            <Link
+              key={item.id}
+              to={item.path}
+              className="block text-gray-800 hover:text-primary"
+              onClick={onClose}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
       </div>
     </div>

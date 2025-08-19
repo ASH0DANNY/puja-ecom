@@ -1,10 +1,23 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
+import { menuItems } from "../constants/menuItems";
+import {
+  ShoppingCartIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
+import { useCart } from "../context/CartContext";
+import type { CartItem } from "../types/product";
 
 interface NavbarProps {
   onMenuClick: () => void;
 }
 
 const Navbar = ({ onMenuClick }: NavbarProps) => {
+  const { items } = useCart();
+  const cartItemsCount = items.reduce(
+    (sum: number, item: CartItem) => sum + item.quantity,
+    0
+  );
+
   return (
     <nav className="bg-primary px-4 py-4 shadow-md">
       <div className="container mx-auto flex justify-between items-center">
@@ -24,20 +37,32 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
               />
             </svg>
           </button>
-          <h1 className="text-2xl font-bold text-white">Fashion Store</h1>
+          <Link to="/" className="text-2xl font-bold text-white">
+            Fashion Store
+          </Link>
         </div>
-        <div className="hidden lg:flex space-x-8">
-          <Link to="/" className="text-white hover:text-gray-200">
-            Home
-          </Link>
-          <Link to="/shop" className="text-white hover:text-gray-200">
-            Shop
-          </Link>
-          <Link to="/categories" className="text-white hover:text-gray-200">
-            Categories
-          </Link>
-          <Link to="/contact" className="text-white hover:text-gray-200">
-            Contact
+        <div className="hidden lg:flex space-x-8 items-center">
+          {menuItems.map((item) => (
+            <Link
+              key={item.id}
+              to={item.path}
+              className="text-white hover:text-gray-200"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+        <div className="flex items-center space-x-4">
+          <button className="text-white hover:text-gray-200">
+            <MagnifyingGlassIcon className="h-6 w-6" />
+          </button>
+          <Link to="/cart" className="text-white hover:text-gray-200 relative">
+            <ShoppingCartIcon className="h-6 w-6" />
+            {cartItemsCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {cartItemsCount}
+              </span>
+            )}
           </Link>
         </div>
       </div>
