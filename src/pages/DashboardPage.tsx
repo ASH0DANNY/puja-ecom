@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
-import type { Product } from "../types/product";
 import type { Order } from "../types/order";
 import type { DashboardProduct } from "../types/dashboard";
 import { ProductTable } from "../components/ProductTable";

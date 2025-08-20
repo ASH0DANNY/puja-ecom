@@ -12,12 +12,13 @@ import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
-import DashboardPage from "./pages/DashboardPage";
+
 import ProductDetails from "./pages/ProductDetails";
 import PaymentPage from "./pages/PaymentPage";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { DashboardPage } from "./pages/DashboardPage";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
