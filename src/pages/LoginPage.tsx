@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -8,7 +8,13 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, user } = useAuth();
+
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard");
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -16,7 +22,7 @@ const LoginPage = () => {
       setError("");
       setLoading(true);
       await login(email, password);
-      navigate("/dashboard");
+      // Navigation will happen automatically via the useEffect
     } catch (error) {
       setError("Failed to sign in. Please check your credentials.");
       console.error(error);

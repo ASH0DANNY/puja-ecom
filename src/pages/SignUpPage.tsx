@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const SignUpPage = () => {
   const [email, setEmail] = useState("");
@@ -15,6 +16,7 @@ const SignUpPage = () => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
       return setError("Passwords do not match");
     }
 
@@ -22,12 +24,14 @@ const SignUpPage = () => {
       setError("");
       setLoading(true);
       await signup(email, password);
+      toast.success("Account created successfully! Welcome aboard!");
       navigate("/");
     } catch (error) {
-      setError(
+      const errorMessage =
         "Failed to create an account. " +
-          (error instanceof Error ? error.message : "Please try again.")
-      );
+        (error instanceof Error ? error.message : "Please try again.");
+      setError(errorMessage);
+      toast.error(errorMessage);
       console.error(error);
     } finally {
       setLoading(false);
