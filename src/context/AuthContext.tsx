@@ -2,10 +2,11 @@ import { createContext, useContext, useEffect, useState } from "react";
 import {
   type User as FirebaseUser,
   signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
 } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
 import type { User } from "../types/dashboard";
 
@@ -13,6 +14,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -51,9 +53,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe();
   }, []);
 
+  const signup = async (email: string, password: string) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      
+      // Create a user document in Firestore
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        email: email,
+        role: "user", // Default role
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        displayName: null
+      });
+      
+    } catch (error) {
+      console.error("Signup error:", error);
+      throw error;
+    }
+  };
+
   const login = async (email: string, password: string) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      
+      // Update last login time
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        lastLogin: serverTimestamp()
+      }, { merge: true });
+      
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -71,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

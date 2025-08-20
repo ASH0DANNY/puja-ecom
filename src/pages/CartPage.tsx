@@ -1,8 +1,10 @@
 import { useCart } from "../context/CartContext";
 import { TrashIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "react-router-dom";
 
 const CartPage = () => {
   const { items, removeFromCart, updateQuantity, total } = useCart();
+  const navigate = useNavigate();
 
   if (items.length === 0) {
     return (
@@ -102,7 +104,10 @@ const CartPage = () => {
                 </div>
               </div>
             </div>
-            <button className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90">
+            <button 
+              onClick={() => navigate('/payment')} 
+              className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90"
+            >
               Proceed to Checkout
             </button>
           </div>

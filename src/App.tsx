@@ -11,7 +11,10 @@ import SuggestionsPage from "./pages/SuggestionsPage";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
+import SignUpPage from "./pages/SignUpPage";
 import DashboardPage from "./pages/DashboardPage";
+import ProductDetails from "./pages/ProductDetails";
+import PaymentPage from "./pages/PaymentPage";
 import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -34,8 +37,10 @@ function App() {
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignUpPage />} />
                 <Route path="/categories" element={<CategoriesPage />} />
                 <Route path="/suggestions" element={<SuggestionsPage />} />
+                <Route path="/product/:id" element={<ProductDetails />} />
                 <Route
                   path="/orders"
                   element={
@@ -49,6 +54,14 @@ function App() {
                   element={
                     <ProtectedRoute>
                       <CartPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/payment"
+                  element={
+                    <ProtectedRoute>
+                      <PaymentPage />
                     </ProtectedRoute>
                   }
                 />
