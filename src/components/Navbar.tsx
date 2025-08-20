@@ -67,64 +67,58 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
           <button className="text-white hover:text-gray-200">
             <MagnifyingGlassIcon className="h-6 w-6" />
           </button>
-          
-          {user ? (
-            <div className="flex items-center space-x-4">
-              <Link to="/cart" className="text-white hover:text-gray-200 relative">
-                <ShoppingCartIcon className="h-6 w-6" />
-                {cartItemsCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemsCount}
-                  </span>
-                )}
-              </Link>
-              <div className="relative group">
-                <button className="text-white hover:text-gray-200">
-                  <UserIcon className="h-6 w-6" />
-                </button>
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
-                  <div className="px-4 py-2 text-sm text-gray-700 border-b">
-                    {user.email}
-                  </div>
-                  <Link
-                    to="/orders"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    My Orders
-                  </Link>
-                  {user.role === "admin" && (
+
+          <div className="flex items-center space-x-4">
+            {user ? (
+              <>
+                <Link
+                  to="/cart"
+                  className="text-white hover:text-gray-200 relative"
+                >
+                  <ShoppingCartIcon className="h-6 w-6" />
+                  {cartItemsCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {cartItemsCount}
+                    </span>
+                  )}
+                </Link>
+                <div className="relative group">
+                  <button className="text-white hover:text-gray-200">
+                    <UserIcon className="h-6 w-6" />
+                  </button>
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 hidden group-hover:block">
+                    <div className="px-4 py-2 text-sm text-gray-700 border-b">
+                      {user.email}
+                    </div>
                     <Link
-                      to="/dashboard"
+                      to="/orders"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                     >
-                      Dashboard
+                      My Orders
                     </Link>
-                  )}
-                  <button
-                    onClick={handleLogout}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    Sign out
-                  </button>
+                    {user.role === "admin" && (
+                      <Link
+                        to="/dashboard"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                      >
+                        Dashboard
+                      </Link>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      Sign out
+                    </button>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center space-x-4">
-              <Link
-                to="/login"
-                className="text-white hover:text-gray-200"
-              >
-                Sign in
+              </>
+            ) : (
+              <Link to="/login" className="text-white hover:text-gray-200">
+                <UserIcon className="h-6 w-6" />
               </Link>
-              <Link
-                to="/signup"
-                className="bg-white text-primary px-4 py-2 rounded-md hover:bg-gray-100"
-              >
-                Sign up
-              </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </nav>

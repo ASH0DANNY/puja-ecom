@@ -18,11 +18,23 @@ export interface DashboardProduct extends Product {
   stockCount: number;
 }
 
-export interface DashboardOrder extends Order {
-  customerName: string;
-  customerEmail: string;
-  formattedTotal: string;
-  statusColor: string;
+export interface DashboardOrder {
+  id: string;
+  userId: string;
+  userEmail: string;
+  products: DashboardOrderProduct[];
+  total: number;
+  status: Order['status'];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Dashboard Order item interface
+export interface DashboardOrderProduct {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
 }
 
 export interface AdminDashboardStats {
@@ -33,23 +45,6 @@ export interface AdminDashboardStats {
   recentOrders: DashboardOrder[];
   topProducts: DashboardProduct[];
   suggestionsPending: number;
-}
-
-export interface DashboardProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  image: string;
-  category: string;
-  sizes?: string[];
-  colors?: string[];
-  inStock: boolean;
-  stock: number;
-  sales: number;
-  rating: number;
-  reviewCount: number;
-  isSuggested?: boolean;
 }
 
 export interface DashboardOrder {

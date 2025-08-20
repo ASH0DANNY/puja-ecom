@@ -1,14 +1,30 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { doc, setDoc, collection } from "firebase/firestore";
+import { doc, setDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import type { Order } from "../types/order";
 
+// Shipping form interface
+interface ShippingForm {
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+}
+
 const PaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [loading, setLoading] = useState(false);
+  const [shippingForm, setShippingForm] = useState<ShippingForm>({
+    street: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: ""
+  });
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -30,8 +46,18 @@ const PaymentPage = () => {
           product: {
             id: item.id,
             name: item.name,
+            description: item.description,
             price: item.price,
             image: item.image,
+            category: item.category,
+            sizes: item.sizes,
+            colors: item.colors,
+            inStock: item.inStock,
+            stock: item.stock,
+            sales: item.sales,
+            rating: item.rating,
+            reviewCount: item.reviewCount,
+            isSuggested: item.isSuggested,
           },
           quantity: item.quantity,
           selectedSize: item.selectedSize,
@@ -43,19 +69,22 @@ const PaymentPage = () => {
         paymentMethod,
         createdAt: new Date(),
         updatedAt: new Date(),
-        shippingAddress: {
-          street: "",
-          city: "",
-          state: "",
-          postalCode: "",
-          country: ""
-        }
+        shippingAddress: shippingForm
       };
 
-      // Add order to Firestore
+      // Add order to Firestore with server timestamp
       const ordersRef = collection(db, "orders");
       const newOrderRef = doc(ordersRef);
-      await setDoc(newOrderRef, orderData);
+      
+      // Add the document ID and server timestamps
+      const finalOrderData = {
+        ...orderData,
+        id: newOrderRef.id,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      await setDoc(newOrderRef, finalOrderData);
 
       // Clear the cart
       clearCart();
@@ -70,8 +99,16 @@ const PaymentPage = () => {
     }
   };
 
+  const handleShippingFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setShippingForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 max-w-4xl">
       <h1 className="text-3xl font-bold mb-8">Payment</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -93,8 +130,76 @@ const PaymentPage = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Payment Method</h2>
+          <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
           <form onSubmit={handlePaymentSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="street" className="block text-sm font-medium text-gray-700">Street Address</label>
+                <input
+                  type="text"
+                  id="street"
+                  name="street"
+                  required
+                  value={shippingForm.street}
+                  onChange={handleShippingFormChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
+                <input
+                  type="text"
+                  id="city"
+                  name="city"
+                  required
+                  value={shippingForm.city}
+                  onChange={handleShippingFormChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="state" className="block text-sm font-medium text-gray-700">State</label>
+                <input
+                  type="text"
+                  id="state"
+                  name="state"
+                  required
+                  value={shippingForm.state}
+                  onChange={handleShippingFormChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Postal Code</label>
+                <input
+                  type="text"
+                  id="postalCode"
+                  name="postalCode"
+                  required
+                  value={shippingForm.postalCode}
+                  onChange={handleShippingFormChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="country" className="block text-sm font-medium text-gray-700">Country</label>
+                <input
+                  type="text"
+                  id="country"
+                  name="country"
+                  required
+                  value={shippingForm.country}
+                  onChange={handleShippingFormChange}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <h2 className="text-xl font-semibold mt-8 mb-4">Payment Method</h2>
             <div className="space-y-4">
               <div className="flex items-center space-x-3">
                 <input
@@ -134,7 +239,7 @@ const PaymentPage = () => {
             <button
               type="submit"
               disabled={loading || !paymentMethod}
-              className={`w-full py-3 rounded-lg text-white font-semibold
+              className={`w-full py-3 mt-6 rounded-lg text-white font-semibold
                 ${loading || !paymentMethod 
                   ? "bg-gray-400 cursor-not-allowed"
                   : "bg-primary hover:bg-primary/90"}`}
