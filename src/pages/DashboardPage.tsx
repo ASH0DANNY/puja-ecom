@@ -5,7 +5,7 @@ import type { Order } from "../types/order";
 import type { DashboardProduct } from "../types/dashboard";
 import { ProductTable } from "../components/ProductTable";
 import { OrderTable } from "../components/OrderTable";
-import { AddProductForm } from "../components/AddProductForm";
+import AddProductForm from "../components/AddProductForm";
 
 type TabType = "overview" | "products" | "orders" | "suggestions";
 

@@ -23,7 +23,7 @@ const PaymentPage = () => {
     city: "",
     state: "",
     postalCode: "",
-    country: ""
+    country: "",
   });
   const { items, total, clearCart } = useCart();
   const { user } = useAuth();
@@ -31,8 +31,36 @@ const PaymentPage = () => {
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Validate user authentication
+    if (!user) {
+      alert("Please login to complete your purchase");
+      navigate("/login");
+      return;
+    }
+
+    // Validate cart items
+    if (items.length === 0) {
+      alert("Your cart is empty");
+      navigate("/cart");
+      return;
+    }
+
+    // Validate payment method
     if (!paymentMethod) {
       alert("Please select a payment method");
+      return;
+    }
+
+    // Validate shipping form
+    if (
+      !shippingForm.street ||
+      !shippingForm.city ||
+      !shippingForm.state ||
+      !shippingForm.postalCode ||
+      !shippingForm.country
+    ) {
+      alert("Please fill in all shipping information");
       return;
     }
 
@@ -40,60 +68,93 @@ const PaymentPage = () => {
     try {
       // Create a new order
       const orderData: Partial<Order> = {
-        userId: user?.uid || "",
-        userEmail: user?.email || "",
-        items: items.map(item => ({
+        userId: user.uid,
+        userEmail: user.email || "",
+        items: items.map((item) => ({
           product: {
             id: item.id,
             name: item.name,
-            description: item.description,
+            description: item.description || "",
             price: item.price,
+            discountPrice: item.discountPrice || null,
             image: item.image,
             category: item.category,
-            sizes: item.sizes,
-            colors: item.colors,
-            inStock: item.inStock,
-            stock: item.stock,
-            sales: item.sales,
-            rating: item.rating,
-            reviewCount: item.reviewCount,
-            isSuggested: item.isSuggested,
+            brand: item.brand || "",
+            material: item.material || "",
+            weight: item.weight || "",
+            dimensions: item.dimensions || "",
+            sku: item.sku || "",
+            sizes: item.sizes || [],
+            colors: item.colors || [],
+            tags: item.tags || [],
+            inStock: item.inStock ?? true,
+            stock: item.stock || 0,
+            sales: item.sales || 0,
+            rating: item.rating || 0,
+            reviewCount: item.reviewCount || 0,
+            isFeatured: item.isFeatured || false,
+            isSuggested: item.isSuggested || false,
+            shipping: {
+              width: item.shipping?.width || 0,
+              height: item.shipping?.height || 0,
+              depth: item.shipping?.depth || 0,
+              weight: item.shipping?.weight || 0,
+            },
+            createdAt: item.createdAt || new Date(),
+            updatedAt: item.updatedAt || new Date(),
           },
           quantity: item.quantity,
-          selectedSize: item.selectedSize,
-          selectedColor: item.selectedColor,
-          priceAtOrder: item.price
+          selectedSize: item.selectedSize || "",
+          selectedColor: item.selectedColor || "",
+          priceAtOrder: item.price,
         })),
         total: total,
-        status: "pending",
+        status: "pending" as const,
         paymentMethod,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        shippingAddress: shippingForm
+        shippingAddress: {
+          street: shippingForm.street.trim(),
+          city: shippingForm.city.trim(),
+          state: shippingForm.state.trim(),
+          postalCode: shippingForm.postalCode.trim(),
+          country: shippingForm.country.trim(),
+        },
       };
 
-      // Add order to Firestore with server timestamp
-      const ordersRef = collection(db, "orders");
-      const newOrderRef = doc(ordersRef);
-      
-      // Add the document ID and server timestamps
-      const finalOrderData = {
-        ...orderData,
-        id: newOrderRef.id,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      };
+      try {
+        // Create the order document
+        const ordersRef = collection(db, "orders");
+        const newOrderRef = doc(ordersRef);
 
-      await setDoc(newOrderRef, finalOrderData);
+        // Add the document ID and server timestamps
+        const finalOrderData = {
+          ...orderData,
+          id: newOrderRef.id,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        };
 
-      // Clear the cart
-      clearCart();
+        // Set the order document
+        await setDoc(newOrderRef, finalOrderData);
 
-      // Redirect to orders page
-      navigate("/orders");
+        // Clear the cart
+        clearCart();
+
+        // Show success message
+        alert("Order placed successfully!");
+
+        // Redirect to orders page
+        navigate("/orders");
+      } catch (error) {
+        console.error("Error creating order:", error);
+        throw error; // Re-throw to be caught by outer try-catch
+      }
     } catch (error) {
-      console.error("Error creating order:", error);
-      alert("There was an error processing your payment. Please try again.");
+      console.error("Error in checkout process:", error);
+      if (error instanceof Error) {
+        alert(`Error: ${error.message}`);
+      } else {
+        alert("There was an error processing your payment. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -101,9 +162,9 @@ const PaymentPage = () => {
 
   const handleShippingFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setShippingForm(prev => ({
+    setShippingForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -116,7 +177,9 @@ const PaymentPage = () => {
           <div className="space-y-4">
             {items.map((item) => (
               <div key={item.id} className="flex justify-between">
-                <span>{item.name} × {item.quantity}</span>
+                <span>
+                  {item.name} × {item.quantity}
+                </span>
                 <span>${(item.price * item.quantity).toFixed(2)}</span>
               </div>
             ))}
@@ -134,7 +197,12 @@ const PaymentPage = () => {
           <form onSubmit={handlePaymentSubmit} className="space-y-6">
             <div className="space-y-4">
               <div>
-                <label htmlFor="street" className="block text-sm font-medium text-gray-700">Street Address</label>
+                <label
+                  htmlFor="street"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Street Address
+                </label>
                 <input
                   type="text"
                   id="street"
@@ -145,9 +213,14 @@ const PaymentPage = () => {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
+                <label
+                  htmlFor="city"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  City
+                </label>
                 <input
                   type="text"
                   id="city"
@@ -158,9 +231,14 @@ const PaymentPage = () => {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="state" className="block text-sm font-medium text-gray-700">State</label>
+                <label
+                  htmlFor="state"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  State
+                </label>
                 <input
                   type="text"
                   id="state"
@@ -171,9 +249,14 @@ const PaymentPage = () => {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Postal Code</label>
+                <label
+                  htmlFor="postalCode"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Postal Code
+                </label>
                 <input
                   type="text"
                   id="postalCode"
@@ -184,9 +267,14 @@ const PaymentPage = () => {
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="country" className="block text-sm font-medium text-gray-700">Country</label>
+                <label
+                  htmlFor="country"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Country
+                </label>
                 <input
                   type="text"
                   id="country"
@@ -210,7 +298,9 @@ const PaymentPage = () => {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="h-4 w-4 text-primary"
                 />
-                <label htmlFor="upi" className="text-gray-700">UPI</label>
+                <label htmlFor="upi" className="text-gray-700">
+                  UPI
+                </label>
               </div>
               <div className="flex items-center space-x-3">
                 <input
@@ -221,7 +311,9 @@ const PaymentPage = () => {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="h-4 w-4 text-primary"
                 />
-                <label htmlFor="card" className="text-gray-700">Credit/Debit Card</label>
+                <label htmlFor="card" className="text-gray-700">
+                  Credit/Debit Card
+                </label>
               </div>
               <div className="flex items-center space-x-3">
                 <input
@@ -232,7 +324,9 @@ const PaymentPage = () => {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="h-4 w-4 text-primary"
                 />
-                <label htmlFor="other" className="text-gray-700">Other</label>
+                <label htmlFor="other" className="text-gray-700">
+                  Other
+                </label>
               </div>
             </div>
 
@@ -240,9 +334,11 @@ const PaymentPage = () => {
               type="submit"
               disabled={loading || !paymentMethod}
               className={`w-full py-3 mt-6 rounded-lg text-white font-semibold
-                ${loading || !paymentMethod 
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-primary hover:bg-primary/90"}`}
+                ${
+                  loading || !paymentMethod
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/90"
+                }`}
             >
               {loading ? "Processing..." : "Make Payment"}
             </button>

@@ -1,5 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { addDoc, collection, Timestamp } from "firebase/firestore";
+import { db } from "../config/firebase";
+import { useAuth } from "../context/AuthContext";
 
 const SuggestionsPage = () => {
   const [formData, setFormData] = useState({
@@ -9,26 +12,45 @@ const SuggestionsPage = () => {
     category: "",
     email: "",
   });
-
+  const { user } = useAuth();
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Here you would typically send this to your backend
-    console.log("Suggestion submitted:", formData);
-    setSubmitted(true);
+    if (!user) {
+      alert("Please login to submit suggestions");
+      return;
+    }
 
-    // Reset form after 3 seconds
-    setTimeout(() => {
-      setFormData({
-        type: "WEBSITE_FEEDBACK",
-        title: "",
-        description: "",
-        category: "",
-        email: "",
+    setLoading(true);
+    try {
+      await addDoc(collection(db, "suggestions"), {
+        ...formData,
+        userId: user.uid,
+        userEmail: user.email,
+        createdAt: Timestamp.now(),
+        status: "PENDING",
       });
-      setSubmitted(false);
-    }, 3000);
+
+      setSubmitted(true);
+      // Reset form after 3 seconds
+      setTimeout(() => {
+        setFormData({
+          type: "WEBSITE_FEEDBACK",
+          title: "",
+          description: "",
+          category: "",
+          email: "",
+        });
+        setSubmitted(false);
+      }, 3000);
+    } catch (error) {
+      console.error("Error submitting suggestion:", error);
+      alert("Failed to submit suggestion. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -137,9 +159,15 @@ const SuggestionsPage = () => {
 
               <button
                 type="submit"
-                className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
+                disabled={loading}
+                className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
+                  ${
+                    loading
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  }`}
               >
-                Submit Suggestion
+                {loading ? "Submitting..." : "Submit Suggestion"}
               </button>
             </form>
           )}
