@@ -1,5 +1,6 @@
+import imgHero from "../assets/images/hero-background.jpg";
 const Hero = () => {
-  const hero_background = import("../assets/images/hero-background.jpg");
+  
   return (
     <section className="relative bg-gradient-to-r from-primary/5 to-primary/10 overflow-hidden">
       <div className="container mx-auto px-4 py-16 lg:py-24">
@@ -52,7 +53,7 @@ const Hero = () => {
           <div className="lg:w-1/2 relative">
             <div className="relative z-10 transform hover:scale-105 transition-transform duration-500">
               <img
-                src={`${hero_background}`}
+                src={imgHero}
                 alt="Summer Collection"
                 className="rounded-lg shadow-2xl"
               />

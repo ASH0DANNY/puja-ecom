@@ -1,24 +1,27 @@
+import imgW from "../assets/images/women-fassion.jpg"
+import imgM from "../assets/images/men-fassion.jpg"
+import imgA from "../assets/images/accessories.jpg"
 const FeaturedCategories = () => {
   const categories = [
     {
       id: 1,
       title: "Women's Fashion",
       description: "Explore our collection of women's clothing",
-      image: "/women-fashion.jpg",
+      image: imgW,
       items: "2.5k+ Items"
     },
     {
       id: 2,
       title: "Men's Fashion",
       description: "Discover trendy men's wear",
-      image: "/men-fashion.jpg",
+      image: imgM,
       items: "2k+ Items"
     },
     {
       id: 3,
       title: "Accessories",
       description: "Complete your look with our accessories",
-      image: "/accessories.jpg",
+      image: imgA,
       items: "1.5k+ Items"
     }
   ];
