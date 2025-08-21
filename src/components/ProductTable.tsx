@@ -15,7 +15,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
 
   const handleDelete = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return;
-    
+
     setLoading(true);
     try {
       await deleteDoc(doc(db, 'products', productId));
@@ -32,7 +32,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
     setLoading(true);
     try {
       const updateData = { ...product };
-      
+
       if (newImage) {
         const imageUrl = await uploadImage(newImage);
         updateData.image = imageUrl;
@@ -89,8 +89,8 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 <button
                   onClick={() => toggleSuggestion(product)}
                   className={`px-3 py-1 rounded-full text-sm font-semibold
-                    ${product.isSuggested 
-                      ? 'bg-green-100 text-green-800' 
+                    ${product.isSuggested
+                      ? 'bg-green-100 text-green-800'
                       : 'bg-gray-100 text-gray-800'}`}
                 >
                   {product.isSuggested ? 'Yes' : 'No'}
@@ -126,7 +126,71 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 e.preventDefault();
                 handleUpdate(editingProduct);
               }}>
-                {/* Add form fields here similar to AddProductForm */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Name</label>
+                  <input
+                    type="text"
+                    value={editingProduct.name}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Price</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editingProduct.price}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Stock</label>
+                  <input
+                    type="number"
+                    value={editingProduct.stock}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Category</label>
+                  <input
+                    type="text"
+                    value={editingProduct.category}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">Description</label>
+                  <textarea
+                    value={editingProduct.description}
+                    onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                    rows={3}
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">New Image</label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleUpdate(editingProduct, e.target.files[0]);
+                      }
+                    }}
+                    className="mt-1 block w-full"
+                  />
+                  <p className="mt-1 text-sm text-gray-500">Current image will be kept if no new image is selected</p>
+                </div>
                 <button
                   type="submit"
                   disabled={loading}

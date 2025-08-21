@@ -3,8 +3,10 @@ import { collection, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Order } from "../types/order";
 import type { DashboardProduct } from "../types/dashboard";
+import type { Suggestion } from "../types/suggestion";
 import { ProductTable } from "../components/ProductTable";
 import { OrderTable } from "../components/OrderTable";
+import { SuggestionsTable } from "../components/SuggestionsTable";
 import AddProductForm from "../components/AddProductForm";
 
 type TabType = "overview" | "products" | "orders" | "suggestions";
@@ -20,6 +22,7 @@ export const DashboardPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>("overview");
   const [products, setProducts] = useState<DashboardProduct[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [stats, setStats] = useState<DashboardStats>({
@@ -60,6 +63,18 @@ export const DashboardPage = () => {
         } as Order;
       });
       setOrders(ordersData);
+
+      // Fetch suggestions
+      const suggestionsSnapshot = await getDocs(collection(db, "suggestions"));
+      const suggestionsData = suggestionsSnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: data.createdAt instanceof Timestamp ? data.createdAt.toDate() : new Date(),
+        } as Suggestion;
+      });
+      setSuggestions(suggestionsData);
 
       // Calculate stats
       const totalRevenue = ordersData.reduce(
@@ -116,10 +131,9 @@ export const DashboardPage = () => {
               onClick={() => setActiveTab(tab as TabType)}
               className={`
                 py-4 px-1 border-b-2 font-medium text-sm
-                ${
-                  activeTab === tab
-                    ? "border-primary text-primary"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                ${activeTab === tab
+                  ? "border-primary text-primary"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                 }
               `}
             >
@@ -167,10 +181,7 @@ export const DashboardPage = () => {
 
       {activeTab === "suggestions" && (
         <div>
-          <ProductTable
-            products={products.filter((p) => p.isSuggested)}
-            onUpdate={fetchData}
-          />
+          <SuggestionsTable suggestions={suggestions} onUpdate={fetchData} />
         </div>
       )}
 

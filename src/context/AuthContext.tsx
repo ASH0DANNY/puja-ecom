@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signup = async (email: string, password: string) => {
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       // Create a user document in Firestore
       await setDoc(doc(db, "users", userCredential.user.uid), {
         email: email,
@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         lastLogin: serverTimestamp(),
         displayName: null
       });
-      
+
     } catch (error) {
       console.error("Signup error:", error);
       throw error;
@@ -75,12 +75,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      
+
       // Update last login time
       await setDoc(doc(db, "users", userCredential.user.uid), {
         lastLogin: serverTimestamp()
       }, { merge: true });
-      
+
+      // Get updated user data from Firestore
+      const userDoc = await getDoc(doc(db, "users", userCredential.user.uid));
+      const userData = userDoc.data();
+
+      if (userData) {
+        setUser({
+          uid: userCredential.user.uid,
+          email: userCredential.user.email!,
+          displayName: userCredential.user.displayName,
+          role: userData.role,
+          createdAt: userData.createdAt.toDate(),
+          lastLogin: userData.lastLogin.toDate(),
+        });
+      }
     } catch (error) {
       console.error("Login error:", error);
       throw error;
