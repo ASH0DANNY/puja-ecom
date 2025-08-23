@@ -53,7 +53,6 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
 
   return (
     <>
-      {/* Orders Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -151,12 +150,6 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                     <p className="text-sm text-gray-900">
                       <span className="font-medium">Email:</span> {selectedOrder.userEmail}
                     </p>
-                    <p className="text-sm text-gray-900">
-                      <span className="font-medium">Address:</span><br />
-                      {selectedOrder.shippingAddress.street}<br />
-                      {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state} {selectedOrder.shippingAddress.postalCode}<br />
-                      {selectedOrder.shippingAddress.country}
-                    </p>
                   </div>
                 </div>
               </div>
@@ -172,30 +165,12 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                     <div className="w-1/5 text-right">Total</div>
                   </div>
                   <div className="divide-y divide-gray-200">
-                    {selectedOrder.items.map((item, index) => (
-                      <div key={item.product.id || index} className="flex items-center text-sm px-6 py-4">
-                        <div className="w-2/5">
-                          <div className="flex items-center">
-                            <img
-                              src={item.product.image}
-                              alt={item.product.name}
-                              className="w-10 h-10 object-cover rounded mr-3"
-                            />
-                            <div>
-                              <p className="font-medium">{item.product.name}</p>
-                              {(item.selectedSize || item.selectedColor) && (
-                                <p className="text-xs text-gray-500">
-                                  {item.selectedSize && `Size: ${item.selectedSize}`}
-                                  {item.selectedSize && item.selectedColor && ' | '}
-                                  {item.selectedColor && `Color: ${item.selectedColor}`}
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="w-1/5 text-center">${item.priceAtOrder.toFixed(2)}</div>
-                        <div className="w-1/5 text-center">{item.quantity}</div>
-                        <div className="w-1/5 text-right">${(item.priceAtOrder * item.quantity).toFixed(2)}</div>
+                    {selectedOrder.products.map((product) => (
+                      <div key={product.id} className="flex items-center text-sm px-6 py-4">
+                        <div className="w-2/5">{product.name}</div>
+                        <div className="w-1/5 text-center">${product.price.toFixed(2)}</div>
+                        <div className="w-1/5 text-center">{product.quantity}</div>
+                        <div className="w-1/5 text-right">${(product.price * product.quantity).toFixed(2)}</div>
                       </div>
                     ))}
                     <div className="flex items-center text-sm px-6 py-4 font-medium">
