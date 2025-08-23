@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import type { Product } from "../types/product";
-import { products } from "../data/products";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../config/firebase";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -12,11 +13,27 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
   const [isAdded, setIsAdded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, you would fetch from API
-    const foundProduct = products.find((p) => p.id === id);
-    setProduct(foundProduct || null);
+    const fetchProduct = async () => {
+      if (!id) return;
+      try {
+        const productDoc = await getDoc(doc(db, "products", id));
+        if (productDoc.exists()) {
+          setProduct({ id: productDoc.id, ...productDoc.data() } as Product);
+        } else {
+          setProduct(null);
+        }
+      } catch (error) {
+        console.error("Error fetching product:", error);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
   }, [id]);
 
   if (!product) {
@@ -34,7 +51,7 @@ const ProductDetails = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-10">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Product Image */}
         <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
@@ -54,11 +71,10 @@ const ProductDetails = () => {
                 {[...Array(5)].map((_, index) => (
                   <svg
                     key={index}
-                    className={`w-5 h-5 ${
-                      index < Math.floor(product.rating)
-                        ? "text-yellow-400"
-                        : "text-gray-300"
-                    }`}
+                    className={`w-5 h-5 ${index < Math.floor(product.rating)
+                      ? "text-yellow-400"
+                      : "text-gray-300"
+                      }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -88,11 +104,10 @@ const ProductDetails = () => {
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 border rounded-md ${
-                      selectedSize === size
-                        ? "border-primary bg-primary text-white"
-                        : "border-gray-300 hover:border-primary"
-                    }`}
+                    className={`px-4 py-2 border rounded-md ${selectedSize === size
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-300 hover:border-primary"
+                      }`}
                   >
                     {size}
                   </button>
@@ -110,11 +125,10 @@ const ProductDetails = () => {
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`px-4 py-2 border rounded-md ${
-                      selectedColor === color
-                        ? "border-primary bg-primary text-white"
-                        : "border-gray-300 hover:border-primary"
-                    }`}
+                    className={`px-4 py-2 border rounded-md ${selectedColor === color
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-300 hover:border-primary"
+                      }`}
                   >
                     {color}
                   </button>
@@ -148,17 +162,16 @@ const ProductDetails = () => {
             <button
               onClick={handleAddToCart}
               disabled={!product.inStock}
-              className={`w-full py-4 rounded-lg text-lg font-semibold ${
-                product.inStock
-                  ? "bg-primary text-white hover:bg-primary/90"
-                  : "bg-gray-300 cursor-not-allowed"
-              }`}
+              className={`w-full py-4 rounded-lg text-lg font-semibold ${product.inStock
+                ? "bg-primary text-white hover:bg-primary/90"
+                : "bg-gray-300 cursor-not-allowed"
+                }`}
             >
               {isAdded
                 ? "✓ Added to Cart"
                 : product.inStock
-                ? "Add to Cart"
-                : "Out of Stock"}
+                  ? "Add to Cart"
+                  : "Out of Stock"}
             </button>
           </div>
 

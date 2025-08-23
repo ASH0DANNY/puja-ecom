@@ -54,7 +54,7 @@ const SuggestionsPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-10">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">Suggestion Box</h1>
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -161,10 +161,9 @@ const SuggestionsPage = () => {
                 type="submit"
                 disabled={loading}
                 className={`w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white 
-                  ${
-                    loading
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                  ${loading
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                   }`}
               >
                 {loading ? "Submitting..." : "Submit Suggestion"}

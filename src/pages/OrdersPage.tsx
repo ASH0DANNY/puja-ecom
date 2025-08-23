@@ -27,10 +27,10 @@ const OrdersPage = () => {
         const ordersSnapshot = await getDocs(q);
         const ordersData = ordersSnapshot.docs.map(
           (doc) =>
-            ({
-              id: doc.id,
-              ...doc.data(),
-            } as Order)
+          ({
+            id: doc.id,
+            ...doc.data(),
+          } as Order)
         );
 
         setOrders(ordersData);
@@ -45,7 +45,7 @@ const OrdersPage = () => {
   }, [user]);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-10">
       <h1 className="text-4xl font-bold mb-8">My Orders</h1>
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
         {loading ? (
@@ -104,17 +104,16 @@ const OrdersPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${
-                        order.status?.toLowerCase() === "delivered"
-                          ? "bg-green-100 text-green-800"
-                          : order.status?.toLowerCase() === "shipped"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-yellow-100 text-yellow-800"
-                      }`}
+                      ${order.status?.toLowerCase() === "delivered"
+                            ? "bg-green-100 text-green-800"
+                            : order.status?.toLowerCase() === "shipped"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-yellow-100 text-yellow-800"
+                          }`}
                       >
                         {order.status
                           ? order.status.charAt(0).toUpperCase() +
-                            order.status.toLowerCase().slice(1)
+                          order.status.toLowerCase().slice(1)
                           : "Pending"}
                       </span>
                     </td>

@@ -110,7 +110,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
               {/* Profile - Only visible when logged in */}
               {user ? (
                 <div className="relative">
-                  <button
+                  <button 
                     onClick={toggleProfile}
                     className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100"
                   >

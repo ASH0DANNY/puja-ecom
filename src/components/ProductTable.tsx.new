@@ -131,7 +131,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 ×
               </button>
             </div>
-
+            
             <form onSubmit={(e) => {
               e.preventDefault();
               handleUpdate(editingProduct);
@@ -142,7 +142,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   {/* Basic Information */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
-
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Product Name
@@ -191,9 +191,9 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           type="number"
                           step="0.01"
                           value={editingProduct.discountPrice || ''}
-                          onChange={(e) => setEditingProduct({
-                            ...editingProduct,
-                            discountPrice: e.target.value ? parseFloat(e.target.value) : null
+                          onChange={(e) => setEditingProduct({ 
+                            ...editingProduct, 
+                            discountPrice: e.target.value ? parseFloat(e.target.value) : null 
                           })}
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
@@ -204,7 +204,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   {/* Categories & Details */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">Categories & Details</h3>
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -245,13 +245,13 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                     </div>
                   </div>
                 </div>
-
+                
                 {/* Right Column */}
                 <div className="space-y-6">
                   {/* Inventory */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">Inventory</h3>
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -284,7 +284,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   {/* Shipping */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">Shipping</h3>
-
+                    
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -315,15 +315,15 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   {/* Image Upload */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">Product Image</h3>
-
+                    
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Current Image
                       </label>
-                      <img
-                        src={editingProduct.image}
+                      <img 
+                        src={editingProduct.image} 
                         alt={editingProduct.name}
-                        className="w-32 h-32 object-cover rounded-lg mb-4"
+                        className="w-32 h-32 object-cover rounded-lg mb-4" 
                       />
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Upload New Image

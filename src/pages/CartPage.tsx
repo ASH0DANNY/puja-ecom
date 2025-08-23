@@ -8,7 +8,7 @@ const CartPage = () => {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-10">
         <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
         <div className="text-center py-12">
           <p className="text-gray-600 text-lg">Your cart is empty</p>
@@ -104,8 +104,8 @@ const CartPage = () => {
                 </div>
               </div>
             </div>
-            <button 
-              onClick={() => navigate('/payment')} 
+            <button
+              onClick={() => navigate('/payment')}
               className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90"
             >
               Proceed to Checkout

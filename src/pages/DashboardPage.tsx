@@ -109,7 +109,7 @@ export const DashboardPage = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-10">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Admin Dashboard</h1>
         {activeTab === "products" && (
@@ -187,24 +187,33 @@ export const DashboardPage = () => {
 
       {/* Add Product Modal */}
       {showAddProduct && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium">Add New Product</h3>
-                <button
-                  onClick={() => setShowAddProduct(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ×
-                </button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl">
+              {/* Header */}
+              <div className="p-6 border-b border-gray-200">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-2xl font-bold text-gray-900">Add New Product</h3>
+                  <button
+                    onClick={() => setShowAddProduct(false)}
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  >
+                    <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              <AddProductForm
-                onSuccess={() => {
-                  setShowAddProduct(false);
-                  fetchData();
-                }}
-              />
+
+              {/* Body */}
+              <div className="p-6">
+                <AddProductForm
+                  onSuccess={() => {
+                    setShowAddProduct(false);
+                    fetchData();
+                  }}
+                />
+              </div>
             </div>
           </div>
         </div>

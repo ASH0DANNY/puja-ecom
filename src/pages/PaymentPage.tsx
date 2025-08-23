@@ -169,7 +169,7 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="container mx-auto px-4 py-10 max-w-4xl">
       <h1 className="text-3xl font-bold mb-8">Payment</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg shadow-md p-6">
@@ -334,10 +334,9 @@ const PaymentPage = () => {
               type="submit"
               disabled={loading || !paymentMethod}
               className={`w-full py-3 mt-6 rounded-lg text-white font-semibold
-                ${
-                  loading || !paymentMethod
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary/90"
+                ${loading || !paymentMethod
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-primary hover:bg-primary/90"
                 }`}
             >
               {loading ? "Processing..." : "Make Payment"}
