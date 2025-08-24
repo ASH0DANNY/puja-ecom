@@ -36,10 +36,18 @@ const ProductDetails = () => {
     fetchProduct();
   }, [id]);
 
-  if (!product) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <p>Product not found</p>
       </div>
     );
   }
@@ -71,10 +79,11 @@ const ProductDetails = () => {
                 {[...Array(5)].map((_, index) => (
                   <svg
                     key={index}
-                    className={`w-5 h-5 ${index < Math.floor(product.rating)
-                      ? "text-yellow-400"
-                      : "text-gray-300"
-                      }`}
+                    className={`w-5 h-5 ${
+                      index < Math.floor(product.rating)
+                        ? "text-yellow-400"
+                        : "text-gray-300"
+                    }`}
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -104,10 +113,11 @@ const ProductDetails = () => {
                   <button
                     key={size}
                     onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 border rounded-md ${selectedSize === size
-                      ? "border-primary bg-primary text-white"
-                      : "border-gray-300 hover:border-primary"
-                      }`}
+                    className={`px-4 py-2 border rounded-md ${
+                      selectedSize === size
+                        ? "border-primary bg-primary text-white"
+                        : "border-gray-300 hover:border-primary"
+                    }`}
                   >
                     {size}
                   </button>
@@ -125,10 +135,11 @@ const ProductDetails = () => {
                   <button
                     key={color}
                     onClick={() => setSelectedColor(color)}
-                    className={`px-4 py-2 border rounded-md ${selectedColor === color
-                      ? "border-primary bg-primary text-white"
-                      : "border-gray-300 hover:border-primary"
-                      }`}
+                    className={`px-4 py-2 border rounded-md ${
+                      selectedColor === color
+                        ? "border-primary bg-primary text-white"
+                        : "border-gray-300 hover:border-primary"
+                    }`}
                   >
                     {color}
                   </button>
@@ -162,16 +173,17 @@ const ProductDetails = () => {
             <button
               onClick={handleAddToCart}
               disabled={!product.inStock}
-              className={`w-full py-4 rounded-lg text-lg font-semibold ${product.inStock
-                ? "bg-primary text-white hover:bg-primary/90"
-                : "bg-gray-300 cursor-not-allowed"
-                }`}
+              className={`w-full py-4 rounded-lg text-lg font-semibold ${
+                product.inStock
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
             >
               {isAdded
                 ? "✓ Added to Cart"
                 : product.inStock
-                  ? "Add to Cart"
-                  : "Out of Stock"}
+                ? "Add to Cart"
+                : "Out of Stock"}
             </button>
           </div>
 
