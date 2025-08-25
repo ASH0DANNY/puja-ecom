@@ -21,10 +21,10 @@ const HomePage = () => {
         const suggestedSnapshot = await getDocs(q);
         const suggestedData = suggestedSnapshot.docs.map(
           (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-          } as Product)
+            ({
+              id: doc.id,
+              ...doc.data(),
+            } as Product)
         );
         setSuggestedProducts(suggestedData);
       } catch (error) {
@@ -59,7 +59,8 @@ const HomePage = () => {
               Featured <span className="text-primary">Products</span>
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Discover our handpicked selection of trending products, carefully chosen to match your style and preferences.
+              Discover our handpicked selection of trending products, carefully
+              chosen to match your style and preferences.
             </p>
           </div>
           <ProductGrid />
@@ -74,7 +75,8 @@ const HomePage = () => {
               Suggested <span className="text-primary">For You</span>
             </h2>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              Based on your preferences and shopping history, we think you'll love these items.
+              Based on your preferences and shopping history, we think you'll
+              love these items.
             </p>
           </div>
 
@@ -86,7 +88,7 @@ const HomePage = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 lg:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 lg:gap-8">
               {suggestedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
@@ -99,9 +101,12 @@ const HomePage = () => {
       <section className="py-16 bg-gradient-to-r from-primary/5 to-primary/10">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Stay Updated</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Stay Updated
+            </h2>
             <p className="text-gray-600 mb-8">
-              Subscribe to our newsletter and be the first to know about new products and exclusive offers.
+              Subscribe to our newsletter and be the first to know about new
+              products and exclusive offers.
             </p>
             <form className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto">
               <input

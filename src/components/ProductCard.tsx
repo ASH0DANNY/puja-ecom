@@ -20,74 +20,52 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <div
-      className="group bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-xl 
-        transition-all duration-300 transform hover:-translate-y-1 cursor-pointer"
+      className="group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md 
+        transition-all duration-300 transform hover:-translate-y-1 cursor-pointer max-w-[250px]"
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Image Container */}
-      <div className="relative overflow-hidden aspect-square">
+      <div className="relative overflow-hidden" style={{ height: "180px" }}>
         <img
           src={product.image}
           alt={product.name}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
         />
 
-        {/* Quick Actions */}
-        <div className="absolute top-4 right-4 space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center
-              hover:bg-primary hover:text-white transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              // Add to wishlist functionality
-            }}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-            </svg>
-          </button>
-          <button
-            className="w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center
-              hover:bg-primary hover:text-white transition-colors"
-            onClick={handleAddToCart}
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-            </svg>
-          </button>
-        </div>
+        {/* Discount Tag */}
 
         {/* Discount Tag */}
         {product.discountPrice && (
           <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-medium">
             {`${Math.round(
-              100 - ((product.discountPrice! / product.price) * 100)
+              100 - (product.discountPrice! / product.price) * 100
             )}% OFF`}
           </div>
         )}
       </div>
 
       {/* Content */}
-      <div className="p-6">
-        <div className="mb-3">
-          <h3 className="text-lg font-semibold mb-1 group-hover:text-primary transition-colors">
+      <div className="p-3 flex flex-col">
+        <div className="mb-2">
+          <h3 className="text-sm font-semibold mb-0.5 group-hover:text-primary transition-colors line-clamp-1">
             {product.name}
           </h3>
-          <p className="text-gray-600 text-sm line-clamp-2">
+          <p className="text-gray-600 text-xs line-clamp-1">
             {product.description}
           </p>
         </div>
 
         {/* Rating */}
-        <div className="flex items-center mb-3">
+        <div className="flex items-center mb-2">
           <div className="flex items-center">
             {[...Array(5)].map((_, index) => (
               <svg
                 key={index}
-                className={`w-4 h-4 ${index < Math.floor(product.rating)
-                  ? "text-yellow-400"
-                  : "text-gray-300"
-                  }`}
+                className={`w-3 h-3 ${
+                  index < Math.floor(product.rating)
+                    ? "text-yellow-400"
+                    : "text-gray-300"
+                }`}
                 fill="currentColor"
                 viewBox="0 0 20 20"
               >
@@ -110,10 +88,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 <button
                   key={size}
                   onClick={() => setSelectedSize(size)}
-                  className={`px-2 py-1 text-sm border rounded ${selectedSize === size
-                    ? "border-primary bg-primary text-white"
-                    : "border-gray-300 hover:border-primary"
-                    }`}
+                  className={`px-2 py-1 text-sm border rounded ${
+                    selectedSize === size
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-300 hover:border-primary"
+                  }`}
                 >
                   {size}
                 </button>
@@ -132,10 +111,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 <button
                   key={color}
                   onClick={() => setSelectedColor(color)}
-                  className={`px-2 py-1 text-sm border rounded ${selectedColor === color
-                    ? "border-primary bg-primary text-white"
-                    : "border-gray-300 hover:border-primary"
-                    }`}
+                  className={`px-2 py-1 text-sm border rounded ${
+                    selectedColor === color
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-300 hover:border-primary"
+                  }`}
                 >
                   {color}
                 </button>
@@ -144,17 +124,25 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
         )}
 
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-xl font-bold text-primary">
-            ${product.price.toFixed(2)}
-          </span>
+        <div className="flex flex-col mt-auto">
+          <div className="mb-2">
+            <span className="text-lg font-bold text-primary">
+              ${product.price.toFixed(2)}
+            </span>
+            {product.discountPrice && (
+              <span className="ml-2 text-sm line-through text-gray-400">
+                ${product.discountPrice.toFixed(2)}
+              </span>
+            )}
+          </div>
           <button
             onClick={handleAddToCart}
             disabled={!product.inStock}
-            className={`px-4 py-2 rounded-lg ${product.inStock
-              ? "bg-primary text-white hover:bg-primary/90"
-              : "bg-gray-300 cursor-not-allowed"
-              }`}
+            className={`w-full py-2 rounded-lg text-sm font-medium ${
+              product.inStock
+                ? "bg-primary text-white hover:bg-primary/90"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
           >
             {product.inStock ? "Add to Cart" : "Out of Stock"}
           </button>

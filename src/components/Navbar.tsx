@@ -94,7 +94,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
             </div>
 
             {/* Cart & Profile */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
               {/* Cart - Always visible */}
               <Link
                 to="/cart"
@@ -113,7 +113,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                 <div className="relative">
                   <button
                     onClick={toggleProfile}
-                    className="flex items-center space-x-2 p-2 rounded-full hover:bg-gray-100"
+                    className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100"
                   >
                     {user.photoURL ? (
                       <img
