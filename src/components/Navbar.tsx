@@ -61,8 +61,9 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
             </button>
 
             <Link to="/" className="flex items-center space-x-2">
-              <img src="/logo.png" alt="Fashion Store" className="h-8 w-auto" />
-              <span className="text-xl font-bold text-primary">Fashion Store</span>
+              <span className="text-xl font-bold text-primary">
+                Fashion Store
+              </span>
             </Link>
 
             <div className="hidden lg:flex items-center space-x-6">
@@ -163,7 +164,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
               ) : (
                 <Link
                   to="/login"
-                  className="text-gray-600 hover:text-primary transition-colors font-medium"
+                  className="text-gray-600 hover:text-primary transition-colors font-medium text-sm md:text-base"
                 >
                   Sign in
                 </Link>
