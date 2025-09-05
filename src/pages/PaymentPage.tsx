@@ -5,6 +5,7 @@ import { doc, setDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import type { Order } from "../types/order";
+import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 
 // Shipping form interface
 interface ShippingForm {
@@ -18,6 +19,8 @@ interface ShippingForm {
 const PaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
   const [shippingForm, setShippingForm] = useState<ShippingForm>({
     street: "",
     city: "",
@@ -121,29 +124,54 @@ const PaymentPage = () => {
       };
 
       try {
-        // Create the order document
-        const ordersRef = collection(db, "orders");
-        const newOrderRef = doc(ordersRef);
+        try {
+          setLoading(true);
 
-        // Add the document ID and server timestamps
-        const finalOrderData = {
-          ...orderData,
-          id: newOrderRef.id,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        };
+          // Generate order number (in production this would be more sophisticated)
+          const orderNum = `ORD${Date.now().toString().slice(-6)}`;
+          setOrderNumber(orderNum);
 
-        // Set the order document
-        await setDoc(newOrderRef, finalOrderData);
+          // Create order record in Firebase
+          const orderRef = doc(collection(db, "orders"));
+          const orderData = {
+            id: orderRef.id,
+            orderNumber: orderNum,
+            userId: user.uid,
+            items: items.map(item => ({
+              product: {
+                id: item.id,
+                name: item.name,
+                image: item.image
+              },
+              quantity: item.quantity,
+              priceAtOrder: item.price,
+              selectedSize: item.selectedSize,
+              selectedColor: item.selectedColor
+            })),
+            total: total,
+            status: "pending",
+            paymentMethod: paymentMethod,
+            shippingAddress: shippingForm,
+            createdAt: serverTimestamp(),
+            updatedAt: serverTimestamp()
+          };
 
-        // Clear the cart
-        clearCart();
+          await setDoc(orderRef, orderData);
 
-        // Show success message
-        alert("Order placed successfully!");
+          // Clear cart and show success animation
+          clearCart();
+          setOrderNumber(orderRef.id);
+          setShowOrderSuccess(true);
 
-        // Redirect to orders page
-        navigate("/orders");
+          // Navigate to orders page after animation
+          setTimeout(() => {
+            setShowOrderSuccess(false);
+            navigate("/orders");
+          }, 3000);
+        } catch (error) {
+          console.error("Payment failed:", error);
+          setLoading(false);
+        }
       } catch (error) {
         console.error("Error creating order:", error);
         throw error; // Re-throw to be caught by outer try-catch
@@ -344,6 +372,11 @@ const PaymentPage = () => {
           </form>
         </div>
       </div>
+
+      {/* Success Animation */}
+      {showOrderSuccess && (
+        <OrderSuccessAnimation orderNumber={orderNumber} />
+      )}
     </div>
   );
 };

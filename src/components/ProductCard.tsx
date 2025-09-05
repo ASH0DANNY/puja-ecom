@@ -16,14 +16,18 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-
-    // If product has sizes or colors and we're on mobile, show modal
-    if ((product.sizes?.length || product.colors?.length) && window.innerWidth < 768) {
+    if (product.sizes || product.colors) {
       setShowModal(true);
-    } else {
-      // On desktop or products without variants, add directly
-      addToCart(product, 1, selectedSize, selectedColor);
+      return;
     }
+    addToCart(product, 1);
+
+    // Add animation to the button
+    const button = e.currentTarget as HTMLButtonElement;
+    button.classList.add('animate-bounce');
+    setTimeout(() => {
+      button.classList.remove('animate-bounce');
+    }, 1000);
   };
 
   const handleModalAddToCart = (e: React.MouseEvent) => {

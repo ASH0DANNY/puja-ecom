@@ -11,7 +11,9 @@ const FirstTimeDiscountPopup = () => {
     useEffect(() => {
         const checkDiscount = async () => {
             if (user) {
+                console.log('Checking discount for user:', user.uid);
                 const { hasDiscount, discount } = await checkFirstTimeDiscount();
+                console.log('Discount check result:', { hasDiscount, discount });
                 if (hasDiscount && discount) {
                     setDiscountCode(discount.code);
                     setShowPopup(true);
@@ -20,13 +22,13 @@ const FirstTimeDiscountPopup = () => {
         };
 
         checkDiscount();
-    }, [user]);
+    }, [user, checkFirstTimeDiscount]);
 
     if (!showPopup) return null;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative">
+            <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4 relative animate-fadeIn transform transition-all duration-500 hover:scale-102">
                 <button
                     onClick={() => setShowPopup(false)}
                     className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -63,7 +65,7 @@ const FirstTimeDiscountPopup = () => {
                         </svg>
                     </div>
 
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-2 animate-bounce">
                         Welcome Gift! 🎉
                     </h2>
 
@@ -74,7 +76,7 @@ const FirstTimeDiscountPopup = () => {
                     <div className="bg-gray-50 rounded-lg p-4 mb-6">
                         <p className="text-sm text-gray-600 mb-2">Your discount code:</p>
                         <div className="flex items-center justify-center space-x-2">
-                            <code className="bg-gray-100 px-4 py-2 rounded-lg text-lg font-mono font-semibold text-primary">
+                            <code className="bg-gray-100 px-4 py-2 rounded-lg text-lg font-mono font-semibold text-primary transform transition-all duration-300 hover:scale-105 inline-block">
                                 {discountCode}
                             </code>
                             <button

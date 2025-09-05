@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, updateDoc, doc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import type { Discount } from '../types/discount';
 
@@ -8,7 +8,22 @@ const DiscountManager = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [editingDiscount, setEditingDiscount] = useState<Discount | null>(null);
-    const [formData, setFormData] = useState({
+    interface DiscountFormData {
+        code: string;
+        description: string;
+        discountType: 'percentage' | 'fixed';
+        value: number;
+        minPurchase: number;
+        maxDiscount: number;
+        startDate: string;
+        endDate: string;
+        usageLimit: number;
+        userType: 'new' | 'all' | 'specific';
+        isActive: boolean;
+        currentUsage: number;
+    }
+
+    const [formData, setFormData] = useState<DiscountFormData>({
         code: '',
         description: '',
         discountType: 'percentage',
@@ -19,7 +34,8 @@ const DiscountManager = () => {
         endDate: '',
         usageLimit: 100,
         userType: 'all',
-        isActive: true
+        isActive: true,
+        currentUsage: 0
     });
 
     useEffect(() => {
@@ -51,10 +67,14 @@ const DiscountManager = () => {
             const discountData = {
                 ...formData,
                 code: formData.code.toUpperCase(),
-                currentUsage: 0,
-                startDate: new Date(formData.startDate),
-                endDate: formData.endDate ? new Date(formData.endDate) : null,
-                createdAt: serverTimestamp(),
+                currentUsage: editingDiscount ? formData.currentUsage : 0,
+                value: Number(formData.value),
+                minPurchase: Number(formData.minPurchase),
+                maxDiscount: Number(formData.maxDiscount),
+                usageLimit: Number(formData.usageLimit),
+                startDate: Timestamp.fromDate(new Date(formData.startDate)),
+                endDate: formData.endDate ? Timestamp.fromDate(new Date(formData.endDate)) : null,
+                createdAt: editingDiscount ? editingDiscount.createdAt : serverTimestamp(),
                 updatedAt: serverTimestamp()
             };
 
@@ -89,7 +109,8 @@ const DiscountManager = () => {
             endDate: discount.endDate ? discount.endDate.toISOString().split('T')[0] : '',
             usageLimit: discount.usageLimit,
             userType: discount.userType,
-            isActive: discount.isActive
+            isActive: discount.isActive,
+            currentUsage: discount.currentUsage
         });
         setShowForm(true);
     };
@@ -117,7 +138,8 @@ const DiscountManager = () => {
             endDate: '',
             usageLimit: 100,
             userType: 'all',
-            isActive: true
+            isActive: true,
+            currentUsage: 0
         });
     };
 

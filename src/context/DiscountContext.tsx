@@ -39,10 +39,44 @@ export const DiscountProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
 
     useEffect(() => {
+        const ensureFirstTimeDiscount = async () => {
+            try {
+                const firstTimeQuery = query(
+                    collection(db, 'discounts'),
+                    where('userType', '==', 'new'),
+                    where('isActive', '==', true)
+                );
+                const snapshot = await getDocs(firstTimeQuery);
+
+                if (snapshot.empty) {
+                    // Create a default first-time discount if none exists
+                    await addDoc(collection(db, 'discounts'), {
+                        code: 'WELCOME10',
+                        description: 'Welcome discount for new users',
+                        discountType: 'percentage',
+                        value: 10,
+                        minPurchase: 0,
+                        maxDiscount: 100,
+                        userType: 'new',
+                        isActive: true,
+                        usageLimit: 1,
+                        currentUsage: 0,
+                        startDate: Timestamp.now(),
+                        endDate: Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
+                        createdAt: serverTimestamp(),
+                        updatedAt: serverTimestamp()
+                    });
+                }
+            } catch (error) {
+                console.error('Error ensuring first-time discount:', error);
+            }
+        };
+
         const fetchActiveDiscounts = async () => {
             if (!user) return;
 
             try {
+                await ensureFirstTimeDiscount();
                 const q = query(
                     collection(db, 'discounts'),
                     where('isActive', '==', true),
@@ -93,7 +127,11 @@ export const DiscountProvider = ({ children }: { children: ReactNode }) => {
             } as Discount;
 
             // Check if discount is expired
-            if (discount.endDate && discount.endDate < new Date()) {
+            const endDate = discount.endDate instanceof Timestamp
+                ? discount.endDate.toDate()
+                : discount.endDate;
+
+            if (endDate && endDate < new Date()) {
                 return { isValid: false, discount: 0, message: 'Discount code has expired' };
             }
 

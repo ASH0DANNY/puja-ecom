@@ -8,8 +8,9 @@ import { ProductTable } from "../components/ProductTable";
 import { OrderTable } from "../components/OrderTable";
 import { SuggestionsTable } from "../components/SuggestionsTable";
 import AddProductForm from "../components/AddProductForm";
+import DiscountManager from "../components/DiscountManager";
 
-type TabType = "overview" | "products" | "orders" | "suggestions";
+type TabType = "overview" | "products" | "orders" | "suggestions" | "discounts";
 
 interface DashboardStats {
   totalRevenue: number;
@@ -125,7 +126,7 @@ export const DashboardPage = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-8">
         <nav className="-mb-px flex space-x-8">
-          {["overview", "products", "orders", "suggestions"].map((tab) => (
+          {["overview", "products", "orders", "suggestions", "discounts"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as TabType)}
@@ -182,6 +183,12 @@ export const DashboardPage = () => {
       {activeTab === "suggestions" && (
         <div>
           <SuggestionsTable suggestions={suggestions} onUpdate={fetchData} />
+        </div>
+      )}
+
+      {activeTab === "discounts" && (
+        <div>
+          <DiscountManager />
         </div>
       )}
 

@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
-import DiscountField from "../components/DiscountField";
+import DiscountSelector from "../components/DiscountSelector";
+import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 
 const CartPage = () => {
   const { items, removeFromCart, updateQuantity, total, subtotal, discount } = useCart();
   const navigate = useNavigate();
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
+  const [orderNumber, setOrderNumber] = useState("");
 
   if (items.length === 0) {
     return (
@@ -117,13 +121,34 @@ const CartPage = () => {
                 </div>
               </div>
             </div>
-            <DiscountField />
+            <DiscountSelector
+              subtotal={subtotal}
+              onDiscountApplied={(discountAmount) => {
+                // The actual discount amount will be handled by CartContext
+                // We can add additional UI feedback here if needed
+                console.log(`Discount of $${discountAmount} applied`);
+              }}
+            />
+            {/* Discount Code Input */}
+            <div className="mt-6 mb-4">
+              <h3 className="text-lg font-semibold mb-2">Have a Discount Code?</h3>
+              <DiscountSelector
+                subtotal={subtotal}
+                onDiscountApplied={(discountAmount) => {
+                  // The actual discount amount will be handled by CartContext
+                  console.log(`Discount of $${discountAmount} applied`);
+                }}
+              />
+            </div>
+
             <button
               onClick={() => navigate('/payment')}
-              className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90"
+              className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90 transition-all transform hover:scale-105"
             >
-              Proceed to Checkout
-            </button>
+              Proceed to Payment
+            </button>            {showOrderSuccess && (
+              <OrderSuccessAnimation orderNumber={orderNumber} />
+            )}
           </div>
         </div>
       </div>

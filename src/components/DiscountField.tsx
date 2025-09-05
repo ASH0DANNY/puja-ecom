@@ -31,8 +31,8 @@ const DiscountField = () => {
             <h3 className="font-semibold text-lg mb-4">Apply Discount Code</h3>
 
             {discountCode ? (
-                <div className="space-y-3">
-                    <div className="flex items-center justify-between bg-gray-50 p-3 rounded">
+                <div className="space-y-3 animate-fadeIn">
+                    <div className="flex items-center justify-between bg-gray-50 p-3 rounded transform transition-all duration-300 hover:scale-102 hover:shadow-md">
                         <div>
                             <p className="font-medium text-gray-900">{discountCode}</p>
                             <p className="text-sm text-gray-600">
@@ -41,7 +41,7 @@ const DiscountField = () => {
                         </div>
                         <button
                             onClick={removeDiscount}
-                            className="text-red-600 hover:text-red-800 text-sm font-medium"
+                            className="text-red-600 hover:text-red-800 text-sm font-medium transform transition-all duration-300 hover:scale-110"
                         >
                             Remove
                         </button>
@@ -61,8 +61,8 @@ const DiscountField = () => {
                             onClick={handleApplyDiscount}
                             disabled={loading || !code.trim()}
                             className={`px-4 py-2 rounded-lg font-medium ${loading || !code.trim()
-                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                    : 'bg-primary text-white hover:bg-primary/90'
+                                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                : 'bg-primary text-white hover:bg-primary/90'
                                 }`}
                         >
                             {loading ? 'Applying...' : 'Apply'}
@@ -71,8 +71,8 @@ const DiscountField = () => {
 
                     {message && (
                         <p className={`text-sm ${message.toLowerCase().includes('success')
-                                ? 'text-green-600'
-                                : 'text-red-600'
+                            ? 'text-green-600'
+                            : 'text-red-600'
                             }`}>
                             {message}
                         </p>
