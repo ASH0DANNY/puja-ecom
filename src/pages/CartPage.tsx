@@ -1,16 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCart } from "../context/CartContext";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import DiscountSelector from "../components/DiscountSelector";
 import DiscountField from "../components/DiscountField";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
+import { useAuth } from "../context/AuthContext";
+import { useDiscount } from "../context/DiscountContext";
 
 const CartPage = () => {
   const { items, removeFromCart, updateQuantity, total, subtotal, discount } = useCart();
+  const { user } = useAuth();
+  const { activeDiscounts } = useDiscount();
   const navigate = useNavigate();
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [discountMessage, setDiscountMessage] = useState("");
 
   if (items.length === 0) {
     return (
@@ -125,14 +130,31 @@ const CartPage = () => {
             {/* Available Discounts Section */}
             <div className="mt-6 mb-4">
               <h3 className="text-lg font-semibold mb-4">Available Discounts</h3>
-              <DiscountSelector
-                subtotal={subtotal}
-                onDiscountApplied={(amount: number) => {
-                  // Show success animation when discount is applied
-                  setShowOrderSuccess(true);
-                  setTimeout(() => setShowOrderSuccess(false), 3000);
-                }}
-              />
+              {user ? (
+                <DiscountSelector
+                  subtotal={subtotal}
+                  onDiscountApplied={(amount: number) => {
+                    setDiscountMessage(`Discount of $${amount.toFixed(2)} applied successfully!`);
+                    setShowOrderSuccess(true);
+                    setTimeout(() => setShowOrderSuccess(false), 3000);
+                  }}
+                />
+              ) : (
+                <div className="bg-gray-50 rounded-lg p-4 text-center">
+                  <p className="text-gray-600">Please log in to view available discounts</p>
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="mt-2 text-primary hover:text-primary/80 font-medium"
+                  >
+                    Log in
+                  </button>
+                </div>
+              )}
+              {discountMessage && (
+                <div className="mt-2 text-sm text-green-600">
+                  {discountMessage}
+                </div>
+              )}
             </div>
 
             {/* Manual Discount Code Input */}

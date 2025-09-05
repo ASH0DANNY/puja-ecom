@@ -39,48 +39,136 @@ export const DiscountProvider = ({ children }: { children: ReactNode }) => {
     const { user } = useAuth();
 
     useEffect(() => {
-        const ensureFirstTimeDiscount = async () => {
+        const setupDiscounts = async () => {
+            if (!user) return;
+
             try {
-                const firstTimeQuery = query(
+                console.log('Setting up discounts for user:', user.uid);
+                const discountQuery = query(
                     collection(db, 'discounts'),
-                    where('userType', '==', 'new'),
                     where('isActive', '==', true)
                 );
-                const snapshot = await getDocs(firstTimeQuery);
+                const snapshot = await getDocs(discountQuery);
+
+                // Log existing discounts
+                console.log('Found existing discounts:', snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                })));
 
                 if (snapshot.empty) {
-                    // Create a default first-time discount if none exists
-                    await addDoc(collection(db, 'discounts'), {
-                        code: 'WELCOME10',
-                        description: 'Welcome discount for new users',
-                        discountType: 'percentage',
-                        value: 10,
-                        minPurchase: 0,
-                        maxDiscount: 100,
-                        userType: 'new',
-                        isActive: true,
-                        usageLimit: 1,
-                        currentUsage: 0,
-                        startDate: Timestamp.now(),
-                        endDate: Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)),
-                        createdAt: serverTimestamp(),
-                        updatedAt: serverTimestamp()
-                    });
+                    console.log('No active discounts found, creating defaults...');
+                    const defaultDiscounts = [
+                        {
+                            code: 'WELCOME10',
+                            description: 'Welcome discount for new users',
+                            discountType: 'percentage',
+                            value: 10,
+                            minPurchase: 0,
+                            maxDiscount: 100,
+                            userType: 'new',
+                            isActive: true,
+                            usageLimit: 1,
+                            currentUsage: 0,
+                            startDate: Timestamp.now(),
+                            endDate: Timestamp.fromDate(new Date(2025, 11, 31)),
+                        },
+                        {
+                            code: 'SAVE20',
+                            description: 'Save 20% on your purchase',
+                            discountType: 'percentage',
+                            value: 20,
+                            minPurchase: 50,
+                            maxDiscount: 200,
+                            userType: 'all',
+                            isActive: true,
+                            usageLimit: 100,
+                            currentUsage: 0,
+                            startDate: Timestamp.now(),
+                            endDate: Timestamp.fromDate(new Date(2025, 11, 31)),
+                        }
+                    ];
+
+                    for (const discount of defaultDiscounts) {
+                        await addDoc(collection(db, 'discounts'), {
+                            ...discount,
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+                    console.log('Default discounts created successfully');
                 }
             } catch (error) {
                 console.error('Error ensuring first-time discount:', error);
             }
         };
 
+        const ensureDiscounts = async () => {
+            try {
+                console.log('Ensuring default discounts exist...');
+                const defaultDiscounts = [
+                    {
+                        code: 'SAVE20',
+                        description: '20% off on all purchases',
+                        discountType: 'percentage' as const,
+                        value: 20,
+                        minPurchase: 50,
+                        maxDiscount: 200,
+                        userType: 'all' as const,
+                        isActive: true,
+                        usageLimit: 100,
+                        currentUsage: 0,
+                        startDate: Timestamp.now(),
+                        endDate: Timestamp.fromDate(new Date(2025, 11, 31))
+                    },
+                    {
+                        code: 'FLAT50',
+                        description: 'Flat $50 off on purchases above $200',
+                        discountType: 'fixed' as const,
+                        value: 50,
+                        minPurchase: 200,
+                        maxDiscount: 50,
+                        userType: 'all' as const,
+                        isActive: true,
+                        usageLimit: 50,
+                        currentUsage: 0,
+                        startDate: Timestamp.now(),
+                        endDate: Timestamp.fromDate(new Date(2025, 11, 31))
+                    }
+                ];
+
+                // Check if discounts already exist
+                const existingSnapshot = await getDocs(collection(db, 'discounts'));
+                if (existingSnapshot.empty) {
+                    console.log('No discounts found, adding defaults...');
+                    for (const discount of defaultDiscounts) {
+                        await addDoc(collection(db, 'discounts'), {
+                            ...discount,
+                            createdAt: serverTimestamp(),
+                            updatedAt: serverTimestamp()
+                        });
+                    }
+                }
+            } catch (error) {
+                console.error('Error ensuring discounts:', error);
+            }
+        };
+
         const fetchActiveDiscounts = async () => {
-            if (!user) return;
+            if (!user) {
+                console.log('No user logged in, skipping discount fetch');
+                return;
+            }
 
             try {
-                await ensureFirstTimeDiscount();
+                console.log('Fetching active discounts for user:', user.uid);
+                // First check if we need to set up default discounts
+                await setupDiscounts();
+
+                // Now fetch all active discounts
                 const q = query(
                     collection(db, 'discounts'),
-                    where('isActive', '==', true),
-                    where('endDate', '>', Timestamp.now())
+                    where('isActive', '==', true)
                 );
 
                 const querySnapshot = await getDocs(q);
@@ -93,6 +181,7 @@ export const DiscountProvider = ({ children }: { children: ReactNode }) => {
                     updatedAt: doc.data().updatedAt.toDate(),
                 }) as Discount);
 
+                console.log('Loaded discounts:', discounts);
                 setActiveDiscounts(discounts);
             } catch (error) {
                 console.error('Error fetching discounts:', error);
