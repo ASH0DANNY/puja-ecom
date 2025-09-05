@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useCart } from "../context/CartContext";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
@@ -6,15 +6,13 @@ import DiscountSelector from "../components/DiscountSelector";
 import DiscountField from "../components/DiscountField";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useAuth } from "../context/AuthContext";
-import { useDiscount } from "../context/DiscountContext";
 
 const CartPage = () => {
-  const { items, removeFromCart, updateQuantity, total, subtotal, discount } = useCart();
+  const { items, removeFromCart, updateQuantity, total, subtotal, discount } =
+    useCart();
   const { user } = useAuth();
-  const { activeDiscounts } = useDiscount();
   const navigate = useNavigate();
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
-  const [orderNumber, setOrderNumber] = useState("");
   const [discountMessage, setDiscountMessage] = useState("");
 
   if (items.length === 0) {
@@ -99,51 +97,55 @@ const CartPage = () => {
         <div className="lg:col-span-1">
           <div className="bg-gray-50 rounded-lg p-6">
             <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-            <div className="space-y-2">
-              <div className="flex justify-between">
+            <div className="space-y-4">
+              <div className="flex justify-between text-gray-600">
                 <span>Subtotal</span>
-                <span>${total.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
+              <div className="flex justify-between text-gray-600">
                 <span>Shipping</span>
                 <span>Free</span>
               </div>
-              <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
-                <div className="flex justify-between text-gray-600">
-                  <span>Subtotal</span>
-                  <span>${subtotal.toFixed(2)}</span>
+              {discount > 0 && (
+                <div className="flex justify-between text-green-600 font-medium">
+                  <span>Discount Applied</span>
+                  <span>-${discount.toFixed(2)}</span>
                 </div>
-
-                {discount > 0 && (
-                  <div className="flex justify-between text-green-600">
-                    <span>Discount</span>
-                    <span>-${discount.toFixed(2)}</span>
-                  </div>
-                )}
-
-                <div className="flex justify-between font-semibold text-lg pt-2 border-t">
-                  <span>Total</span>
-                  <span>${total.toFixed(2)}</span>
-                </div>
+              )}
+              <div className="border-t border-gray-200 pt-4 flex justify-between font-semibold text-lg">
+                <span>Total</span>
+                <span>${total.toFixed(2)}</span>
               </div>
             </div>
+
             {/* Available Discounts Section */}
             <div className="mt-6 mb-4">
-              <h3 className="text-lg font-semibold mb-4">Available Discounts</h3>
+              <h3 className="text-lg font-semibold mb-4">
+                Available Discounts
+              </h3>
               {user ? (
                 <DiscountSelector
                   subtotal={subtotal}
-                  onDiscountApplied={(amount: number) => {
-                    setDiscountMessage(`Discount of $${amount.toFixed(2)} applied successfully!`);
+                  onDiscountApplied={async (amount: number) => {
+                    setDiscountMessage(
+                      `Discount of $${amount.toFixed(
+                        2
+                      )} applied. Total updated!`
+                    );
                     setShowOrderSuccess(true);
-                    setTimeout(() => setShowOrderSuccess(false), 3000);
+                    setTimeout(() => {
+                      setShowOrderSuccess(false);
+                      setDiscountMessage("");
+                    }, 3000);
                   }}
                 />
               ) : (
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
-                  <p className="text-gray-600">Please log in to view available discounts</p>
+                  <p className="text-gray-600">
+                    Please log in to view available discounts
+                  </p>
                   <button
-                    onClick={() => navigate('/login')}
+                    onClick={() => navigate("/login")}
                     className="mt-2 text-primary hover:text-primary/80 font-medium"
                   >
                     Log in
@@ -151,7 +153,7 @@ const CartPage = () => {
                 </div>
               )}
               {discountMessage && (
-                <div className="mt-2 text-sm text-green-600">
+                <div className="mt-2 text-sm text-green-600 font-medium">
                   {discountMessage}
                 </div>
               )}
@@ -159,21 +161,23 @@ const CartPage = () => {
 
             {/* Manual Discount Code Input */}
             <div className="mt-6 mb-4">
-              <h3 className="text-lg font-semibold mb-2">Have a Discount Code?</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                Have a Discount Code?
+              </h3>
               <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                 <DiscountField />
               </div>
             </div>
 
             <button
-              onClick={() => navigate('/payment')}
+              onClick={() => navigate("/payment")}
               className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90 transition-all transform hover:scale-105"
             >
-              Proceed to Payment
+              Proceed to Payment (${total.toFixed(2)})
             </button>
 
-            {showOrderSuccess && (
-              <OrderSuccessAnimation orderNumber={orderNumber} />
+            {showOrderSuccess && !discountMessage && (
+              <OrderSuccessAnimation orderNumber="" />
             )}
           </div>
         </div>

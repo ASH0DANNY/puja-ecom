@@ -4,7 +4,7 @@ import { useCart } from "../context/CartContext";
 import { doc, setDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
-import type { Order } from "../types/order";
+import { useDiscount } from "../context/DiscountContext";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 
 // Shipping form interface
@@ -28,8 +28,9 @@ const PaymentPage = () => {
     postalCode: "",
     country: "",
   });
-  const { items, total, clearCart } = useCart();
+  const { items, total, clearCart, discountCode } = useCart();
   const { user } = useAuth();
+  const { applyDiscount } = useDiscount();
   const navigate = useNavigate();
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
@@ -69,115 +70,77 @@ const PaymentPage = () => {
 
     setLoading(true);
     try {
-      // Create a new order
-      const orderData: Partial<Order> = {
+      // Generate order number (in production this would be more sophisticated)
+      const orderNum = `ORD${Date.now().toString().slice(-6)}`;
+      setOrderNumber(orderNum);
+
+      // Create order record in Firebase
+      const orderRef = doc(collection(db, "orders"));
+      // Calculate values before creating order data
+      const calculatedSubtotal = items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      const calculatedDiscountAmount = discountCode
+        ? calculatedSubtotal - total
+        : 0;
+
+      const orderData = {
+        id: orderRef.id,
+        orderNumber: orderNum,
         userId: user.uid,
-        userEmail: user.email || "",
         items: items.map((item) => ({
           product: {
-            id: item.id,
-            name: item.name,
-            description: item.description || "",
-            price: item.price,
-            discountPrice: item.discountPrice || null,
-            image: item.image,
-            category: item.category,
-            brand: item.brand || "",
-            material: item.material || "",
-            weight: item.weight || "",
-            dimensions: item.dimensions || "",
-            sku: item.sku || "",
-            sizes: item.sizes || [],
-            colors: item.colors || [],
-            tags: item.tags || [],
-            inStock: item.inStock ?? true,
-            stock: item.stock || 0,
-            sales: item.sales || 0,
-            rating: item.rating || 0,
-            reviewCount: item.reviewCount || 0,
-            isFeatured: item.isFeatured || false,
-            isSuggested: item.isSuggested || false,
-            shipping: {
-              width: item.shipping?.width || 0,
-              height: item.shipping?.height || 0,
-              depth: item.shipping?.depth || 0,
-              weight: item.shipping?.weight || 0,
-            },
-            createdAt: item.createdAt || new Date(),
-            updatedAt: item.updatedAt || new Date(),
+            id: item.id || "",
+            name: item.name || "",
+            image: item.image || "",
           },
-          quantity: item.quantity,
-          selectedSize: item.selectedSize || "",
-          selectedColor: item.selectedColor || "",
-          priceAtOrder: item.price,
+          quantity: item.quantity || 0,
+          priceAtOrder: item.price || 0,
+          selectedSize: item.selectedSize || null,
+          selectedColor: item.selectedColor || null,
         })),
-        total: total,
-        status: "pending" as const,
-        paymentMethod,
+        total: total || 0,
+        subtotal: calculatedSubtotal,
+        discountCode: discountCode || null,
+        discountAmount: calculatedDiscountAmount,
+        status: "pending",
+        paymentMethod: paymentMethod,
         shippingAddress: {
-          street: shippingForm.street.trim(),
-          city: shippingForm.city.trim(),
-          state: shippingForm.state.trim(),
-          postalCode: shippingForm.postalCode.trim(),
-          country: shippingForm.country.trim(),
+          street: shippingForm.street || "",
+          city: shippingForm.city || "",
+          state: shippingForm.state || "",
+          postalCode: shippingForm.postalCode || "",
+          country: shippingForm.country || "",
         },
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
       };
 
-      try {
+      // Apply discount if one is selected
+      if (discountCode) {
         try {
-          setLoading(true);
-
-          // Generate order number (in production this would be more sophisticated)
-          const orderNum = `ORD${Date.now().toString().slice(-6)}`;
-          setOrderNumber(orderNum);
-
-          // Create order record in Firebase
-          const orderRef = doc(collection(db, "orders"));
-          const orderData = {
-            id: orderRef.id,
-            orderNumber: orderNum,
-            userId: user.uid,
-            items: items.map(item => ({
-              product: {
-                id: item.id,
-                name: item.name,
-                image: item.image
-              },
-              quantity: item.quantity,
-              priceAtOrder: item.price,
-              selectedSize: item.selectedSize,
-              selectedColor: item.selectedColor
-            })),
-            total: total,
-            status: "pending",
-            paymentMethod: paymentMethod,
-            shippingAddress: shippingForm,
-            createdAt: serverTimestamp(),
-            updatedAt: serverTimestamp()
-          };
-
-          await setDoc(orderRef, orderData);
-
-          // Clear cart and show success animation
-          clearCart();
-          setOrderNumber(orderRef.id);
-          setShowOrderSuccess(true);
-
-          // Navigate to orders page after animation
-          setTimeout(() => {
-            setShowOrderSuccess(false);
-            navigate("/orders");
-          }, 3000);
+          await applyDiscount(discountCode);
         } catch (error) {
-          console.error("Payment failed:", error);
-          setLoading(false);
+          console.error("Error applying discount:", error);
+          // Continue with the order even if discount application fails
         }
-      } catch (error) {
-        console.error("Error creating order:", error);
-        throw error; // Re-throw to be caught by outer try-catch
       }
+
+      // Save the order
+      await setDoc(orderRef, orderData);
+
+      // Clear cart and show success animation
+      clearCart();
+      setShowOrderSuccess(true);
+
+      // Navigate to orders page after animation
+      setTimeout(() => {
+        setShowOrderSuccess(false);
+        navigate("/orders");
+      }, 3000);
     } catch (error) {
-      console.error("Error in checkout process:", error);
+      console.error("Payment failed:", error);
       if (error instanceof Error) {
         alert(`Error: ${error.message}`);
       } else {
@@ -362,9 +325,10 @@ const PaymentPage = () => {
               type="submit"
               disabled={loading || !paymentMethod}
               className={`w-full py-3 mt-6 rounded-lg text-white font-semibold
-                ${loading || !paymentMethod
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-primary hover:bg-primary/90"
+                ${
+                  loading || !paymentMethod
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-primary hover:bg-primary/90"
                 }`}
             >
               {loading ? "Processing..." : "Make Payment"}
@@ -374,9 +338,7 @@ const PaymentPage = () => {
       </div>
 
       {/* Success Animation */}
-      {showOrderSuccess && (
-        <OrderSuccessAnimation orderNumber={orderNumber} />
-      )}
+      {showOrderSuccess && <OrderSuccessAnimation orderNumber={orderNumber} />}
     </div>
   );
 };

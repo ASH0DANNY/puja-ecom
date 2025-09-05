@@ -21,7 +21,9 @@ interface CartContextType {
   discount: number;
   discountCode: string | null;
   setDiscountCode: (code: string | null) => void;
-  applyDiscount: (code: string) => Promise<{ success: boolean; message: string }>;
+  applyDiscount: (
+    code: string
+  ) => Promise<{ success: boolean; message: string }>;
   removeDiscount: () => void;
 }
 
@@ -107,18 +109,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const { validateDiscount } = useDiscount();
 
-  const applyDiscount = async (code: string): Promise<{ success: boolean; message: string }> => {
+  const applyDiscount = async (
+    code: string
+  ): Promise<{ success: boolean; message: string }> => {
     try {
       const result = await validateDiscount(code, subtotal);
       if (result.isValid) {
+        // Store the code and calculated discount amount
         setDiscountCode(code);
+        // Make sure to set the exact discount amount from validation
         setDiscount(result.discount);
-        return { success: true, message: result.message };
+        // Calculate the percentage for the message
+        const discountPercent = ((result.discount / subtotal) * 100).toFixed(1);
+        return {
+          success: true,
+          message: `Discount of $${result.discount.toFixed(
+            2
+          )} (${discountPercent}%) will be applied at checkout`,
+        };
       }
       return { success: false, message: result.message };
     } catch (error) {
-      console.error('Error applying discount:', error);
-      return { success: false, message: "Error applying discount" };
+      console.error("Error validating discount:", error);
+      return { success: false, message: "Error validating discount" };
     }
   };
 
@@ -129,6 +142,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   // Calculate final total after discount
   const total = Math.max(0, subtotal - discount);
+
+  // Recalculate discount when cart items change
+  useEffect(() => {
+    const revalidateDiscount = async () => {
+      if (discountCode) {
+        const result = await validateDiscount(discountCode, subtotal);
+        if (result.isValid) {
+          setDiscount(result.discount);
+        } else {
+          // If discount is no longer valid (e.g., cart total below minimum), remove it
+          setDiscountCode(null);
+          setDiscount(0);
+        }
+      }
+    };
+    revalidateDiscount();
+  }, [items, discountCode, validateDiscount, subtotal]);
 
   return (
     <CartContext.Provider
