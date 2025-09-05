@@ -1,9 +1,10 @@
 import { useCart } from "../context/CartContext";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import DiscountField from "../components/DiscountField";
 
 const CartPage = () => {
-  const { items, removeFromCart, updateQuantity, total } = useCart();
+  const { items, removeFromCart, updateQuantity, total, subtotal, discount } = useCart();
   const navigate = useNavigate();
 
   if (items.length === 0) {
@@ -97,13 +98,26 @@ const CartPage = () => {
                 <span>Shipping</span>
                 <span>Free</span>
               </div>
-              <div className="border-t border-gray-200 pt-2 mt-2">
-                <div className="flex justify-between font-semibold">
+              <div className="border-t border-gray-200 pt-4 mt-4 space-y-3">
+                <div className="flex justify-between text-gray-600">
+                  <span>Subtotal</span>
+                  <span>${subtotal.toFixed(2)}</span>
+                </div>
+
+                {discount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Discount</span>
+                    <span>-${discount.toFixed(2)}</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                   <span>Total</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
               </div>
             </div>
+            <DiscountField />
             <button
               onClick={() => navigate('/payment')}
               className="w-full bg-primary text-white py-3 rounded-lg mt-6 hover:bg-primary/90"
