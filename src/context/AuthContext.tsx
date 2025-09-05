@@ -8,7 +8,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
-import type { User } from "../types/dashboard";
+import type { User, UserRole } from "../types/dashboard";
 
 interface AuthContextType {
   user: User | null;
@@ -58,12 +58,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
       // Create a user document in Firestore
-      await setDoc(doc(db, "users", userCredential.user.uid), {
+      const userData = {
         email: email,
-        role: "user", // Default role
+        role: "user" as UserRole, // Default role with type assertion
         createdAt: serverTimestamp(),
         lastLogin: serverTimestamp(),
         displayName: null
+      };
+
+      await setDoc(doc(db, "users", userCredential.user.uid), userData);
+
+      // Set user data immediately after creation
+      setUser({
+        uid: userCredential.user.uid,
+        email: userCredential.user.email!,
+        displayName: userCredential.user.displayName,
+        role: userData.role,
+        createdAt: new Date(),
+        lastLogin: new Date(),
       });
 
     } catch (error) {

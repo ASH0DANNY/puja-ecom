@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import type { CartItem, Product } from "../types/product";
 import { useDiscount } from "./DiscountContext";
 import Cookies from "js-cookie";
+import CartAnimation from "../components/CartAnimation";
 
 interface CartContextType {
   items: CartItem[];
@@ -34,6 +35,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return Cookies.get("discountCode") || null;
   });
   const [discount, setDiscount] = useState(0);
+  const [showCartAnimation, setShowCartAnimation] = useState(false);
 
   // Save cart items and discount to cookies whenever they change
   useEffect(() => {
@@ -58,6 +60,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           item.selectedSize === size &&
           item.selectedColor === color
       );
+
+      // Show animation
+      setShowCartAnimation(true);
+      setTimeout(() => setShowCartAnimation(false), 2000);
 
       if (existingItem) {
         return currentItems.map((item) =>
@@ -142,6 +148,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <CartAnimation isVisible={showCartAnimation} />
     </CartContext.Provider>
   );
 }

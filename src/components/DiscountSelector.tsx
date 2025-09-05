@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useDiscount } from '../context/DiscountContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import CelebrationEffects from './animations/CelebrationEffects';
-
+import DiscountCard from './DiscountCard';
 
 interface DiscountSelectorProps {
     subtotal: number;
@@ -33,6 +33,11 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
     });
 
     const handleDiscountSelect = async (code: string) => {
+        if (code === selectedCode) {
+            // If clicking the same code, do nothing
+            return;
+        }
+
         setSelectedCode(code);
         const { isValid, discount, message: validationMessage } = await validateDiscount(code, subtotal);
 
@@ -44,8 +49,13 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
                 setShowCelebration(true);
                 setTimeout(() => setShowCelebration(false), 3000);
             }
-        } else {
-            setMessage({ text: validationMessage, type: 'error' });
+            if (activeDiscounts.length === 0) {
+                return (
+                    <div className="text-center text-gray-500 py-4">
+                        No discounts available at the moment
+                    </div>
+                );
+            } setSelectedCode('');
         }
     };
 

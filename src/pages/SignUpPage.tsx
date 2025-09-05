@@ -24,8 +24,14 @@ const SignUpPage = () => {
       setError("");
       setLoading(true);
       await signup(email, password);
+
+      // Show success message
       toast.success("Account created successfully! Welcome aboard!");
-      navigate("/");
+
+      // Short delay to ensure Firebase auth state is updated
+      setTimeout(() => {
+        navigate("/");
+      }, 1000);
     } catch (error) {
       const errorMessage =
         "Failed to create an account. " +
