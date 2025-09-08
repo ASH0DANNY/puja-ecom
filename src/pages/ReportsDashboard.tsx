@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   SalesReport,
   InventoryReport,
@@ -16,6 +16,7 @@ import {
   Legend,
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
+import { useScrollToTop } from "../utils/scrollToTop";
 
 ChartJS.register(
   CategoryScale,
@@ -36,6 +37,11 @@ const ReportsDashboard = () => {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
     end: new Date(),
   });
+  const scrollToTop = useScrollToTop();
+
+  useEffect(() => {
+    scrollToTop();
+  }, []);
 
   // Render different report sections based on the selected type
   const renderReport = () => {

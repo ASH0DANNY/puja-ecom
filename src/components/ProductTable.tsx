@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { updateDoc, deleteDoc, doc } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import type { Product } from '../types/product';
-import { uploadImage } from '../utils/cloudinary';
+import { useState } from "react";
+import { updateDoc, deleteDoc, doc } from "firebase/firestore";
+import { db } from "../config/firebase";
+import type { Product } from "../types/product";
+import { uploadImage } from "../utils/cloudinary";
 
 interface ProductTableProps {
   products: Product[];
@@ -14,15 +14,15 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
   const [loading, setLoading] = useState(false);
 
   const handleDelete = async (productId: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    if (!confirm("Are you sure you want to delete this product?")) return;
 
     setLoading(true);
     try {
-      await deleteDoc(doc(db, 'products', productId));
+      await deleteDoc(doc(db, "products", productId));
       onUpdate();
     } catch (error) {
-      console.error('Error deleting product:', error);
-      alert('Failed to delete product');
+      console.error("Error deleting product:", error);
+      alert("Failed to delete product");
     } finally {
       setLoading(false);
     }
@@ -38,12 +38,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
         updateData.image = imageUrl;
       }
 
-      await updateDoc(doc(db, 'products', product.id), updateData);
+      await updateDoc(doc(db, "products", product.id), updateData);
       onUpdate();
       setEditingProduct(null);
     } catch (error) {
-      console.error('Error updating product:', error);
-      alert('Failed to update product');
+      console.error("Error updating product:", error);
+      alert("Failed to update product");
     } finally {
       setLoading(false);
     }
@@ -51,13 +51,13 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
 
   const toggleSuggestion = async (product: Product) => {
     try {
-      await updateDoc(doc(db, 'products', product.id), {
-        isSuggested: !product.isSuggested
+      await updateDoc(doc(db, "products", product.id), {
+        isSuggested: !product.isSuggested,
       });
       onUpdate();
     } catch (error) {
-      console.error('Error updating suggestion:', error);
-      alert('Failed to update suggestion status');
+      console.error("Error updating suggestion:", error);
+      alert("Failed to update suggestion status");
     }
   };
 
@@ -67,34 +67,56 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stock</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sales</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Suggested</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Image
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Name
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Price
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Stock
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Sales
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Suggested
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {products.map((product) => (
               <tr key={product.id}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <img src={product.image} alt={product.name} className="h-10 w-10 object-cover rounded" />
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="h-10 w-10 object-cover rounded"
+                  />
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">${product.price.toFixed(2)}</td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  ${product.price.toFixed(2)}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.sales}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
                     onClick={() => toggleSuggestion(product)}
                     className={`px-3 py-1 rounded-full text-sm font-semibold
-                      ${product.isSuggested
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-gray-100 text-gray-800'}`}
+                      ${
+                        product.isSuggested
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
                   >
-                    {product.isSuggested ? 'Yes' : 'No'}
+                    {product.isSuggested ? "Yes" : "No"}
                   </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
@@ -132,16 +154,21 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
               </button>
             </div>
 
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleUpdate(editingProduct);
-            }} className="space-y-8">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleUpdate(editingProduct);
+              }}
+              className="space-y-8"
+            >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column */}
                 <div className="space-y-6">
                   {/* Basic Information */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Basic Information</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Basic Information
+                    </h3>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -151,7 +178,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                         type="text"
                         required
                         value={editingProduct.name}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, name: e.target.value })}
+                        onChange={(e) =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            name: e.target.value,
+                          })
+                        }
                         className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       />
                     </div>
@@ -163,7 +195,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                       <textarea
                         required
                         value={editingProduct.description}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, description: e.target.value })}
+                        onChange={(e) =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            description: e.target.value,
+                          })
+                        }
                         rows={4}
                         className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       />
@@ -179,7 +216,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           step="0.01"
                           required
                           value={editingProduct.price}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, price: parseFloat(e.target.value) })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              price: parseFloat(e.target.value),
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -190,11 +232,15 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                         <input
                           type="number"
                           step="0.01"
-                          value={editingProduct.discountPrice || ''}
-                          onChange={(e) => setEditingProduct({
-                            ...editingProduct,
-                            discountPrice: e.target.value ? parseFloat(e.target.value) : null
-                          })}
+                          value={editingProduct.discountPrice || ""}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              discountPrice: e.target.value
+                                ? parseFloat(e.target.value)
+                                : null,
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -203,7 +249,9 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
 
                   {/* Categories & Details */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Categories & Details</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Categories & Details
+                    </h3>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -214,7 +262,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           type="text"
                           required
                           value={editingProduct.category}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, category: e.target.value })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              category: e.target.value,
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -226,7 +279,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           type="text"
                           required
                           value={editingProduct.brand}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, brand: e.target.value })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              brand: e.target.value,
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -239,7 +297,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                       <input
                         type="text"
                         value={editingProduct.material}
-                        onChange={(e) => setEditingProduct({ ...editingProduct, material: e.target.value })}
+                        onChange={(e) =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            material: e.target.value,
+                          })
+                        }
                         className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                       />
                     </div>
@@ -250,7 +313,9 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 <div className="space-y-6">
                   {/* Inventory */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Inventory</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Inventory
+                    </h3>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -261,7 +326,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           type="text"
                           required
                           value={editingProduct.sku}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, sku: e.target.value })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              sku: e.target.value,
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -273,7 +343,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           type="number"
                           required
                           value={editingProduct.stock}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, stock: parseInt(e.target.value) })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              stock: parseInt(e.target.value),
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                           min="0"
                         />
@@ -283,7 +358,9 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
 
                   {/* Shipping */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Shipping</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Shipping
+                    </h3>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
@@ -294,7 +371,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           type="number"
                           step="0.1"
                           value={editingProduct.weight}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, weight: e.target.value })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              weight: e.target.value,
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -305,7 +387,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                         <input
                           type="text"
                           value={editingProduct.dimensions}
-                          onChange={(e) => setEditingProduct({ ...editingProduct, dimensions: e.target.value })}
+                          onChange={(e) =>
+                            setEditingProduct({
+                              ...editingProduct,
+                              dimensions: e.target.value,
+                            })
+                          }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
@@ -314,7 +401,9 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
 
                   {/* Image Upload */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
-                    <h3 className="text-lg font-medium text-gray-900">Product Image</h3>
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Product Image
+                    </h3>
 
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -362,7 +451,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   disabled={loading}
                   className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
-                  {loading ? 'Updating...' : 'Update Product'}
+                  {loading ? "Updating..." : "Update Product"}
                 </button>
               </div>
             </form>

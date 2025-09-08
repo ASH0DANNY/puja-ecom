@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { doc, setDoc, collection, serverTimestamp } from "firebase/firestore";
@@ -6,6 +6,7 @@ import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useDiscount } from "../context/DiscountContext";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
+import { useScrollToTop } from "../utils/scrollToTop";
 
 // Shipping form interface
 interface ShippingForm {
@@ -32,6 +33,11 @@ const PaymentPage = () => {
   const { user } = useAuth();
   const { applyDiscount } = useDiscount();
   const navigate = useNavigate();
+  const scrollToTop = useScrollToTop();
+
+  useEffect(() => {
+    scrollToTop();
+  }, []);
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

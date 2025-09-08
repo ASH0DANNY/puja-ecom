@@ -70,14 +70,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existingItem) {
         return currentItems.map((item) =>
           item === existingItem
-            ? { ...item, quantity: item.quantity + quantity }
+            ? {
+                ...item,
+                quantity: item.quantity + quantity,
+                name: product.name,
+              }
             : item
         );
       }
 
       return [
         ...currentItems,
-        { ...product, quantity, selectedSize: size, selectedColor: color },
+        {
+          ...product,
+          quantity,
+          selectedSize: size,
+          selectedColor: color,
+          name: product.name,
+        },
       ];
     });
   };

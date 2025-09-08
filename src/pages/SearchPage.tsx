@@ -1,14 +1,20 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import type { DocumentData } from "firebase/firestore";
 import { db } from "../config/firebase";
 import ProductGrid from "../components/ProductGrid";
 import type { Product } from "../types/product";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useScrollToTop } from "../utils/scrollToTop";
 
 const SearchPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const scrollToTop = useScrollToTop();
+
+  useEffect(() => {
+    scrollToTop();
+  }, []);
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);

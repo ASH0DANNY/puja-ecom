@@ -8,6 +8,7 @@ export type OrderStatus =
   | "cancelled";
 
 export interface OrderItem {
+  name?: string;
   product: Product;
   quantity: number;
   selectedSize?: string;
