@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { menuItems } from "../constants/menuItems";
+import { useAuth } from "../context/AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -7,6 +8,17 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+  const { user, logout } = useAuth();
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      onClose();
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
   return (
     <div
       className={`fixed inset-y-0 left-0 transform ${
@@ -32,7 +44,9 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             />
           </svg>
         </button>
-        <div className="mt-8 space-y-4">
+
+        {/* Menu Items */}
+        <div className="space-y-4">
           {menuItems.map((item) => (
             <Link
               key={item.id}
@@ -44,6 +58,56 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             </Link>
           ))}
         </div>
+
+        {/* Profile Section */}
+        {user && (
+          <div className="mt-6">
+            <div className="flex items-center space-x-3 mb-4">
+              {user.photoURL ? (
+                <img
+                  src={user.photoURL}
+                  alt="Profile"
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <div className="h-10 w-10 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                  <span className="text-lg font-medium">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+              )}
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  {user.email}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-1 border-b border-gray-200 pb-4">
+              <Link
+                to="/orders"
+                className="block text-gray-700 hover:text-primary"
+                onClick={onClose}
+              >
+                My Orders
+              </Link>
+              {user.role === "admin" && (
+                <Link
+                  to="/dashboard"
+                  className="block text-gray-700 hover:text-primary"
+                  onClick={onClose}
+                >
+                  Dashboard
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left text-red-600 hover:text-red-700"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

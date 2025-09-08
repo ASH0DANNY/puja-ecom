@@ -1,11 +1,11 @@
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   FaFacebookF,
   FaTwitter,
   FaInstagram,
   FaLinkedinIn,
-} from 'react-icons/fa';
-import { MdMail, MdPhone, MdLocationOn } from 'react-icons/md';
+} from "react-icons/fa";
+import { MdMail, MdPhone, MdLocationOn } from "react-icons/md";
 
 const Footer = () => {
   return (
@@ -16,11 +16,19 @@ const Footer = () => {
           {/* About Section */}
           <div className="space-y-4">
             <div className="flex items-center">
-              <img src="/logo.png" alt="Fashion Store" className="h-8 w-auto" />
-              <span className="ml-2 text-xl font-bold text-white">Fashion Store</span>
+              <img
+                src="https://thekkgroups.in/cdn/shop/files/kk_logo_png.png?v=1696485501&width=500"
+                alt="Fashion Store"
+                className="h-8 w-auto"
+              />
+              <span className="ml-2 text-xl font-bold text-white">
+                Fashion Store
+              </span>
             </div>
             <p className="text-gray-400 text-sm">
-              Your one-stop destination for trendy and fashionable clothing. We bring you the latest styles and fashion trends from around the world.
+              Your one-stop destination for trendy and fashionable clothing. We
+              bring you the latest styles and fashion trends from around the
+              world.
             </p>
             <div className="flex space-x-4">
               <a
@@ -52,25 +60,39 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">Quick Links</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">
+              Quick Links
+            </h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Home
                 </Link>
               </li>
               <li>
-                <Link to="/products" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/products"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Shop
                 </Link>
               </li>
               <li>
-                <Link to="/categories" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/categories"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Categories
                 </Link>
               </li>
               <li>
-                <Link to="/orders" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/orders"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Orders
                 </Link>
               </li>
@@ -79,25 +101,39 @@ const Footer = () => {
 
           {/* Customer Service */}
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">Customer Service</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">
+              Customer Service
+            </h3>
             <ul className="space-y-2">
               <li>
-                <Link to="/faq" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/faq"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   FAQ
                 </Link>
               </li>
               <li>
-                <Link to="/shipping" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/shipping"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Shipping Information
                 </Link>
               </li>
               <li>
-                <Link to="/returns" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/returns"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Returns & Exchanges
                 </Link>
               </li>
               <li>
-                <Link to="/size-guide" className="text-gray-400 hover:text-white transition-colors">
+                <Link
+                  to="/size-guide"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   Size Guide
                 </Link>
               </li>
@@ -106,24 +142,33 @@ const Footer = () => {
 
           {/* Contact Info */}
           <div>
-            <h3 className="text-white text-lg font-semibold mb-4">Contact Us</h3>
+            <h3 className="text-white text-lg font-semibold mb-4">
+              Contact Us
+            </h3>
             <ul className="space-y-3">
               <li className="flex items-center space-x-2">
                 <MdMail className="text-primary w-5 h-5" />
-                <a href="mailto:support@fashionstore.com" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="mailto:support@fashionstore.com"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   support@fashionstore.com
                 </a>
               </li>
               <li className="flex items-center space-x-2">
                 <MdPhone className="text-primary w-5 h-5" />
-                <a href="tel:+1234567890" className="text-gray-400 hover:text-white transition-colors">
+                <a
+                  href="tel:+1234567890"
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
                   +1 (234) 567-890
                 </a>
               </li>
               <li className="flex items-start space-x-2">
                 <MdLocationOn className="text-primary w-5 h-5 mt-1" />
                 <span className="text-gray-400">
-                  123 Fashion Street<br />
+                  123 Fashion Street
+                  <br />
                   New York, NY 10001
                 </span>
               </li>
@@ -140,10 +185,16 @@ const Footer = () => {
               © {new Date().getFullYear()} Fashion Store. All rights reserved.
             </p>
             <div className="flex space-x-6">
-              <Link to="/privacy" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link
+                to="/privacy"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
                 Privacy Policy
               </Link>
-              <Link to="/terms" className="text-gray-400 hover:text-white text-sm transition-colors">
+              <Link
+                to="/terms"
+                className="text-gray-400 hover:text-white text-sm transition-colors"
+              >
                 Terms of Service
               </Link>
             </div>

@@ -9,35 +9,46 @@ interface ProductGridProps {
   subtitle?: string;
   limit?: number;
   isSuggested?: boolean;
+  products?: Product[];
 }
 
-const ProductGrid = ({ title, subtitle, limit, isSuggested }: ProductGridProps) => {
+const ProductGrid = ({
+  title,
+  subtitle,
+  limit,
+  isSuggested,
+  products: propProducts,
+}: ProductGridProps) => {
   const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!propProducts);
 
   useEffect(() => {
+    if (propProducts) {
+      setProducts(propProducts);
+      setLoading(false);
+      return;
+    }
+
     const fetchProducts = async () => {
       try {
-        const productsSnapshot = await getDocs(collection(db, "products"));
-        let productsData = productsSnapshot.docs.map(
-          (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-          } as Product)
-        );
-
-        // If this is the suggested section, randomize the products
-        if (isSuggested) {
-          productsData = productsData.sort(() => Math.random() - 0.5);
-        }
+        const productsCollection = collection(db, "products");
+        const productsSnapshot = await getDocs(productsCollection);
+        const productsList = productsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as Product[];
 
         // Apply limit if specified
-        if (limit) {
-          productsData = productsData.slice(0, limit);
-        }
+        const limitedProducts = limit
+          ? productsList.slice(0, limit)
+          : productsList;
 
-        setProducts(productsData);
+        // Filter suggested products if isSuggested is true
+        const filteredProducts = isSuggested
+          ? limitedProducts.filter((product) => product.isSuggested)
+          : limitedProducts;
+
+        setProducts(filteredProducts);
       } catch (error) {
         console.error("Error fetching products:", error);
       } finally {
@@ -46,7 +57,7 @@ const ProductGrid = ({ title, subtitle, limit, isSuggested }: ProductGridProps) 
     };
 
     fetchProducts();
-  }, [limit, isSuggested]);
+  }, [limit, isSuggested, propProducts]);
 
   if (loading) {
     return (
@@ -69,10 +80,13 @@ const ProductGrid = ({ title, subtitle, limit, isSuggested }: ProductGridProps) 
         </div>
       )}
       <div className="px-2 sm:px-4 md:px-6">
-        <div className={`grid grid-cols-2 gap-2 sm:gap-4 md:gap-6 ${isSuggested
-            ? 'max-w-4xl mx-auto'
-            : 'md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5'
-          }`}>
+        <div
+          className={`grid grid-cols-2 gap-2 sm:gap-4 md:gap-6 ${
+            isSuggested
+              ? "max-w-4xl mx-auto"
+              : "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+          }`}
+        >
           {products.map((product) => (
             <div key={product.id}>
               <ProductCard product={product} />

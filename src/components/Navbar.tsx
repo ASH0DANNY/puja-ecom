@@ -36,11 +36,11 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 fixed w-full z-50">
+    <nav className="backdrop-blur-md bg-white/80 border-b border-gray-200/50 fixed w-full z-50 shadow-sm">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-20 md:h-24">
           {/* Left Section - Logo & Menu */}
-          <div className="flex items-center space-x-8">
+          <div className="flex items-center justify-between w-full lg:w-auto lg:justify-start">
             <button
               onClick={onMenuClick}
               className="lg:hidden p-2 rounded-md text-gray-700 hover:bg-gray-100 focus:outline-none"
@@ -60,13 +60,18 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
               </svg>
             </button>
 
-            <Link to="/" className="flex items-center space-x-2">
-              <span className="text-xl font-bold text-primary">
-                Fashion Store
-              </span>
+            <Link
+              to="/"
+              className="flex items-center justify-center flex-1 lg:flex-none lg:justify-start"
+            >
+              <img
+                src="https://thekkgroups.in/cdn/shop/files/kk_logo_png.png?v=1696485501&width=500"
+                alt="Logo"
+                className="h-16 w-auto lg:h-12"
+              />
             </Link>
 
-            <div className="hidden lg:flex items-center space-x-6">
+            <div className="hidden lg:flex items-center space-x-6 ml-6">
               {menuItems.map((item) => (
                 <Link
                   key={item.id}
@@ -80,109 +85,105 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
           </div>
 
           {/* Right Section - Search, Cart & Profile */}
-          <div className="flex items-center space-x-6">
-            {/* Search */}
+          <div className="flex items-center space-x-1">
+            {/* Search - Desktop */}
             <div className="hidden md:flex items-center">
-              <div className="relative">
-                <input
-                  type="text"
-                  placeholder="Search products..."
-                  className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-                />
-                <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              </div>
+              <Link to="/search" className="w-full">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    className="w-64 pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary cursor-pointer"
+                    readOnly
+                  />
+                  <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                </div>
+              </Link>
             </div>
 
-            {/* Cart & Profile */}
-            <div className="flex items-center space-x-2">
-              {/* Cart - Always visible */}
-              <Link
-                to="/cart"
-                className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-primary transition-colors relative"
-              >
-                <ShoppingCartIcon className="h-6 w-6" />
-                {cartItemsCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {cartItemsCount}
-                  </span>
-                )}
-              </Link>
+            {/* Search Icon - Mobile */}
+            <Link
+              to="/search"
+              className="md:hidden p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-primary transition-colors"
+            >
+              <MagnifyingGlassIcon className="h-6 w-6" />
+            </Link>
 
-              {/* Profile - Only visible when logged in */}
-              {user ? (
-                <div className="relative">
-                  <button
-                    onClick={toggleProfile}
-                    className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100"
-                  >
-                    {user.photoURL ? (
-                      <img
-                        src={user.photoURL}
-                        alt="Profile"
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
-                        <span className="text-sm font-medium">
-                          {user.email?.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </button>
-                  {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">
-                          {user.email}
-                        </p>
-                      </div>
+            {/* Cart - Always visible */}
+            <Link
+              to="/cart"
+              className="p-2 rounded-full hover:bg-gray-100 text-gray-600 hover:text-primary transition-colors relative"
+            >
+              <ShoppingCartIcon className="h-6 w-6" />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemsCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Profile - Only visible on desktop */}
+            {user ? (
+              <div className="relative hidden lg:block">
+                <button
+                  onClick={toggleProfile}
+                  className="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100"
+                >
+                  {user.photoURL ? (
+                    <img
+                      src={user.photoURL}
+                      alt="Profile"
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-primary/10 text-primary flex items-center justify-center">
+                      <span className="text-sm font-medium">
+                        {user.email?.charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                </button>
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-10">
+                    <div className="px-4 py-2 border-b border-gray-100">
+                      <p className="text-sm font-medium text-gray-900">
+                        {user.email}
+                      </p>
+                    </div>
+                    <Link
+                      to="/orders"
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      onClick={() => setIsProfileOpen(false)}
+                    >
+                      My Orders
+                    </Link>
+                    {user.role === "admin" && (
                       <Link
-                        to="/orders"
+                        to="/dashboard"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         onClick={() => setIsProfileOpen(false)}
                       >
-                        My Orders
+                        Dashboard
                       </Link>
-                      {user.role === "admin" && (
-                        <Link
-                          to="/dashboard"
-                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                          onClick={() => setIsProfileOpen(false)}
-                        >
-                          Dashboard
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        Sign out
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  to="/login"
-                  className="text-gray-600 hover:text-primary transition-colors font-medium text-sm md:text-base"
-                >
-                  Sign in
-                </Link>
-              )}
-            </div>
+                    )}
+                    <button
+                      onClick={handleLogout}
+                      className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                to="/login"
+                className="hidden lg:block text-gray-600 hover:text-primary transition-colors font-medium text-sm md:text-base"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
-        </div>
-      </div>
-
-      {/* Mobile Search - Shown below header on mobile */}
-      <div className="md:hidden border-t border-gray-200 p-4">
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search products..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          />
-          <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
         </div>
       </div>
     </nav>

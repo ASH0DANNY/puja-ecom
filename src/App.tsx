@@ -18,7 +18,7 @@ import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
-
+import SearchPage from "./pages/SearchPage";
 import ProductDetails from "./pages/ProductDetails";
 import PaymentPage from "./pages/PaymentPage";
 import { CartProvider } from "./context/CartContext";
@@ -58,6 +58,7 @@ function App() {
                   <Route path="/" element={<HomePage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/signup" element={<SignUpPage />} />
+                  <Route path="/search" element={<SearchPage />} />
                   <Route path="/categories" element={<CategoriesPage />} />
                   <Route path="/suggestions" element={<SuggestionsPage />} />
                   <Route path="/product/:id" element={<ProductDetails />} />
