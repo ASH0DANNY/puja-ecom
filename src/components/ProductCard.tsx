@@ -64,7 +64,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div>
 
           {/* Rating */}
-          <div className="flex items-center mb-2">
+          {/* <div className="flex items-center mb-2">
             <div className="flex items-center">
               {[...Array(5)].map((_, index) => (
                 <svg
@@ -83,7 +83,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <span className="text-sm text-gray-600 ml-1">
               ({product.reviewCount})
             </span>
-          </div>
+          </div> */}
 
           {/* Size & Color Selection - Only visible on desktop */}
           <div className="hidden md:block">
@@ -140,12 +140,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <div className="flex flex-col mt-auto">
             <div className="mb-1 md:mb-2">
-              <span className="text-base md:text-lg font-bold text-primary">
-                ${product.price.toFixed(2)}
+              <span className="text-gray-600 md:text-lg font-medium text-gray-600">
+                ₹{(product.discountPrice ?? product.price).toFixed(2)}
               </span>
               {product.discountPrice && (
                 <span className="ml-1 md:ml-2 text-xs md:text-sm line-through text-gray-400">
-                  ${product.discountPrice.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </span>
               )}
             </div>

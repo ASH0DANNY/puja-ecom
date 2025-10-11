@@ -258,7 +258,7 @@ export const DiscountProvider = ({ children }: { children: ReactNode }) => {
         return {
           isValid: false,
           discount: 0,
-          message: `Minimum purchase of $${discount.minPurchase} required`,
+          message: `Minimum purchase of ₹${discount.minPurchase} required`,
         };
       }
 

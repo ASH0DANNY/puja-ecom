@@ -102,7 +102,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.sales}</td>
@@ -209,7 +209,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Price ($)
+                          Price (Rs)
                         </label>
                         <input
                           type="number"
@@ -227,7 +227,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Discount Price ($)
+                          Discount Price (Rs)
                         </label>
                         <input
                           type="number"

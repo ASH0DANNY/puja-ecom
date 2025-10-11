@@ -230,10 +230,10 @@ const OrdersPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Spent</p>
                 <p className="text-2xl font-bold text-primary">
-                  ${orderStats.totalSpent.toFixed(2)}
+                  ₹{orderStats.totalSpent.toFixed(2)}
                 </p>
               </div>
-              <DollarSign className="w-8 h-8 text-primary" />
+              {/* <DollarSign className="w-8 h-8 text-primary" /> */}
             </div>
           </div>
         </div>

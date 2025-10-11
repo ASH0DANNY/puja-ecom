@@ -161,15 +161,15 @@ const Footer = () => {
                   href="tel:+1234567890"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  +1 (234) 567-890
+                  +91 9876543210
                 </a>
               </li>
               <li className="flex items-start space-x-2">
                 <MdLocationOn className="text-primary w-5 h-5 mt-1" />
                 <span className="text-gray-400">
-                  123 Fashion Street
+                  Main Road Galudih
                   <br />
-                  New York, NY 10001
+                  Ghatsila
                 </span>
               </li>
             </ul>

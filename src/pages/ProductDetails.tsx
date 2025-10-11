@@ -246,7 +246,7 @@ const ProductDetails = () => {
               <p className="text-sm text-gray-500 uppercase tracking-wider">
                 {product.brand}
               </p>
-              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 leading-tight">
+              <h1 className="text-2xl lg:text-2xl font-bold text-gray-900 leading-tight">
                 {product.name}
               </h1>
             </div>
@@ -279,15 +279,15 @@ const ProductDetails = () => {
 
             {/* Price */}
             <div className="flex items-baseline space-x-3">
-              <p className="text-3xl lg:text-4xl font-bold text-primary">
-                $
+              <p className="text-3xl lg:text-2xl font-bold text-gray-700 ">
+                ₹
                 {hasDiscount
                   ? product.discountPrice!.toFixed(2)
                   : product.price.toFixed(2)}
               </p>
               {hasDiscount && (
                 <p className="text-xl text-gray-500 line-through">
-                  ${product.price.toFixed(2)}
+                  ₹{product.price.toFixed(2)}
                 </p>
               )}
             </div>
