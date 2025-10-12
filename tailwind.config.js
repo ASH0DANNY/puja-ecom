@@ -8,7 +8,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: "#4F46E5",
+        // primary: "#4F46E5",
+        primary:"#37353E",
       },
       animation: {
         'bounce-once': 'bounce 1s ease-in-out',

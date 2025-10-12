@@ -70,9 +70,9 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
           <div className="absolute left-1/2 transform -translate-x-1/2 lg:relative lg:left-0 lg:transform-none">
             <Link to="/" className="flex items-center">
               <img
-                src="https://thekkgroups.in/cdn/shop/files/kk_logo_png.png?v=1696485501&width=500"
+                src="../src/assets/images/logo2.png"
                 alt="Logo"
-                className="h-16 w-auto lg:h-16"
+                className="h-16 w-auto lg:h-30"
               />
             </Link>
           </div>

@@ -17,12 +17,12 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <img
-                src="https://thekkgroups.in/cdn/shop/files/kk_logo_png.png?v=1696485501&width=500"
-                alt="Fashion Store"
+                src="../../src/assets/images/logo2.png"
+                alt="Kahana Store"
                 className="h-8 w-auto"
               />
               <span className="ml-2 text-xl font-bold text-white">
-                Fashion Store
+                Kahana Store
               </span>
             </div>
             <p className="text-gray-400 text-sm">
@@ -152,7 +152,7 @@ const Footer = () => {
                   href="mailto:support@fashionstore.com"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  support@fashionstore.com
+                  support@kahanastore.com
                 </a>
               </li>
               <li className="flex items-center space-x-2">
