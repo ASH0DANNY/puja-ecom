@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { uploadImage } from "../utils/cloudinary";
+import { uploadImages } from "../utils/cloudinary";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
@@ -60,42 +60,26 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       weight: "",
     },
   });
-  const [images, setImages] = useState<File[]>([]);
-  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mainImage) {
-      alert("Please select a main image");
+    if (!productImage) {
+      alert("Please select a product image");
       return;
     }
 
     setLoading(true);
     try {
-      // Upload main image first
-      const mainImageUrl = await uploadImage(mainImage);
-
-      // Upload additional images if any
-      const additionalImageUrls =
-        images.length > 0
-          ? await Promise.all(images.map((img) => uploadImage(img)))
-          : [];
-
-      // Log for debugging
-      console.log("Uploaded images:", {
-        mainImage: mainImageUrl,
-        additionalImages: additionalImageUrls,
-      });
+      // Upload product image
+      const imageUrl = await uploadImage(productImage);
 
       const productData: Omit<Product, "id"> = {
         name: formData.name,
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        discountPrice: formData.discountPrice
-          ? parseFloat(formData.discountPrice)
-          : undefined,
-        image: mainImageUrl,
-        images: additionalImageUrls,
+        image: imageUrl,
         category: formData.category.trim(),
         brand: formData.brand.trim(),
         material: formData.material.trim(),
@@ -147,8 +131,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           weight: "",
         },
       });
-      setMainImage(null);
-      setImages([]);
+      setProductImage(null);
+      setImagePreview("");
     } catch (error) {
       console.error("Error adding product:", error);
       alert("Failed to add product. Please try again.");
@@ -159,18 +143,15 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      const fileArray = Array.from(e.target.files);
-      // Set the first image as main image
-      setMainImage(fileArray[0]);
-      // Store remaining images as additional images
-      const remainingImages = fileArray.slice(1);
-      setImages(remainingImages);
+      const file = e.target.files[0];
+      setProductImage(file);
 
-      // Log for debugging
-      console.log("Selected images:", {
-        mainImage: fileArray[0]?.name,
-        additionalImages: remainingImages.map((f) => f.name),
-      });
+      // Create image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -584,18 +565,28 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         <h3 className="text-lg font-medium text-gray-900 mb-4">
           Product Images
         </h3>
-        <input
-          id="image"
-          type="file"
-          accept="image/*"
-          required
-          multiple
-          onChange={handleImageChange}
-          className="mb-2"
-        />
-        <p className="text-sm text-gray-500">
-          First image will be used as the main product image
-        </p>
+        <div className="space-y-4">
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            required
+            onChange={handleImageChange}
+            className="mb-2"
+          />
+          <p className="text-sm text-gray-500 mb-4">
+            Upload a high-quality image of your product
+          </p>
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview}
+                alt="Product preview"
+                className="max-w-xs rounded-lg shadow-sm"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Settings */}
