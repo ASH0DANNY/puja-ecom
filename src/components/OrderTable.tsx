@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { doc, writeBatch, increment } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Order } from "../types/order";
-import { Calendar, Eye, Search, Filter, X } from "lucide-react";
+import { Calendar, Eye, Search, Filter } from "lucide-react";
 
 interface OrderTableProps {
   orders: Order[];
@@ -88,16 +88,16 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
           if (!item.stockUpdated) {
             const productRef = doc(db, "products", item.product.id);
             batch.update(productRef, {
-              stock: increment(item.quantity)
+              stock: increment(item.quantity),
             });
           }
         }
         // Mark items as stock updated
         batch.update(orderRef, {
-          items: order.items.map(item => ({
+          items: order.items.map((item) => ({
             ...item,
-            stockUpdated: true
-          }))
+            stockUpdated: true,
+          })),
         });
       } else if (order.status === "cancelled" && newStatus !== "cancelled") {
         // Reduce stock if order is un-cancelled
@@ -105,16 +105,16 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
           if (item.stockUpdated) {
             const productRef = doc(db, "products", item.product.id);
             batch.update(productRef, {
-              stock: increment(-item.quantity)
+              stock: increment(-item.quantity),
             });
           }
         }
         // Mark items as stock not updated
         batch.update(orderRef, {
-          items: order.items.map(item => ({
+          items: order.items.map((item) => ({
             ...item,
-            stockUpdated: false
-          }))
+            stockUpdated: false,
+          })),
         });
       }
 
@@ -123,7 +123,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
         for (const item of order.items) {
           const productRef = doc(db, "products", item.product.id);
           batch.update(productRef, {
-            sales: increment(item.quantity)
+            sales: increment(item.quantity),
           });
         }
       }
@@ -380,13 +380,19 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                   <div className="mt-2 space-y-4">
                     <div>
                       <p className="text-sm font-medium text-gray-900">
-                        {selectedOrder.customerName || selectedOrder.userName || 'Customer'}
+                        {selectedOrder.customerName ||
+                          selectedOrder.userName ||
+                          "Customer"}
                       </p>
                       <p className="text-sm text-gray-500">
                         {selectedOrder.customerPhone && (
-                          <span className="block">📞 {selectedOrder.customerPhone}</span>
+                          <span className="block">
+                            📞 {selectedOrder.customerPhone}
+                          </span>
                         )}
-                        <span className="block">✉️ {selectedOrder.userEmail}</span>
+                        <span className="block">
+                          ✉️ {selectedOrder.userEmail}
+                        </span>
                       </p>
                     </div>
                     <div>
@@ -433,7 +439,8 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                             />
                             <div>
                               <p className="font-medium">{item.product.name}</p>
-                              {(item.product.selectedSize || item.product.selectedColor) && (
+                              {(item.product.selectedSize ||
+                                item.product.selectedColor) && (
                                 <p className="text-xs text-gray-500">
                                   {item.product.selectedSize &&
                                     `Size: ${item.product.selectedSize}`}
