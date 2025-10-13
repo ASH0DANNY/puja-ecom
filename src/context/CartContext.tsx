@@ -113,7 +113,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+    (sum, item) => sum + parseFloat(item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)) * item.quantity,
     0
   );
 

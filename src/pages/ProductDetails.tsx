@@ -252,7 +252,7 @@ const ProductDetails = () => {
             </div>
 
             {/* Rating */}
-            <div className="flex items-center space-x-3">
+            {/* <div className="flex items-center space-x-3">
               <div className="flex items-center">
                 {[...Array(5)].map((_, index) => (
                   <svg
@@ -275,7 +275,7 @@ const ProductDetails = () => {
               <span className="text-sm text-gray-500">
                 ({product.reviews || 0} reviews)
               </span>
-            </div>
+            </div> */}
 
             {/* Price */}
             <div className="flex items-baseline space-x-3">

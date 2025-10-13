@@ -6,7 +6,7 @@ export interface Product {
   category: string;
   image: string;
   stock: number;
-  rating: number;
+  
   reviews: number;
   featured?: boolean;
   isSuggested?: boolean;

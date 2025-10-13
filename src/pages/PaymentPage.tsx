@@ -205,7 +205,7 @@ const PaymentPage = () => {
                 <span>
                   {item.name} × {item.quantity}
                 </span>
-                <span>₹{(item.price * item.quantity).toFixed(2)}</span>
+                <span>₹{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}</span>
               </div>
             ))}
             <div className="border-t pt-4">

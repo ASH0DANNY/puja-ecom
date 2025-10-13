@@ -64,9 +64,9 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <h3 className="text-sm font-semibold mb-0.5 group-hover:text-primary transition-colors line-clamp-1">
               {product.name}
             </h3>
-            <p className="text-gray-600 text-xs line-clamp-2 mb-1">
+            {/* <p className="text-gray-600 text-xs line-clamp-2 mb-1">
               {product.description}
-            </p>
+            </p> */}
             {product.brand && (
               <p className="text-gray-600 text-xs">
                 Brand: <span className="font-medium">{product.brand}</span>

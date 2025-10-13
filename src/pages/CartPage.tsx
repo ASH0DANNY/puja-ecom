@@ -111,7 +111,7 @@ const CartPage = () => {
                         {item.name}
                       </h3>
                       <p className="text-gray-600 text-sm lg:text-base mb-2">
-                        ₹{item.price.toFixed(2)}
+                        ₹{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}
                       </p>
                       {item.selectedSize && (
                         <p className="text-sm text-gray-500 mb-1">
@@ -154,7 +154,7 @@ const CartPage = () => {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-base lg:text-lg text-gray-900">
-                        ₹{(item.price * item.quantity).toFixed(2)}
+                        ₹{((item.discountPrice !== undefined ? item.discountPrice : item.price) * item.quantity).toFixed(2)}
                       </p>
                     </div>
                   </div>
