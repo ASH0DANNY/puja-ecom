@@ -102,7 +102,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           </div> */}
 
           {/* Size & Color Selection - Only visible on desktop */}
-          <div className="hidden md:block">
+          {/* <div className="hidden md:block">
             {product.sizes && (
               <div className="mb-2">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -152,7 +152,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
                 </div>
               </div>
             )}
-          </div>
+          </div> */}
 
           <div className="flex flex-col mt-auto">
             <div className="mb-1 md:mb-2">

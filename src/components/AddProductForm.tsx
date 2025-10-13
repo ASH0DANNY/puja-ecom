@@ -46,7 +46,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
     weight: "",
     dimensions: "",
     sku: "",
-    stock: "",
+    stock: "1", // Default stock to 1
     sizes: [],
     colors: [],
     tags: [],
@@ -60,47 +60,39 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       weight: "",
     },
   });
-  const [productImage, setProductImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [productImages, setProductImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productImage) {
-      alert("Please select a product image");
+    if (productImages.length === 0) {
+      alert("Please select at least one product image");
       return;
     }
 
     setLoading(true);
     try {
-      // Upload product image
-      const imageUrl = await uploadImage(productImage);
+      // Upload product images
+      const imageUrls = await uploadImages(productImages);
 
       const productData: Omit<Product, "id"> = {
         name: formData.name,
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        image: imageUrl,
+        image: imageUrls[0], // Use first image as main image
+        images: imageUrls, // Store all images
         category: formData.category.trim(),
         brand: formData.brand.trim(),
         material: formData.material.trim(),
         weight: formData.weight.trim(),
         dimensions: formData.dimensions.trim(),
         sku: formData.sku.trim(),
-        sizes: formData.sizes.filter((size) => size.length > 0),
-        colors: formData.colors.filter((color) => color.length > 0),
-        tags: formData.tags.filter((tag) => tag.length > 0),
-        stock: parseInt(formData.stock),
+        stock: Math.max(0, parseInt(formData.stock) || 0), // Ensure non-negative number
         featured: formData.isFeatured,
         isSuggested: formData.isSuggested,
         sales: 0,
         
         reviews: 0,
-        shipping: {
-          width: formData.shipping.width,
-          height: formData.shipping.height,
-          depth: formData.shipping.depth,
-          weight: formData.shipping.weight,
-        },
       };
 
       await addDoc(collection(db, "products"), productData);
@@ -117,13 +109,13 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         weight: "",
         dimensions: "",
         sku: "",
-        stock: "",
+        stock: "1", // Reset stock to default value of 1
         sizes: [],
         colors: [],
         tags: [],
         isFeatured: false,
         isSuggested: false,
-        discountPrice: "",
+        discountPrice:"",
         shipping: {
           width: "",
           height: "",
@@ -131,8 +123,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           weight: "",
         },
       });
-      setProductImage(null);
-      setImagePreview("");
+      setProductImages([]);
+      setImagePreviews([]);
     } catch (error) {
       console.error("Error adding product:", error);
       alert("Failed to add product. Please try again.");
@@ -143,15 +135,20 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      const file = e.target.files[0];
-      setProductImage(file);
+      const files = Array.from(e.target.files);
+      setProductImages((prevImages) => [...prevImages, ...files]);
 
-      // Create image preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Create image previews
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prevPreviews) => [
+            ...prevPreviews,
+            reader.result as string,
+          ]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -323,28 +320,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
           <div>
             <label
-              htmlFor="discountPrice"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Discount Price
-            </label>
-            <input
-              id="discountPrice"
-              type="number"
-              step="0.01"
-              value={formData.discountPrice}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  discountPrice: e.target.value,
-                }))
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label
               htmlFor="stock"
               className="block text-sm font-medium text-gray-700"
             >
@@ -354,11 +329,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
               id="stock"
               type="number"
               required
-              min="0"
+              min="1"
+              defaultValue="1"
               value={formData.stock}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, stock: e.target.value }))
-              }
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 0;
+                setFormData((prev) => ({
+                  ...prev,
+                  stock: Math.max(0, value).toString(),
+                }));
+              }}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
@@ -563,13 +543,14 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       {/* Image Upload */}
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Product Images
+          Product Image
         </h3>
         <div className="space-y-4">
           <input
             id="image"
             type="file"
             accept="image/*"
+            multiple
             required
             onChange={handleImageChange}
             className="mb-2"
@@ -577,13 +558,31 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           <p className="text-sm text-gray-500 mb-4">
             Upload a high-quality image of your product
           </p>
-          {imagePreview && (
-            <div className="mt-4">
-              <img
-                src={imagePreview}
-                alt="Product preview"
-                className="max-w-xs rounded-lg shadow-sm"
-              />
+          {imagePreviews.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={preview}
+                    alt={`Product preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProductImages((prevImages) =>
+                        prevImages.filter((_, i) => i !== index)
+                      );
+                      setImagePreviews((prevPreviews) =>
+                        prevPreviews.filter((_, i) => i !== index)
+                      );
+                    }}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 focus:outline-none"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>
