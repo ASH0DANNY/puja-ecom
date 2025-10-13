@@ -8,7 +8,7 @@ import { useDiscount } from "../context/DiscountContext";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useScrollToTop } from "../utils/scrollToTop";
 
-// Shipping form interface
+// Form interfaces
 interface ShippingForm {
   street: string;
   city: string;
@@ -17,11 +17,20 @@ interface ShippingForm {
   country: string;
 }
 
+interface CustomerForm {
+  name: string;
+  phone: string;
+}
+
 const PaymentPage = () => {
   const [paymentMethod, setPaymentMethod] = useState("");
   const [loading, setLoading] = useState(false);
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [customerForm, setCustomerForm] = useState<CustomerForm>({
+    name: "",
+    phone: "",
+  });
   const [shippingForm, setShippingForm] = useState<ShippingForm>({
     street: "",
     city: "",
@@ -62,6 +71,12 @@ const PaymentPage = () => {
       return;
     }
 
+    // Validate customer form
+    if (!customerForm.name || !customerForm.phone) {
+      alert("Please fill in all customer information");
+      return;
+    }
+
     // Validate shipping form
     if (
       !shippingForm.street ||
@@ -95,6 +110,9 @@ const PaymentPage = () => {
         id: orderRef.id,
         orderNumber: orderNum,
         userId: user.uid,
+        customerName: customerForm.name,
+        customerPhone: customerForm.phone,
+        userName: customerForm.name, // For backward compatibility
         items: items.map((item) => ({
           product: {
             id: item.id || "",
@@ -200,8 +218,47 @@ const PaymentPage = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Shipping Address</h2>
+          <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
           <form onSubmit={handlePaymentSubmit} className="space-y-6">
+            <div className="space-y-4">
+              <div>
+                <label
+                  htmlFor="customerName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="customerName"
+                  name="name"
+                  required
+                  value={customerForm.name}
+                  onChange={(e) => setCustomerForm(prev => ({ ...prev, name: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="customerPhone"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="customerPhone"
+                  name="phone"
+                  required
+                  value={customerForm.phone}
+                  onChange={(e) => setCustomerForm(prev => ({ ...prev, phone: e.target.value }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
+                />
+              </div>
+            </div>
+
+            <h2 className="text-xl font-semibold mt-8 mb-4">Shipping Address</h2>
             <div className="space-y-4">
               <div>
                 <label

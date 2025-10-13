@@ -3,6 +3,7 @@ import { updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
 import { uploadImage } from "../utils/cloudinary";
+import { categories } from "../data/categories";
 
 interface ProductTableProps {
   products: Product[];
@@ -74,13 +75,13 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 Name
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Category
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Price
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Stock
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Sales
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Suggested
@@ -102,10 +103,12 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
+                  {categories.find(c => c.id === product.category)?.name || product.category}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   ₹{product.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{product.sales}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <button
                     onClick={() => toggleSuggestion(product)}
@@ -225,25 +228,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
                         />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Discount Price (Rs)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={editingProduct.discountPrice || ""}
-                          onChange={(e) =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              discountPrice: e.target.value
-                                ? parseFloat(e.target.value)
-                                : null,
-                            })
-                          }
-                          className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                      </div>
+
                     </div>
                   </div>
 
@@ -258,8 +243,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           Category
                         </label>
-                        <input
-                          type="text"
+                        <select
                           required
                           value={editingProduct.category}
                           onChange={(e) =>
@@ -269,7 +253,14 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                             })
                           }
                           className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
+                        >
+                          <option value="">Select a category</option>
+                          {categories.map((category) => (
+                            <option key={category.id} value={category.id}>
+                              {category.name}
+                            </option>
+                          ))}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">

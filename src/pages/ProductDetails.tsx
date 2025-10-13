@@ -273,7 +273,7 @@ const ProductDetails = () => {
                 {product.rating}
               </span>
               <span className="text-sm text-gray-500">
-                ({product.reviewCount} reviews)
+                ({product.reviews || 0} reviews)
               </span>
             </div>
 
@@ -296,15 +296,19 @@ const ProductDetails = () => {
             <div className="flex items-center space-x-2">
               <div
                 className={`w-3 h-3 rounded-full ${
-                  product.inStock ? "bg-green-500" : "bg-red-500"
+                  product.stock && product.stock > 0
+                    ? "bg-green-500"
+                    : "bg-red-500"
                 }`}
               ></div>
               <span
                 className={`text-sm font-medium ${
-                  product.inStock ? "text-green-700" : "text-red-700"
+                  product.stock && product.stock > 0
+                    ? "text-green-700"
+                    : "text-red-700"
                 }`}
               >
-                {product.inStock
+                {product.stock && product.stock > 0
                   ? `In Stock (${product.stock} available)`
                   : "Out of Stock"}
               </span>
@@ -391,16 +395,16 @@ const ProductDetails = () => {
           <div className="space-y-4">
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock}
+              disabled={!product.stock || product.stock <= 0}
               className={`w-full py-4 rounded-xl text-lg font-semibold transition-all transform hover:scale-[1.02] ${
-                product.inStock
+                product.stock && product.stock > 0
                   ? "bg-primary text-white hover:bg-primary/90 shadow-lg hover:shadow-xl"
                   : "bg-gray-300 cursor-not-allowed text-gray-500"
               }`}
             >
               {isAdded
                 ? "✓ Added to Cart"
-                : product.inStock
+                : product.stock && product.stock > 0
                 ? "Add to Cart"
                 : "Out of Stock"}
             </button>

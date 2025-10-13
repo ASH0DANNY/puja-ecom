@@ -36,9 +36,10 @@ const SearchPage = () => {
           product.name.toLowerCase().includes(query.toLowerCase()) ||
           product.category.toLowerCase().includes(query.toLowerCase()) ||
           product.description.toLowerCase().includes(query.toLowerCase()) ||
-          product.tags.some((tag) =>
+          (product.tags?.some((tag) =>
             tag.toLowerCase().includes(query.toLowerCase())
-          )
+          ) ??
+            false)
       );
 
       setSearchResults(results);

@@ -3,6 +3,7 @@ import { uploadImage } from "../utils/cloudinary";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
+import { categories } from "../data/categories";
 
 interface FormData {
   name: string;
@@ -20,7 +21,6 @@ interface FormData {
   tags: string[];
   isFeatured: boolean;
   isSuggested: boolean;
-  discountPrice: string;
   shipping: {
     width: string;
     height: string;
@@ -45,13 +45,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
     weight: "",
     dimensions: "",
     sku: "",
-    stock: "",
+    stock: "1", // Default stock to 1
     sizes: [],
     colors: [],
     tags: [],
     isFeatured: false,
     isSuggested: false,
-    discountPrice: "",
     shipping: {
       width: "",
       height: "",
@@ -59,66 +58,38 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       weight: "",
     },
   });
-  const [images, setImages] = useState<File[]>([]);
-  const [mainImage, setMainImage] = useState<File | null>(null);
+  const [productImage, setProductImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mainImage) {
-      alert("Please select a main image");
+    if (!productImage) {
+      alert("Please select a product image");
       return;
     }
 
     setLoading(true);
     try {
-      // Upload main image first
-      const mainImageUrl = await uploadImage(mainImage);
-
-      // Upload additional images if any
-      const additionalImageUrls =
-        images.length > 0
-          ? await Promise.all(images.map((img) => uploadImage(img)))
-          : [];
-
-      // Log for debugging
-      console.log("Uploaded images:", {
-        mainImage: mainImageUrl,
-        additionalImages: additionalImageUrls,
-      });
+      // Upload product image
+      const imageUrl = await uploadImage(productImage);
 
       const productData: Omit<Product, "id"> = {
         name: formData.name,
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        discountPrice: formData.discountPrice
-          ? parseFloat(formData.discountPrice)
-          : null,
-        image: mainImageUrl,
-        images: additionalImageUrls,
+        image: imageUrl,
         category: formData.category.trim(),
         brand: formData.brand.trim(),
         material: formData.material.trim(),
         weight: formData.weight.trim(),
         dimensions: formData.dimensions.trim(),
         sku: formData.sku.trim(),
-        sizes: formData.sizes.filter((size) => size.length > 0),
-        colors: formData.colors.filter((color) => color.length > 0),
-        tags: formData.tags.filter((tag) => tag.length > 0),
-        inStock: parseInt(formData.stock) > 0,
-        stock: parseInt(formData.stock),
-        isFeatured: formData.isFeatured,
+        stock: Math.max(0, parseInt(formData.stock) || 0), // Ensure non-negative number
+        featured: formData.isFeatured,
         isSuggested: formData.isSuggested,
         sales: 0,
         rating: 0,
-        reviewCount: 0,
-        shipping: {
-          width: parseFloat(formData.shipping.width) || 0,
-          height: parseFloat(formData.shipping.height) || 0,
-          depth: parseFloat(formData.shipping.depth) || 0,
-          weight: parseFloat(formData.shipping.weight) || 0,
-        },
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        reviews: 0,
       };
 
       await addDoc(collection(db, "products"), productData);
@@ -135,13 +106,12 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         weight: "",
         dimensions: "",
         sku: "",
-        stock: "",
+        stock: "1", // Reset stock to default value of 1
         sizes: [],
         colors: [],
         tags: [],
         isFeatured: false,
         isSuggested: false,
-        discountPrice: "",
         shipping: {
           width: "",
           height: "",
@@ -149,8 +119,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           weight: "",
         },
       });
-      setMainImage(null);
-      setImages([]);
+      setProductImage(null);
+      setImagePreview("");
     } catch (error) {
       console.error("Error adding product:", error);
       alert("Failed to add product. Please try again.");
@@ -161,18 +131,15 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      const fileArray = Array.from(e.target.files);
-      // Set the first image as main image
-      setMainImage(fileArray[0]);
-      // Store remaining images as additional images
-      const remainingImages = fileArray.slice(1);
-      setImages(remainingImages);
+      const file = e.target.files[0];
+      setProductImage(file);
 
-      // Log for debugging
-      console.log("Selected images:", {
-        mainImage: fileArray[0]?.name,
-        additionalImages: remainingImages.map((f) => f.name),
-      });
+      // Create image preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -274,16 +241,22 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
             >
               Category
             </label>
-            <input
+            <select
               id="category"
-              type="text"
               required
               value={formData.category}
               onChange={(e) =>
                 setFormData((prev) => ({ ...prev, category: e.target.value }))
               }
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
+            >
+              <option value="">Select a category</option>
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div className="md:col-span-2">
@@ -338,28 +311,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
           <div>
             <label
-              htmlFor="discountPrice"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Discount Price
-            </label>
-            <input
-              id="discountPrice"
-              type="number"
-              step="0.01"
-              value={formData.discountPrice}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  discountPrice: e.target.value,
-                }))
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label
               htmlFor="stock"
               className="block text-sm font-medium text-gray-700"
             >
@@ -369,11 +320,16 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
               id="stock"
               type="number"
               required
-              min="0"
+              min="1"
+              defaultValue="1"
               value={formData.stock}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, stock: e.target.value }))
-              }
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 0;
+                setFormData((prev) => ({
+                  ...prev,
+                  stock: Math.max(0, value).toString(),
+                }));
+              }}
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
@@ -578,20 +534,30 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       {/* Image Upload */}
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Product Images
+          Product Image
         </h3>
-        <input
-          id="image"
-          type="file"
-          accept="image/*"
-          required
-          multiple
-          onChange={handleImageChange}
-          className="mb-2"
-        />
-        <p className="text-sm text-gray-500">
-          First image will be used as the main product image
-        </p>
+        <div className="space-y-4">
+          <input
+            id="image"
+            type="file"
+            accept="image/*"
+            required
+            onChange={handleImageChange}
+            className="mb-2"
+          />
+          <p className="text-sm text-gray-500 mb-4">
+            Upload a high-quality image of your product
+          </p>
+          {imagePreview && (
+            <div className="mt-4">
+              <img
+                src={imagePreview}
+                alt="Product preview"
+                className="max-w-xs rounded-lg shadow-sm"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Settings */}

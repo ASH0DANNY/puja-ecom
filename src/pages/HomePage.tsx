@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../config/firebase";
 import FeaturedCategories from "../components/FeaturedCategories";
-import Hero from "../components/Hero";
+import Carousel from "../components/Carousel";
 import ProductCard from "../components/ProductCard";
 import ProductGrid from "../components/ProductGrid";
 import type { Product } from "../types/product";
@@ -45,7 +45,7 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Hero />
+      <Carousel />
 
       {/* Featured Categories */}
       <section className="py-12 lg:py-16">

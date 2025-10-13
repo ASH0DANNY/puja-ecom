@@ -45,10 +45,16 @@ const ProductCard = ({ product }: ProductCardProps) => {
       >
         {/* Image Container */}
         <div className="relative overflow-hidden" style={{ height: "180px" }}>
+          <div className="absolute inset-0 bg-gray-100 animate-pulse"></div>
           <img
             src={product.image}
             alt={product.name}
             className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
+            loading="lazy"
+            onLoad={(e) => {
+              const target = e.target as HTMLImageElement;
+              target.previousElementSibling?.classList.remove('animate-pulse');
+            }}
           />
         </div>
 
@@ -58,9 +64,19 @@ const ProductCard = ({ product }: ProductCardProps) => {
             <h3 className="text-sm font-semibold mb-0.5 group-hover:text-primary transition-colors line-clamp-1">
               {product.name}
             </h3>
-            <p className="text-gray-600 text-xs line-clamp-1">
+            <p className="text-gray-600 text-xs line-clamp-2 mb-1">
               {product.description}
             </p>
+            {product.brand && (
+              <p className="text-gray-600 text-xs">
+                Brand: <span className="font-medium">{product.brand}</span>
+              </p>
+            )}
+            {product.stock > 0 && (
+              <p className="text-green-600 text-xs mt-1">
+                In Stock: {product.stock} available
+              </p>
+            )}
           </div>
 
           {/* Rating */}
@@ -151,13 +167,14 @@ const ProductCard = ({ product }: ProductCardProps) => {
             </div>
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock}
-              className={`w-full py-1.5 md:py-2 rounded text-xs md:text-sm font-medium ${product.inStock
-                ? "bg-primary text-white hover:bg-primary/90"
-                : "bg-gray-300 cursor-not-allowed"
-                }`}
+              disabled={!product.stock || product.stock <= 0}
+              className={`w-full py-1.5 md:py-2 rounded text-xs md:text-sm font-medium ${
+                product.stock && product.stock > 0
+                  ? "bg-primary text-white hover:bg-primary/90"
+                  : "bg-gray-300 cursor-not-allowed"
+              }`}
             >
-              {product.inStock ? "Add to Cart" : "Out of Stock"}
+              {product.stock && product.stock > 0 ? "Add to Cart" : "Out of Stock"}
             </button>
           </div>
         </div>

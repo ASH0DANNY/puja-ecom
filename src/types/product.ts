@@ -3,33 +3,33 @@ export interface Product {
   name: string;
   description: string;
   price: number;
-  discountPrice?: number | null;
-  image: string;
-  images: string[];
   category: string;
-  brand: string;
-  material: string;
-  weight: string;
-  dimensions: string;
-  sku: string;
-  sizes: string[];
-  colors: string[];
-  tags: string[];
-  inStock: boolean;
+  image: string;
   stock: number;
-  sales: number;
   rating: number;
-  reviewCount: number;
-  isFeatured: boolean;
-  isSuggested: boolean;
-  shipping: {
-    width: number;
-    height: number;
-    depth: number;
-    weight: number;
+  reviews: number;
+  featured?: boolean;
+  isSuggested?: boolean;
+  sales?: number;
+  selectedSize?: string;
+  selectedColor?: string;
+  // Additional fields for product management
+  brand?: string;
+  material?: string;
+  weight?: string;
+  dimensions?: string;
+  sku?: string;
+  discountPrice?: number;
+  sizes?: string[];
+  colors?: string[];
+  tags?: string[];
+  shipping?: {
+    width: string;
+    height: string;
+    depth: string;
+    weight: string;
   };
-  createdAt: Date;
-  updatedAt: Date;
+  images?: string[];
 }
 
 export type CartItem = Product & {

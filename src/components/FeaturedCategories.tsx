@@ -36,10 +36,16 @@ const FeaturedCategories = () => {
         >
           {/* Background Image */}
           <div className="absolute inset-0">
+            <div className="absolute inset-0 bg-gray-200 animate-pulse"></div>
             <img
               src={category.image}
               alt={category.title}
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+              loading={category.id === 1 ? "eager" : "lazy"}
+              onLoad={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.previousElementSibling?.classList.remove('animate-pulse');
+              }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-black/20"></div>
           </div>

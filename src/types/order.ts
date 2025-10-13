@@ -11,9 +11,13 @@ export interface OrderItem {
   name?: string;
   product: Product;
   quantity: number;
+  priceAtOrder: number;
   selectedSize?: string;
   selectedColor?: string;
-  priceAtOrder: number;
+  stockUpdated?: boolean;
+  refunded?: boolean;
+  returnRequested?: boolean;
+  returnReason?: string;
 }
 
 export interface Order {
@@ -21,6 +25,8 @@ export interface Order {
   userId: string;
   userEmail: string;
   userName: string;
+  customerName: string;
+  customerPhone: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;
@@ -35,8 +41,8 @@ export interface Order {
   createdAt: Date;
   updatedAt: Date;
   subtotal: number;
+  discountCode?: string;
   discountAmount?: number;
-  discountCode?: string | null;
 }
 
 export interface DashboardOrder {
