@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { uploadImage } from "../utils/cloudinary";
+import { uploadImages } from "../utils/cloudinary";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
@@ -58,26 +58,27 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       weight: "",
     },
   });
-  const [productImage, setProductImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string>("");
+  const [productImages, setProductImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!productImage) {
-      alert("Please select a product image");
+    if (productImages.length === 0) {
+      alert("Please select at least one product image");
       return;
     }
 
     setLoading(true);
     try {
-      // Upload product image
-      const imageUrl = await uploadImage(productImage);
+      // Upload product images
+      const imageUrls = await uploadImages(productImages);
 
       const productData: Omit<Product, "id"> = {
         name: formData.name,
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        image: imageUrl,
+        image: imageUrls[0], // Use first image as main image
+        images: imageUrls, // Store all images
         category: formData.category.trim(),
         brand: formData.brand.trim(),
         material: formData.material.trim(),
@@ -119,8 +120,8 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           weight: "",
         },
       });
-      setProductImage(null);
-      setImagePreview("");
+      setProductImages([]);
+      setImagePreviews([]);
     } catch (error) {
       console.error("Error adding product:", error);
       alert("Failed to add product. Please try again.");
@@ -131,15 +132,20 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files?.length) {
-      const file = e.target.files[0];
-      setProductImage(file);
+      const files = Array.from(e.target.files);
+      setProductImages((prevImages) => [...prevImages, ...files]);
 
-      // Create image preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+      // Create image previews
+      files.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prevPreviews) => [
+            ...prevPreviews,
+            reader.result as string,
+          ]);
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -541,6 +547,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
             id="image"
             type="file"
             accept="image/*"
+            multiple
             required
             onChange={handleImageChange}
             className="mb-2"
@@ -548,13 +555,31 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           <p className="text-sm text-gray-500 mb-4">
             Upload a high-quality image of your product
           </p>
-          {imagePreview && (
-            <div className="mt-4">
-              <img
-                src={imagePreview}
-                alt="Product preview"
-                className="max-w-xs rounded-lg shadow-sm"
-              />
+          {imagePreviews.length > 0 && (
+            <div className="mt-4 grid grid-cols-2 md:grid-cols-3 gap-4">
+              {imagePreviews.map((preview, index) => (
+                <div key={index} className="relative">
+                  <img
+                    src={preview}
+                    alt={`Product preview ${index + 1}`}
+                    className="w-full h-32 object-cover rounded-lg shadow-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setProductImages((prevImages) =>
+                        prevImages.filter((_, i) => i !== index)
+                      );
+                      setImagePreviews((prevPreviews) =>
+                        prevPreviews.filter((_, i) => i !== index)
+                      );
+                    }}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 focus:outline-none"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
             </div>
           )}
         </div>

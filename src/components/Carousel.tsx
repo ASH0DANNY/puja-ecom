@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import carouselImage1 from "../assets/images/carousel/carousel_image1.jpg";
-import carouselImage2 from "../assets/images/carousel/carousel_image2.jpg";
-import carouselImage3 from "../assets/images/carousel/carousel_image3.jpg";
-import carouselImage4 from "../assets/images/carousel/carousel_image4.jpg";
+// import carouselImage2 from "../assets/images/carousel/carousel_image2.jpg";
+// import carouselImage3 from "../assets/images/carousel/carousel_image3.jpg";
+// import carouselImage4 from "../assets/images/carousel/carousel_image4.jpg";
 
 interface CarouselSlide {
   image: string;
@@ -14,23 +14,23 @@ const carouselSlides: CarouselSlide[] = [
   {
     image: carouselImage1,
     heading: "Welcome to Puja E-com",
-    description: "Your one-stop shop for all your needs"
+    description: "Your one-stop shop for all your needs",
   },
-  {
-    image: carouselImage2,
-    heading: "Discover Amazing Deals",
-    description: "Get the best prices on top products"
-  },
-  {
-    image: carouselImage3,
-    heading: "Shop with Confidence",
-    description: "Secure shopping experience"
-  },
-  {
-    image: carouselImage4,
-    heading: "Quality Products",
-    description: "Handpicked items just for you"
-  }
+  // {
+  //   image: carouselImage2,
+  //   heading: "Discover Amazing Deals",
+  //   description: "Get the best prices on top products"
+  // },
+  // {
+  //   image: carouselImage3,
+  //   heading: "Shop with Confidence",
+  //   description: "Secure shopping experience"
+  // },
+  // {
+  //   image: carouselImage4,
+  //   heading: "Quality Products",
+  //   description: "Handpicked items just for you"
+  // }
 ];
 
 const Carousel = () => {
@@ -88,9 +88,7 @@ const Carousel = () => {
                 <h2 className="text-4xl md:text-6xl font-bold">
                   {slide.heading}
                 </h2>
-                <p className="text-xl md:text-2xl">
-                  {slide.description}
-                </p>
+                <p className="text-xl md:text-2xl">{slide.description}</p>
               </div>
             </div>
           </div>

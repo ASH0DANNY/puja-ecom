@@ -68,18 +68,18 @@ const HomePage = () => {
       {/* Featured Products */}
       <section className="py-12 lg:py-16">
         <div className="container mx-auto px-4 lg:px-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 lg:p-8">
-            <div className="text-center mb-8 lg:mb-12">
-              <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
-                Featured <span className="text-primary">Products</span>
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto text-sm lg:text-base">
-                Discover our handpicked selection of trending products,
-                carefully chosen to match your style and preferences.
-              </p>
-            </div>
-            <ProductGrid />
+          {/* <div className="bg-white rounded-xl shadow-sm p-6 lg:p-8"> */}
+          <div className="text-center mb-8 lg:mb-12">
+            <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
+              Featured <span className="text-primary">Products</span>
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-sm lg:text-base">
+              Discover our handpicked selection of trending products, carefully
+              chosen to match your style and preferences.
+            </p>
           </div>
+          <ProductGrid />
+          {/* </div> */}
         </div>
       </section>
 

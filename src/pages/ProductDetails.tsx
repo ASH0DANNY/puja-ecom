@@ -21,11 +21,16 @@ const ProductDetails = () => {
 
   // Get all product images including main image and additional images
   const getProductImages = (product: Product): string[] => {
-    const allImages = [product.image];
     if (product.images && product.images.length > 0) {
-      allImages.push(...product.images);
+      // Return images array if it already includes the main image
+      if (product.images.includes(product.image)) {
+        return product.images;
+      }
+      // Otherwise return main image followed by additional images
+      return [product.image, ...product.images];
     }
-    return allImages;
+    // If no additional images, return array with just the main image
+    return [product.image];
   };
 
   useEffect(() => {
