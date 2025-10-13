@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { doc, setDoc, collection, serverTimestamp } from "firebase/firestore";
+import { doc, setDoc, collection, serverTimestamp, updateDoc, increment } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useDiscount } from "../context/DiscountContext";
@@ -130,6 +130,16 @@ const PaymentPage = () => {
         } catch (error) {
           console.error("Error applying discount:", error);
           // Continue with the order even if discount application fails
+        }
+      }
+
+      // Update product stock
+      for (const item of items) {
+        if (item.id) {
+          const productRef = doc(db, "products", item.id);
+          await updateDoc(productRef, {
+            stock: increment(-(item.quantity || 0))
+          });
         }
       }
 

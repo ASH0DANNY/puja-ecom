@@ -20,6 +20,7 @@ export interface Order {
   id: string;
   userId: string;
   userEmail: string;
+  userName: string;
   items: OrderItem[];
   total: number;
   status: OrderStatus;
@@ -33,6 +34,9 @@ export interface Order {
   paymentMethod: string;
   createdAt: Date;
   updatedAt: Date;
+  subtotal: number;
+  discountAmount?: number;
+  discountCode?: string | null;
 }
 
 export interface DashboardOrder {
