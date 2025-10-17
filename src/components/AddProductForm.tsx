@@ -88,10 +88,9 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         dimensions: formData.dimensions.trim(),
         sku: formData.sku.trim(),
         stock: Math.max(0, parseInt(formData.stock) || 0), // Ensure non-negative number
-        featured: formData.isFeatured,
         isSuggested: formData.isSuggested,
         sales: 0,
-        
+
         reviews: 0,
       };
 
@@ -115,7 +114,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         tags: [],
         isFeatured: false,
         isSuggested: false,
-        discountPrice:"",
+        discountPrice: "",
         shipping: {
           width: "",
           height: "",
