@@ -81,14 +81,14 @@ const ProductGrid = ({
       )}
       <div className="px-2 sm:px-4 md:px-6">
         <div
-          className={`grid grid-cols-2 gap-2 sm:gap-4 md:gap-6 ${
+          className={`grid grid-cols-2 gap-3 sm:gap-4 md:gap-6 ${
             isSuggested
               ? "max-w-4xl mx-auto"
               : "md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
           }`}
         >
           {products.map((product) => (
-            <div key={product.id}>
+            <div key={product.id} className="w-full">
               <ProductCard product={product} />
             </div>
           ))}

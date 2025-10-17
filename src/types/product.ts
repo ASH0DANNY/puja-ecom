@@ -6,9 +6,9 @@ export interface Product {
   category: string;
   image: string;
   stock: number;
-  
+
   reviews: number;
-  featured?: boolean;
+  isFeatured?: boolean;
   isSuggested?: boolean;
   sales?: number;
   selectedSize?: string;

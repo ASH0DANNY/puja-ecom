@@ -9,6 +9,7 @@ import { OrderTable } from "../components/OrderTable";
 import { SuggestionsTable } from "../components/SuggestionsTable";
 import AddProductForm from "../components/AddProductForm";
 import DiscountManager from "../components/DiscountManager";
+import HomepageManager from "../components/HomepageManager";
 import {
   Package,
   ShoppingCart,
@@ -22,9 +23,16 @@ import {
   Users,
   TrendingUp,
   Box,
+  LayoutGrid,
 } from "lucide-react";
 
-type TabType = "overview" | "products" | "orders" | "suggestions" | "discounts";
+type TabType =
+  | "overview"
+  | "products"
+  | "orders"
+  | "suggestions"
+  | "discounts"
+  | "homepage";
 
 interface DashboardStats {
   totalRevenue: number;
@@ -39,6 +47,7 @@ const tabConfig = [
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "suggestions", label: "Suggestions", icon: MessageSquare },
   { id: "discounts", label: "Discounts", icon: Tag },
+  { id: "homepage", label: "Homepage Sections", icon: LayoutGrid },
 ];
 
 export const DashboardPage = () => {
@@ -381,6 +390,12 @@ export const DashboardPage = () => {
           {activeTab === "discounts" && (
             <div>
               <DiscountManager />
+            </div>
+          )}
+
+          {activeTab === "homepage" && (
+            <div>
+              <HomepageManager />
             </div>
           )}
         </div>

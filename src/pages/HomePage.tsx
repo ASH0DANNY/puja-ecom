@@ -5,6 +5,7 @@ import FeaturedCategories from "../components/FeaturedCategories";
 import Carousel from "../components/Carousel";
 import ProductCard from "../components/ProductCard";
 import ProductGrid from "../components/ProductGrid";
+import HomepageSections from "../components/HomepageSections";
 import type { Product } from "../types/product";
 import { useScrollToTop } from "../utils/scrollToTop";
 
@@ -68,7 +69,6 @@ const HomePage = () => {
       {/* Featured Products */}
       <section className="py-12 lg:py-16">
         <div className="container mx-auto px-4 lg:px-6">
-          {/* <div className="bg-white rounded-xl shadow-sm p-6 lg:p-8"> */}
           <div className="text-center mb-8 lg:mb-12">
             <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
               Featured <span className="text-primary">Products</span>
@@ -79,43 +79,43 @@ const HomePage = () => {
             </p>
           </div>
           <ProductGrid />
-          {/* </div> */}
         </div>
       </section>
 
       {/* Suggested Products */}
       <section className="py-12 lg:py-16">
         <div className="container mx-auto px-4 lg:px-6">
-          <div className="bg-white rounded-xl shadow-sm p-6 lg:p-8">
-            <div className="text-center mb-8 lg:mb-12">
-              <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
-                Suggested <span className="text-primary">For You</span>
-              </h2>
-              <p className="text-gray-600 max-w-2xl mx-auto text-sm lg:text-base">
-                Based on your preferences and shopping history, we think you'll
-                love these items.
-              </p>
-            </div>
-
-            {loading ? (
-              <div className="w-full h-48 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary mx-auto"></div>
-                  <p className="mt-4 text-gray-600 text-sm lg:text-base">
-                    Loading suggestions...
-                  </p>
-                </div>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
-                {suggestedProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
-                ))}
-              </div>
-            )}
+          <div className="text-center mb-8 lg:mb-12">
+            <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
+              Suggested <span className="text-primary">For You</span>
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto text-sm lg:text-base">
+              Based on your preferences and shopping history, we think you'll
+              love these items.
+            </p>
           </div>
+
+          {loading ? (
+            <div className="w-full h-48 flex items-center justify-center">
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary mx-auto"></div>
+                <p className="mt-4 text-gray-600 text-sm lg:text-base">
+                  Loading suggestions...
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
+              {suggestedProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
+
+      {/* Custom Homepage Sections */}
+      <HomepageSections />
 
       {/* Newsletter Section */}
       <section className="py-12 lg:py-16">
