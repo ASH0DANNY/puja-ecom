@@ -89,7 +89,8 @@ const FeaturedCategories = () => {
                   loading="lazy"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
-                    target.src = "https://res.cloudinary.com/ashdan/image/upload/v1698530024/puja-items/default-category_plcxck.jpg";
+                    target.src =
+                      "https://res.cloudinary.com/ashdan/image/upload/v1698530024/puja-items/default-category_plcxck.jpg";
                   }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-black/10 hover:from-black/20 hover:to-black/5 transition-colors duration-300"></div>
