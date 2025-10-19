@@ -1,9 +1,12 @@
 import { useState } from "react";
 import {
-  BrowserRouter as Router,
-  Routes,
+  createBrowserRouter,
+  createRoutesFromElements,
   Route,
   Navigate,
+  ScrollRestoration,
+  RouterProvider,
+  Outlet,
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/Navbar";
@@ -27,7 +30,7 @@ import { DiscountProvider } from "./context/DiscountContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DashboardPage } from "./pages/DashboardPage";
 
-function App() {
+function RootLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
@@ -35,76 +38,84 @@ function App() {
   };
 
   return (
-    <Router>
-      <AuthProvider>
-        <DiscountProvider>
-          <CartProvider>
-            <div className="min-h-screen bg-white">
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: "#333",
-                    color: "#fff",
-                  },
-                }}
-              />
-              <Navbar onMenuClick={toggleSidebar} />
-              <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
-              <MainLayout>
-                <Routes>
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                  <Route path="/" element={<HomePage />} />
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route path="/signup" element={<SignUpPage />} />
-                  <Route path="/search" element={<SearchPage />} />
-                  <Route path="/categories" element={<CategoriesPage />} />
-                  <Route path="/suggestions" element={<SuggestionsPage />} />
-                  <Route path="/product/:id" element={<ProductDetails />} />
-                  <Route
-                    path="/orders"
-                    element={
-                      <ProtectedRoute>
-                        <OrdersPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/cart"
-                    element={
-                      <ProtectedRoute>
-                        <CartPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/payment"
-                    element={
-                      <ProtectedRoute>
-                        <PaymentPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="/contact" element={<ContactPage />} />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute requireAdmin={true}>
-                        <DashboardPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route path="*" element={<Navigate to="/" replace />} />
-                </Routes>
-              </MainLayout>
-              <Footer />
-            </div>
-          </CartProvider>
-        </DiscountProvider>
-      </AuthProvider>
-    </Router>
+    <AuthProvider>
+      <DiscountProvider>
+        <CartProvider>
+          <ScrollRestoration />
+          <div className="min-h-screen bg-white">
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 3000,
+                style: {
+                  background: "#333",
+                  color: "#fff",
+                },
+              }}
+            />
+            <Navbar onMenuClick={toggleSidebar} />
+            <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
+            <MainLayout>
+              <Outlet />
+            </MainLayout>
+            <Footer />
+          </div>
+        </CartProvider>
+      </DiscountProvider>
+    </AuthProvider>
   );
+}
+
+const router = createBrowserRouter(
+  createRoutesFromElements(
+    <Route element={<RootLayout />}>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignUpPage />} />
+      <Route path="/search" element={<SearchPage />} />
+      <Route path="/categories" element={<CategoriesPage />} />
+      <Route path="/suggestions" element={<SuggestionsPage />} />
+      <Route path="/product/:id" element={<ProductDetails />} />
+      <Route
+        path="/orders"
+        element={
+          <ProtectedRoute>
+            <OrdersPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/cart"
+        element={
+          <ProtectedRoute>
+            <CartPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/payment"
+        element={
+          <ProtectedRoute>
+            <PaymentPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/contact" element={<ContactPage />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute requireAdmin={true}>
+            <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Route>
+  )
+);
+
+function App() {
+  return <RouterProvider router={router} />;
 }
 
 export default App;
