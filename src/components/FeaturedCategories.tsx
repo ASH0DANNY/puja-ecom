@@ -4,27 +4,27 @@ import { useNavigate } from "react-router-dom";
 const FeaturedCategories = () => {
   const navigate = useNavigate();
 
-  const scrollLeft = () => {
-    const container = document.getElementById("categories-container");
-    if (container) {
-      container.scrollBy({ left: -200, behavior: "smooth" });
-    }
-  };
+  // const scrollLeft = () => {
+  //   const container = document.getElementById("categories-container");
+  //   if (container) {
+  //     container.scrollBy({ left: -200, behavior: "smooth" });
+  //   }
+  // };
 
-  const scrollRight = () => {
-    const container = document.getElementById("categories-container");
-    if (container) {
-      container.scrollBy({ left: 200, behavior: "smooth" });
-    }
-  };
+  // const scrollRight = () => {
+  //   const container = document.getElementById("categories-container");
+  //   if (container) {
+  //     container.scrollBy({ left: 200, behavior: "smooth" });
+  //   }
+  // };
 
   return (
-    <div className="relative w-full group">
+    <div className="relative w-full group overflow-hidden">
       {/* Scroll Left Button */}
-      <button
+      {/* <button
         onClick={scrollLeft}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-primary p-1.5 sm:p-2 rounded-full shadow-lg 
-          opacity-0 group-hover:opacity-100 transition-opacity duration-300 -translate-x-1/2"
+        className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-primary p-1.5 sm:p-2 rounded-full shadow-lg 
+          opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         aria-label="Scroll left"
       >
         <svg
@@ -41,13 +41,13 @@ const FeaturedCategories = () => {
             d="M15 19l-7-7 7-7"
           />
         </svg>
-      </button>
+      </button> */}
 
       {/* Scroll Right Button */}
-      <button
+      {/* <button
         onClick={scrollRight}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-primary p-1.5 sm:p-2 rounded-full shadow-lg 
-          opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-x-1/2"
+        className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-primary p-1.5 sm:p-2 rounded-full shadow-lg 
+          opacity-0 group-hover:opacity-100 transition-opacity duration-300"
         aria-label="Scroll right"
       >
         <svg
@@ -64,7 +64,7 @@ const FeaturedCategories = () => {
             d="M9 5l7 7-7 7"
           />
         </svg>
-      </button>
+      </button> */}
 
       <div
         id="categories-container"

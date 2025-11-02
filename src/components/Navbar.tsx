@@ -42,7 +42,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
 
   return (
     <nav className="backdrop-blur-md bg-white/80 border-b border-gray-200/50 fixed w-full z-50 shadow-sm">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20 md:h-24">
           {/* Left Section - Menu Button & Desktop Navigation */}
           <div className="flex items-center lg:flex-1">

@@ -50,8 +50,8 @@ const HomePage = () => {
 
       {/* Featured Categories */}
       <section className="py-12 lg:py-16">
-        <div className="container mx-auto px-0 lg:px-6">
-          <div className="bg-white rounded-xl shadow-sm">
+        <div className="container mx-auto px-1 lg:px-6">
+          <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="text-center mb-8 lg:mb-12">
               <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
                 <span className="text-primary">Shop</span> by Category
@@ -67,7 +67,7 @@ const HomePage = () => {
       </section>
 
       {/* Featured Products */}
-      <section className="py-12 lg:py-16">
+      <section className="px-2 py-12 lg:py-16">
         <div className="container mx-auto px-0 lg:px-6">
           <div className="text-center mb-8 lg:mb-12">
             <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
@@ -83,7 +83,7 @@ const HomePage = () => {
       </section>
 
       {/* Suggested Products */}
-      <section className="py-12 lg:py-16">
+      <section className="px-2 py-12 lg:py-16">
         <div className="container mx-auto px-0 lg:px-6">
           <div className="text-center mb-8 lg:mb-12">
             <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
@@ -105,7 +105,7 @@ const HomePage = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 px-2">
               {suggestedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

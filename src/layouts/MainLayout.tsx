@@ -8,7 +8,7 @@ interface MainLayoutProps {
 const MainLayout = ({ children }: MainLayoutProps) => {
   return (
     <>
-      <main className="container mx-auto px-4 pt-24 md:pt-28 pb-8">
+      <main className="container mx-auto px-0 pt-20 md:pt-24 pb-8">
         {children}
       </main>
       <FirstTimeDiscountPopup />
