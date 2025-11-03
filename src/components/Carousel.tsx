@@ -85,10 +85,10 @@ const Carousel = () => {
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
             <div className="absolute inset-0 flex items-center justify-center text-white">
               <div className="text-center space-y-4">
-                <h2 className="text-4xl md:text-6xl font-bold">
+                <h2 className="text-3xl md:text-5xl font-bold">
                   {slide.heading}
                 </h2>
-                <p className="text-xl md:text-2xl">{slide.description}</p>
+                <p className="text-lg md:text-xl">{slide.description}</p>
               </div>
             </div>
           </div>

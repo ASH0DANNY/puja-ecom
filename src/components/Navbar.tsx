@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   LogOut,
 } from "lucide-react";
+import LogoImage from "../assets/images/Circular-Logo.png";
 
 interface NavbarProps {
   onMenuClick: () => void;
@@ -69,11 +70,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
           {/* Center Section - Logo (Centered on mobile only) */}
           <div className="absolute left-1/2 transform -translate-x-1/2 lg:relative lg:left-0 lg:transform-none">
             <Link to="/" className="flex items-center">
-              <img
-                src="../src/assets/images/logo2.png"
-                alt="Logo"
-                className="h-16 w-auto lg:h-30"
-              />
+              <img src={LogoImage} alt="Logo" className="h-16 w-auto lg:h-30" />
             </Link>
           </div>
 
