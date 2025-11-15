@@ -10,6 +10,13 @@ export const products: Product[] = [
     image: "/assets/images/products/radha-krishna.jpg",
     stock: 10,
     reviews: 25,
+    sizes: [
+      { label: "Small", isStandard: true, isCustomizable: false },
+      { label: "Medium", isStandard: true, isCustomizable: false },
+      { label: "Large", isStandard: true, isCustomizable: false },
+      { label: "Custom", isStandard: false, isCustomizable: true },
+    ],
+    hasCustomSize: true,
   },
   {
     id: "2",
@@ -20,6 +27,12 @@ export const products: Product[] = [
     image: "/assets/images/products/deity-dress.jpg",
     stock: 15,
     reviews: 18,
+    sizes: [
+      { label: "S", isStandard: true, isCustomizable: false },
+      { label: "M", isStandard: true, isCustomizable: false },
+      { label: "L", isStandard: true, isCustomizable: false },
+    ],
+    hasCustomSize: false,
   },
   {
     id: "3",
@@ -30,6 +43,10 @@ export const products: Product[] = [
     image: "/assets/images/products/temple-jewelry.jpg",
     stock: 8,
     reviews: 12,
+    sizes: [
+      { label: "One Size", isStandard: true, isCustomizable: false },
+    ],
+    hasCustomSize: false,
   },
   {
     id: "4",
@@ -40,6 +57,13 @@ export const products: Product[] = [
     image: "/assets/images/products/diya-stand.jpg",
     stock: 20,
     reviews: 15,
+    sizes: [
+      { label: "Small", isStandard: true, isCustomizable: false },
+      { label: "Medium", isStandard: true, isCustomizable: false },
+      { label: "Large", isStandard: true, isCustomizable: false },
+      { label: "Custom", isStandard: false, isCustomizable: true },
+    ],
+    hasCustomSize: true,
   },
   {
     id: "5",
@@ -50,6 +74,11 @@ export const products: Product[] = [
     image: "/assets/images/products/puja-thali.jpg",
     stock: 25,
     reviews: 30,
+    sizes: [
+      { label: "Standard", isStandard: true, isCustomizable: false },
+      { label: "Large", isStandard: true, isCustomizable: false },
+    ],
+    hasCustomSize: false,
   },
   {
     id: "6",
@@ -60,5 +89,10 @@ export const products: Product[] = [
     image: "/assets/images/products/deity-crown.jpg",
     stock: 12,
     reviews: 22,
+    sizes: [
+      { label: "One Size", isStandard: true, isCustomizable: false },
+      { label: "Custom", isStandard: false, isCustomizable: true },
+    ],
+    hasCustomSize: true,
   },
 ];

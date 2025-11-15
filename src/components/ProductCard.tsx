@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Product } from "../types/product";
+import type { Product, CustomDimensions } from "../types/product";
 import { useCart } from "../context/CartContext";
+import CustomSizeSelector from "./CustomSizeSelector";
 
 interface ProductCardProps {
   product: Product;
@@ -11,6 +12,8 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState<string | undefined>();
+  const [selectedCustomDimensions, setSelectedCustomDimensions] =
+    useState<CustomDimensions>();
   const [selectedColor, setSelectedColor] = useState<string | undefined>();
   const [showModal, setShowModal] = useState(false);
 
@@ -32,7 +35,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   const handleModalAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    addToCart(product, 1, selectedSize, selectedColor);
+    addToCart(product, 1, selectedSize, selectedColor, selectedCustomDimensions);
     setShowModal(false);
   };
 
@@ -156,7 +159,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <div className="flex flex-col mt-auto">
             <div className="mb-1 md:mb-2">
-              <span className="text-gray-600 md:text-lg font-medium text-gray-600">
+              <span className="text-gray-600 md:text-lg font-medium">
                 ₹{(product.discountPrice ?? product.price).toFixed(2)}
               </span>
               {product.discountPrice && (
@@ -217,23 +220,15 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
             {product.sizes && (
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Select Size:
-                </label>
-                <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size) => (
-                    <button
-                      key={size}
-                      onClick={() => setSelectedSize(size)}
-                      className={`px-3 py-2 text-sm border rounded-lg ${selectedSize === size
-                        ? "border-primary bg-primary text-white"
-                        : "border-gray-300 hover:border-primary"
-                        }`}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
+                <CustomSizeSelector
+                  product={product}
+                  onSelectSize={(size, customDimensions) => {
+                    setSelectedSize(size);
+                    setSelectedCustomDimensions(customDimensions);
+                  }}
+                  selectedSize={selectedSize}
+                  selectedCustomDimensions={selectedCustomDimensions}
+                />
               </div>
             )}
 

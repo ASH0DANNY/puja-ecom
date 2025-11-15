@@ -390,6 +390,36 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                     </div>
                   </div>
 
+                  {/* Custom Size Feature */}
+                  <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Custom Size Feature
+                    </h3>
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="hasCustomSize"
+                        checked={editingProduct.hasCustomSize || false}
+                        onChange={(e) =>
+                          setEditingProduct({
+                            ...editingProduct,
+                            hasCustomSize: e.target.checked,
+                          })
+                        }
+                        className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+                      />
+                      <label
+                        htmlFor="hasCustomSize"
+                        className="ml-2 block text-sm font-medium text-gray-900"
+                      >
+                        Allow customers to specify custom dimensions for this product
+                      </label>
+                    </div>
+                    <p className="text-sm text-gray-600">
+                      When enabled, customers can enter their own custom dimensions (width, height, depth) during checkout.
+                    </p>
+                  </div>
+
                   {/* Image Upload */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">

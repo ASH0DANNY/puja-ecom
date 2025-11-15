@@ -7,15 +7,71 @@ import DiscountField from "../components/DiscountField";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useAuth } from "../context/AuthContext";
 import { useScrollToTop } from "../utils/scrollToTop";
+import type { CartItem, CustomDimensions } from "../types/product";
 
 const CartPage = () => {
-  const { items, removeFromCart, updateQuantity, total, subtotal, discount } =
-    useCart();
+  const {
+    items,
+    removeFromCart,
+    updateQuantity,
+    updateDimensions,
+    total,
+    subtotal,
+    discount,
+  } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [discountMessage, setDiscountMessage] = useState("");
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editDimensions, setEditDimensions] = useState<CustomDimensions | null>(
+    null
+  );
+  const [editError, setEditError] = useState("");
   const scrollToTop = useScrollToTop();
+
+  const handleEditDimensions = (item: CartItem) => {
+    setEditingItemId(item.id);
+    setEditDimensions(item.customDimensions || { width: 0, height: 0 });
+    setEditError("");
+  };
+
+  const handleSaveDimensions = (item: CartItem) => {
+    if (!editDimensions) {
+      setEditError("Dimensions are required");
+      return;
+    }
+
+    if (editDimensions.width <= 0 || editDimensions.height <= 0) {
+      setEditError("Width and height must be greater than 0");
+      return;
+    }
+
+    if (
+      editDimensions.depth !== undefined &&
+      editDimensions.depth !== null &&
+      editDimensions.depth <= 0
+    ) {
+      setEditError("Depth must be greater than 0");
+      return;
+    }
+
+    updateDimensions(
+      item.id,
+      item.selectedSize,
+      item.selectedColor,
+      editDimensions
+    );
+    setEditingItemId(null);
+    setEditDimensions(null);
+    setEditError("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingItemId(null);
+    setEditDimensions(null);
+    setEditError("");
+  };
 
   useEffect(() => {
     scrollToTop();
@@ -87,6 +143,17 @@ const CartPage = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Custom Size Info Banner */}
+          <div className="lg:col-span-2">
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+              <p className="text-blue-900 text-sm">
+                <strong>💡 Tip:</strong> Items with custom dimensions show "Edit
+                Dimensions" button. Click it to modify width, height, or depth
+                before checkout.
+              </p>
+            </div>
+          </div>
+
           {/* Cart Items */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
@@ -96,7 +163,9 @@ const CartPage = () => {
               <div className="space-y-6">
                 {items.map((item) => (
                   <div
-                    key={`${item.id}-${item.selectedSize}-${item.selectedColor}`}
+                    key={`${item.id}-${item.selectedSize}-${
+                      item.selectedColor
+                    }-${JSON.stringify(item.customDimensions)}`}
                     className="flex items-start space-x-4 p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow"
                   >
                     <div className="w-20 h-20 lg:w-24 lg:h-24 flex-shrink-0">
@@ -111,13 +180,29 @@ const CartPage = () => {
                         {item.name}
                       </h3>
                       <p className="text-gray-600 text-sm lg:text-base mb-2">
-                        ₹{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}
+                        ₹
+                        {item.discountPrice
+                          ? item.discountPrice.toFixed(2)
+                          : item.price.toFixed(2)}
                       </p>
                       {item.selectedSize && (
                         <p className="text-sm text-gray-500 mb-1">
                           Size:{" "}
                           <span className="font-medium">
                             {item.selectedSize}
+                          </span>
+                        </p>
+                      )}
+                      {item.customDimensions && (
+                        <p className="text-sm text-gray-500 mb-1">
+                          Dimensions:{" "}
+                          <span className="font-medium">
+                            {item.customDimensions.width} ×{" "}
+                            {item.customDimensions.height}
+                            {item.customDimensions.depth
+                              ? ` × ${item.customDimensions.depth}`
+                              : ""}{" "}
+                            cm
                           </span>
                         </p>
                       )}
@@ -143,6 +228,15 @@ const CartPage = () => {
                             </option>
                           ))}
                         </select>
+                        {item.hasCustomSize && (
+                          <button
+                            onClick={() => handleEditDimensions(item)}
+                            className="px-3 py-2 text-sm bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition-colors font-medium"
+                            title="Edit dimensions"
+                          >
+                            Edit Dimensions
+                          </button>
+                        )}
                         <button
                           onClick={() => removeFromCart(item.id)}
                           className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
@@ -154,13 +248,121 @@ const CartPage = () => {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-base lg:text-lg text-gray-900">
-                        ₹{((item.discountPrice !== undefined ? item.discountPrice : item.price) * item.quantity).toFixed(2)}
+                        ₹
+                        {(
+                          (item.discountPrice !== undefined
+                            ? item.discountPrice
+                            : item.price) * item.quantity
+                        ).toFixed(2)}
                       </p>
                     </div>
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Edit Dimensions Modal */}
+            {editingItemId && editDimensions && (
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                    Edit Custom Dimensions
+                  </h3>
+
+                  <div className="space-y-4 mb-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Width (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editDimensions.width}
+                        onChange={(e) =>
+                          setEditDimensions({
+                            ...editDimensions,
+                            width: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Height (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editDimensions.height}
+                        onChange={(e) =>
+                          setEditDimensions({
+                            ...editDimensions,
+                            height: parseFloat(e.target.value) || 0,
+                          })
+                        }
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Depth (cm) - Optional
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editDimensions.depth || ""}
+                        onChange={(e) =>
+                          setEditDimensions({
+                            ...editDimensions,
+                            depth: e.target.value
+                              ? parseFloat(e.target.value)
+                              : undefined,
+                          })
+                        }
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-primary focus:outline-none"
+                        placeholder="Leave empty for 2D items"
+                      />
+                    </div>
+                  </div>
+
+                  {editError && (
+                    <div className="mb-4 p-3 bg-red-50 border-2 border-red-300 rounded-lg">
+                      <p className="text-sm text-red-700 font-medium">
+                        {editError}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={handleCancelEdit}
+                      className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors font-medium"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        const item = items.find((i) => i.id === editingItemId);
+                        if (item) {
+                          handleSaveDimensions(item);
+                        }
+                      }}
+                      className="flex-1 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                    >
+                      Save Dimensions
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Order Summary */}

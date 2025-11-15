@@ -7,6 +7,7 @@ import type { Suggestion } from "../types/suggestion";
 import { ProductTable } from "../components/ProductTable";
 import { OrderTable } from "../components/OrderTable";
 import { SuggestionsTable } from "../components/SuggestionsTable";
+import { AdminExportPanel } from "../components/AdminExportPanel";
 import AddProductForm from "../components/AddProductForm";
 import DiscountManager from "../components/DiscountManager";
 import HomepageManager from "../components/HomepageManager";
@@ -320,6 +321,11 @@ export const DashboardPage = () => {
                     </p>
                   </div>
                 ))}
+              </div>
+
+              {/* Export Panel */}
+              <div className="mt-8">
+                <AdminExportPanel products={products} orders={orders} />
               </div>
 
               {/* Recent Activity Section */}

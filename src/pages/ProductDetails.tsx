@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import type { Product } from "../types/product";
+import type { Product, CustomDimensions } from "../types/product";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useScrollToTop } from "../utils/scrollToTop";
+import CustomSizeSelector from "../components/CustomSizeSelector";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>();
+  const [selectedCustomDimensions, setSelectedCustomDimensions] =
+    useState<CustomDimensions>();
   const [selectedColor, setSelectedColor] = useState<string>();
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
@@ -107,7 +110,7 @@ const ProductDetails = () => {
   //   : 0;
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, selectedSize, selectedColor);
+    addToCart(product, quantity, selectedSize, selectedColor, selectedCustomDimensions);
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -329,24 +332,15 @@ const ProductDetails = () => {
 
           {/* Size Selection */}
           {product.sizes && product.sizes.length > 0 && (
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-gray-900">Size</h3>
-              <div className="flex flex-wrap gap-3">
-                {product.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-6 py-3 border-2 rounded-lg font-medium transition-all ${
-                      selectedSize === size
-                        ? "border-primary bg-primary text-white shadow-md"
-                        : "border-gray-300 hover:border-primary hover:shadow-sm"
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <CustomSizeSelector
+              product={product}
+              onSelectSize={(size, customDimensions) => {
+                setSelectedSize(size);
+                setSelectedCustomDimensions(customDimensions);
+              }}
+              selectedSize={selectedSize}
+              selectedCustomDimensions={selectedCustomDimensions}
+            />
           )}
 
           {/* Color Selection */}

@@ -1,3 +1,15 @@
+export interface SizeOption {
+  label: string;
+  isStandard: boolean;
+  isCustomizable: boolean;
+}
+
+export interface CustomDimensions {
+  width: number;
+  height: number;
+  depth?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -20,7 +32,7 @@ export interface Product {
   dimensions?: string;
   sku?: string;
   discountPrice?: number;
-  sizes?: string[];
+  sizes?: SizeOption[] | string[];
   colors?: string[];
   tags?: string[];
   shipping?: {
@@ -30,10 +42,13 @@ export interface Product {
     weight: string;
   };
   images?: string[];
+  // Custom size feature flag - admin enables/disables only
+  hasCustomSize?: boolean;
 }
 
 export type CartItem = Product & {
   quantity: number;
   selectedSize?: string;
   selectedColor?: string;
+  customDimensions?: CustomDimensions;
 };

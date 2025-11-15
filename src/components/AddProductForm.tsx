@@ -28,6 +28,7 @@ interface FormData {
     depth: string;
     weight: string;
   };
+  hasCustomSize: boolean;
 }
 
 interface AddProductFormProps {
@@ -46,7 +47,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
     weight: "",
     dimensions: "",
     sku: "",
-    stock: "1", // Default stock to 1
+    stock: "1",
     sizes: [],
     colors: [],
     tags: [],
@@ -59,6 +60,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       depth: "",
       weight: "",
     },
+    hasCustomSize: false,
   });
   const [productImages, setProductImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -79,19 +81,19 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         name: formData.name,
         description: formData.description.trim(),
         price: parseFloat(formData.price),
-        image: imageUrls[0], // Use first image as main image
-        images: imageUrls, // Store all images
+        image: imageUrls[0],
+        images: imageUrls,
         category: formData.category.trim(),
         brand: formData.brand.trim(),
         material: formData.material.trim(),
         weight: formData.weight.trim(),
         dimensions: formData.dimensions.trim(),
         sku: formData.sku.trim(),
-        stock: Math.max(0, parseInt(formData.stock) || 0), // Ensure non-negative number
+        stock: Math.max(0, parseInt(formData.stock) || 0),
         isSuggested: formData.isSuggested,
         sales: 0,
-
         reviews: 0,
+        hasCustomSize: formData.hasCustomSize,
       };
 
       await addDoc(collection(db, "products"), productData);
@@ -108,7 +110,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         weight: "",
         dimensions: "",
         sku: "",
-        stock: "1", // Reset stock to default value of 1
+        stock: "1",
         sizes: [],
         colors: [],
         tags: [],
@@ -121,6 +123,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           depth: "",
           weight: "",
         },
+        hasCustomSize: false,
       });
       setProductImages([]);
       setImagePreviews([]);
@@ -537,6 +540,37 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Custom Size Feature */}
+      <div className="bg-white p-6 rounded-lg shadow-sm">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">
+          Custom Size Feature
+        </h3>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="hasCustomSize"
+            checked={formData.hasCustomSize}
+            onChange={(e) =>
+              setFormData((prev) => ({
+                ...prev,
+                hasCustomSize: e.target.checked,
+              }))
+            }
+            className="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded"
+          />
+          <label
+            htmlFor="hasCustomSize"
+            className="ml-2 block text-sm font-medium text-gray-900"
+          >
+            Allow customers to specify custom dimensions for this product
+          </label>
+        </div>
+        <p className="text-sm text-gray-600 mt-3">
+          When enabled, customers can enter their own custom dimensions (width, height, depth) during checkout. 
+          Make sure to include "Custom" as a size option in the "Product Details" section above.
+        </p>
       </div>
 
       {/* Image Upload */}

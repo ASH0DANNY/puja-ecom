@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import type { CartItem, Product } from "../types/product";
+import type { CartItem, Product, CustomDimensions } from "../types/product";
 import { useDiscount } from "./DiscountContext";
 import Cookies from "js-cookie";
 import CartAnimation from "../components/CartAnimation";
@@ -11,10 +11,17 @@ interface CartContextType {
     product: Product,
     quantity?: number,
     size?: string,
-    color?: string
+    color?: string,
+    customDimensions?: CustomDimensions
   ) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
+  updateDimensions: (
+    productId: string,
+    size: string | undefined,
+    color: string | undefined,
+    customDimensions: CustomDimensions | undefined
+  ) => void;
   clearCart: () => void;
   total: number;
   subtotal: number;
@@ -53,14 +60,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     product: Product,
     quantity = 1,
     size?: string,
-    color?: string
+    color?: string,
+    customDimensions?: CustomDimensions
   ) => {
     setItems((currentItems: CartItem[]) => {
       const existingItem = currentItems.find(
         (item) =>
           item.id === product.id &&
           item.selectedSize === size &&
-          item.selectedColor === color
+          item.selectedColor === color &&
+          JSON.stringify(item.customDimensions) ===
+            JSON.stringify(customDimensions)
       );
 
       // Show animation
@@ -86,6 +96,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           selectedSize: size,
           selectedColor: color,
+          customDimensions,
           name: product.name,
         },
       ];
@@ -106,6 +117,26 @@ export function CartProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  const updateDimensions = (
+    productId: string,
+    size: string | undefined,
+    color: string | undefined,
+    customDimensions: CustomDimensions | undefined
+  ) => {
+    setItems((currentItems) =>
+      currentItems.map((item) =>
+        item.id === productId
+          ? {
+              ...item,
+              selectedSize: size,
+              selectedColor: color,
+              customDimensions,
+            }
+          : item
+      )
+    );
+  };
+
   const clearCart = () => {
     setItems([]);
     setDiscountCode(null);
@@ -113,7 +144,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
   };
 
   const subtotal = items.reduce(
-    (sum, item) => sum + parseFloat(item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)) * item.quantity,
+    (sum, item) =>
+      sum +
+      parseFloat(
+        item.discountPrice
+          ? item.discountPrice.toFixed(2)
+          : item.price.toFixed(2)
+      ) *
+        item.quantity,
     0
   );
 
@@ -177,6 +215,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateDimensions,
         clearCart,
         total,
         subtotal,

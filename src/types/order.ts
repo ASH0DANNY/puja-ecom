@@ -14,6 +14,11 @@ export interface OrderItem {
   priceAtOrder: number;
   selectedSize?: string;
   selectedColor?: string;
+  customDimensions?: {
+    width: number;
+    height: number;
+    depth?: number;
+  };
   stockUpdated?: boolean;
   refunded?: boolean;
   returnRequested?: boolean;

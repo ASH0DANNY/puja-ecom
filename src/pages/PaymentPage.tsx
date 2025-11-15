@@ -123,6 +123,7 @@ const PaymentPage = () => {
           priceAtOrder: item.price || 0,
           selectedSize: item.selectedSize || null,
           selectedColor: item.selectedColor || null,
+          customDimensions: item.customDimensions || null,
         })),
         total: total || 0,
         subtotal: calculatedSubtotal,
@@ -201,11 +202,22 @@ const PaymentPage = () => {
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={item.id} className="flex justify-between">
-                <span>
-                  {item.name} × {item.quantity}
-                </span>
-                <span>₹{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}</span>
+              <div key={`${item.id}-${item.selectedSize}-${JSON.stringify(item.customDimensions)}`} className="pb-4 border-b last:border-b-0">
+                <div className="flex justify-between mb-2">
+                  <span className="font-medium">
+                    {item.name} × {item.quantity}
+                  </span>
+                  <span>₹{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}</span>
+                </div>
+                {item.selectedSize && (
+                  <p className="text-sm text-gray-600">Size: {item.selectedSize}</p>
+                )}
+                {item.customDimensions && (
+                  <p className="text-sm text-gray-600">
+                    Dimensions: {item.customDimensions.width} × {item.customDimensions.height}
+                    {item.customDimensions.depth ? ` × ${item.customDimensions.depth}` : ""} cm
+                  </p>
+                )}
               </div>
             ))}
             <div className="border-t pt-4">

@@ -10,6 +10,7 @@ import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import type { Order } from "../types/order";
 import { useScrollToTop } from "../utils/scrollToTop";
+import { OrderInvoice } from "../components/OrderInvoice";
 import {
   ShoppingBag,
   Eye,
@@ -315,6 +316,17 @@ const OrdersPage = () => {
                 </div>
 
                 <div className="p-4 lg:p-6 space-y-6">
+                  {/* Invoice Actions */}
+                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-lg p-6 shadow-md">
+                    <div className="flex items-center justify-between flex-wrap gap-4">
+                      <div>
+                        <p className="font-bold text-lg text-gray-900">📄 Invoice Management</p>
+                        <p className="text-sm text-gray-600 mt-1">Download or preview your order invoice with complete details</p>
+                      </div>
+                      <OrderInvoice order={selectedOrder} />
+                    </div>
+                  </div>
+
                   {/* Order Info */}
                   <div className="grid grid-cols-2 gap-6">
                     <div>
@@ -392,10 +404,20 @@ const OrdersPage = () => {
                         {selectedOrder.items?.map((item, index) => (
                           <div
                             key={item.product.id || index}
-                            className="flex items-center text-sm px-6 py-4"
+                            className={`flex items-center text-sm px-6 py-4 ${
+                              item.customDimensions
+                                ? "bg-blue-50 border-l-4 border-blue-500"
+                                : ""
+                            }`}
                           >
                             <div className="w-2/5">
-                              <div className="flex items-center">
+                              <div className="flex items-center gap-2">
+                                {item.customDimensions && (
+                                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-md">
+                                    <span className="text-xs font-semibold text-blue-700">📐</span>
+                                    <span className="text-xs font-semibold text-blue-700">CUSTOM</span>
+                                  </div>
+                                )}
                                 {item.product.image && (
                                   <img
                                     src={item.product.image}
@@ -408,15 +430,29 @@ const OrdersPage = () => {
                                     {item.product.name}
                                   </p>
                                   {(item.selectedSize ||
-                                    item.selectedColor) && (
+                                    item.selectedColor ||
+                                    item.customDimensions) && (
                                     <p className="text-xs text-gray-500">
                                       {item.selectedSize &&
                                         `Size: ${item.selectedSize}`}
                                       {item.selectedSize &&
-                                        item.selectedColor &&
+                                        (item.selectedColor ||
+                                          item.customDimensions) &&
                                         " | "}
                                       {item.selectedColor &&
                                         `Color: ${item.selectedColor}`}
+                                      {item.customDimensions && (
+                                        <>
+                                          {(item.selectedSize ||
+                                            item.selectedColor) &&
+                                            " | "}
+                                          Dimensions: {item.customDimensions.width} ×{" "}
+                                          {item.customDimensions.height}
+                                          {item.customDimensions.depth &&
+                                            ` × ${item.customDimensions.depth}`}{" "}
+                                          cm
+                                        </>
+                                      )}
                                     </p>
                                   )}
                                 </div>
