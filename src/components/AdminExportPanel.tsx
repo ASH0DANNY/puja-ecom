@@ -99,6 +99,64 @@ export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProp
             );
             break;
         }
+      } else if (format === "pdf") {
+        let reportTitle = "";
+        let reportData: Array<{ label: string; value: string | number }> = [];
+
+        switch (type) {
+          case "products":
+            reportTitle = "Products Export";
+            reportData = [
+              { label: "Total Products", value: products.length },
+              { label: "Generated", value: new Date().toLocaleDateString() },
+              { label: "Status", value: "Complete" },
+            ];
+            break;
+
+          case "orders":
+            reportTitle = "Orders Export";
+            reportData = [
+              { label: "Total Orders", value: orders.length },
+              { label: "Total Revenue", value: `₹${orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2)}` },
+              { label: "Generated", value: new Date().toLocaleDateString() },
+            ];
+            break;
+
+          case "revenue":
+            reportTitle = "Revenue Report";
+            const totalRevenue = orders
+              .filter(o => o.status === "delivered")
+              .reduce((sum, o) => sum + (o.total || 0), 0);
+            reportData = [
+              { label: "Total Revenue", value: `₹${totalRevenue.toFixed(2)}` },
+              { label: "Total Orders", value: orders.filter(o => o.status === "delivered").length },
+              { label: "Average Order Value", value: `₹${(totalRevenue / (orders.filter(o => o.status === "delivered").length || 1)).toFixed(2)}` },
+              { label: "Generated", value: new Date().toLocaleDateString() },
+            ];
+            break;
+
+          case "sales":
+            reportTitle = "Product Sales Report";
+            reportData = [
+              { label: "Total Products Sold", value: orders.reduce((sum, o) => sum + (o.items?.length || 0), 0) },
+              { label: "Number of Products", value: products.length },
+              { label: "Generated", value: new Date().toLocaleDateString() },
+            ];
+            break;
+
+          case "all":
+            reportTitle = "Complete Business Report";
+            reportData = [
+              { label: "Total Products", value: products.length },
+              { label: "Total Orders", value: orders.length },
+              { label: "Total Revenue", value: `₹${orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2)}` },
+              { label: "Generated", value: new Date().toLocaleDateString() },
+            ];
+            break;
+        }
+
+        const doc = generateReportPdf(reportTitle, reportData);
+        downloadPdf(doc, `${type}-report-${new Date().toISOString().split("T")[0]}.pdf`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Export failed");
@@ -111,7 +169,7 @@ export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProp
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-md border-2 border-indigo-200 p-8">
       <div className="mb-6">
         <h3 className="text-2xl font-bold text-gray-900 mb-2">📊 Export Business Data</h3>
-        <p className="text-gray-600">Download your business reports in Excel format</p>
+        <p className="text-gray-600">Download your business reports in Excel or PDF format</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -195,15 +253,26 @@ const ExportCard = ({
         </div>
       </div>
 
-      <button
-        onClick={() => onExport("xlsx")}
-        disabled={disabled}
-        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
-        title="Export as Excel"
-      >
-        <FileText className="w-5 h-5" />
-        Export to Excel
-      </button>
+      <div className="flex gap-2">
+        <button
+          onClick={() => onExport("xlsx")}
+          disabled={disabled}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+          title="Export as Excel"
+        >
+          <FileText className="w-5 h-5" />
+          Excel
+        </button>
+        <button
+          onClick={() => onExport("pdf")}
+          disabled={disabled}
+          className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white hover:from-red-600 hover:to-red-700 rounded-lg text-sm font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transform hover:scale-105 active:scale-95"
+          title="Export as PDF"
+        >
+          <FileText className="w-5 h-5" />
+          PDF
+        </button>
+      </div>
     </div>
   );
 };

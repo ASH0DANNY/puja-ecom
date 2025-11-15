@@ -128,7 +128,8 @@ export const generateInvoicePdf = (
 
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
+
+    // Note: Using hardcoded margin values (15) in this version of invoice template
 
     // ============ HEADER SECTION ============
     doc.setFillColor(52, 73, 94);
@@ -267,6 +268,90 @@ export const generateInvoicePdf = (
     console.error("Error generating invoice PDF:", error);
     throw new Error(
       `Failed to generate invoice: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+};
+
+/**
+ * Generate report PDF
+ */
+export const generateReportPdf = (
+  reportTitle: string,
+  reportData: Array<{
+    label: string;
+    value: string | number;
+  }>,
+  dateRange?: { start: Date; end: Date }
+) => {
+  try {
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    let yPosition = margin;
+
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(0, 51, 102);
+    doc.setFont("helvetica", "bold");
+    doc.text(reportTitle, margin, yPosition);
+
+    yPosition += 12;
+
+    // Date range if provided
+    if (dateRange) {
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.setFont("helvetica", "normal");
+      const dateText = `Report Period: ${dateRange.start.toLocaleDateString()} to ${dateRange.end.toLocaleDateString()}`;
+      doc.text(dateText, margin, yPosition);
+      yPosition += 8;
+    }
+
+    // Generated date
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, margin, yPosition);
+
+    yPosition += 12;
+
+    // Data section
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+
+    reportData.forEach((item) => {
+      const labelStr = String(item.label);
+      const valueStr = String(item.value);
+
+      doc.text(labelStr, margin, yPosition);
+      doc.text(valueStr, pageWidth - margin - 30, yPosition);
+      yPosition += 6;
+    });
+
+    // Footer
+    yPosition += 8;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+    yPosition += 6;
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont("helvetica", "italic");
+    doc.text("Puja E-Commerce Business Report", margin, yPosition);
+
+    return doc;
+  } catch (error) {
+    console.error("Error generating report PDF:", error);
+    throw new Error(
+      `Failed to generate report PDF: ${
         error instanceof Error ? error.message : "Unknown error"
       }`
     );
