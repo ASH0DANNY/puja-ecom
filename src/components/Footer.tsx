@@ -6,6 +6,7 @@ import {
   FaLinkedinIn,
 } from "react-icons/fa";
 import { MdMail, MdPhone, MdLocationOn } from "react-icons/md";
+import LogoImage from "../assets/images/Circular-Logo.png";
 
 const Footer = () => {
   return (
@@ -17,12 +18,12 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center">
               <img
-                src="../../src/assets/images/logo2.png"
-                alt="Kahana Store"
+                src={LogoImage}
+                alt="Rachna creations Logo"
                 className="h-8 w-auto"
               />
               <span className="ml-2 text-xl font-bold text-white">
-                Kahana Store
+                Ranchna Creation
               </span>
             </div>
             <p className="text-gray-400 text-sm">
@@ -169,7 +170,7 @@ const Footer = () => {
                 <span className="text-gray-400">
                   Main Road Galudih
                   <br />
-                  Ghatsila
+                  Ghatsila, Jharkhand - 832303
                 </span>
               </li>
             </ul>

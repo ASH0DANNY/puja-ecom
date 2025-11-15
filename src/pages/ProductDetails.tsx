@@ -448,12 +448,12 @@ const ProductDetails = () => {
                     {product.sku}
                   </span>
                 </div>
-                <div>
+                {/* <div>
                   <span className="font-medium text-gray-700">Sales:</span>
                   <span className="ml-2 text-gray-600">
                     {product.sales} sold
                   </span>
-                </div>
+                </div> */}
               </div>
             </div>
 
