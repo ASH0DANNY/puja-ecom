@@ -17,6 +17,9 @@ import {
 } from "chart.js";
 import { Line, Bar } from "react-chartjs-2";
 import { useScrollToTop } from "../utils/scrollToTop";
+import { exportToExcel } from "../utils/exportExcel";
+import { generateReportPdf, downloadPdf } from "../utils/exportPdf";
+import { Download, FileText } from "lucide-react";
 
 ChartJS.register(
   CategoryScale,
@@ -37,11 +40,108 @@ const ReportsDashboard = () => {
     start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // Last 30 days
     end: new Date(),
   });
+  const [isExporting, setIsExporting] = useState(false);
   const scrollToTop = useScrollToTop();
 
   useEffect(() => {
     scrollToTop();
   }, []);
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      switch (selectedReport) {
+        case "sales":
+          const salesData = [
+            { date: "2024-01-01", orders: 5, revenue: 2500 },
+            { date: "2024-01-02", orders: 8, revenue: 4000 },
+            { date: "2024-01-03", orders: 3, revenue: 1500 },
+          ];
+          exportToExcel(salesData, {
+            filename: `sales-report-${new Date().toISOString().split("T")[0]}.xlsx`,
+            sheetName: "Sales Report",
+          });
+          break;
+        case "inventory":
+          const inventoryData = [
+            { productName: "Product 1", stock: 50, turnoverRate: "90%" },
+            { productName: "Product 2", stock: 30, turnoverRate: "85%" },
+          ];
+          exportToExcel(inventoryData, {
+            filename: `inventory-report-${new Date().toISOString().split("T")[0]}.xlsx`,
+            sheetName: "Inventory Report",
+          });
+          break;
+        case "customers":
+          const customerData = [
+            { name: "John Doe", orders: 10, totalSpent: 2500 },
+            { name: "Jane Smith", orders: 8, totalSpent: 2000 },
+          ];
+          exportToExcel(customerData, {
+            filename: `customer-report-${new Date().toISOString().split("T")[0]}.xlsx`,
+            sheetName: "Customer Report",
+          });
+          break;
+      }
+    } catch (error) {
+      console.error("Error exporting Excel:", error);
+      alert("Failed to export Excel file");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleExportPDF = async () => {
+    setIsExporting(true);
+    try {
+      let reportData: Array<{ label: string; value: string | number }> = [];
+      let reportTitle = "";
+
+      switch (selectedReport) {
+        case "sales":
+          reportTitle = "Sales Report";
+          reportData = [
+            { label: "Total Sales", value: "$25,000" },
+            { label: "Total Orders", value: "150" },
+            { label: "Average Order Value", value: "$166.67" },
+            { label: "Top Product", value: "Product 1 - 50 units" },
+            { label: "Discount Usage", value: "SUMMER21 - 30 times" },
+          ];
+          break;
+        case "inventory":
+          reportTitle = "Inventory Report";
+          reportData = [
+            { label: "Total Products", value: "250" },
+            { label: "Low Stock Items", value: "5" },
+            { label: "Stock Trend", value: "Stable" },
+            { label: "Average Turnover Rate", value: "87.5%" },
+            { label: "Last Updated", value: new Date().toLocaleDateString() },
+          ];
+          break;
+        case "customers":
+          reportTitle = "Customer Report";
+          reportData = [
+            { label: "Total Customers", value: "500" },
+            { label: "New Customers (30 days)", value: "50" },
+            { label: "Customer Retention", value: "85%" },
+            { label: "Top Customer", value: "John Doe - 10 orders" },
+            { label: "Average Spent per Customer", value: "$500" },
+          ];
+          break;
+      }
+
+      const doc = generateReportPdf(reportTitle, reportData, dateRange);
+      downloadPdf(
+        doc,
+        `${selectedReport}-report-${new Date().toISOString().split("T")[0]}.pdf`
+      );
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      alert("Failed to export PDF file");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Render different report sections based on the selected type
   const renderReport = () => {
@@ -60,7 +160,27 @@ const ReportsDashboard = () => {
   return (
     <div className="p-6">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-4">Reports & Analytics</h1>
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-bold">Reports & Analytics</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleExportExcel}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              <Download className="w-4 h-4" />
+              Excel
+            </button>
+            <button
+              onClick={handleExportPDF}
+              disabled={isExporting}
+              className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+            >
+              <FileText className="w-4 h-4" />
+              PDF
+            </button>
+          </div>
+        </div>
 
         {/* Report Type Selection */}
         <div className="flex space-x-4 mb-4">

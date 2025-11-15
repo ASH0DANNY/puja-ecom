@@ -1,5 +1,13 @@
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import html2canvas from "html2canvas";
+
+// Extend jsPDF type to include autoTable
+declare module "jspdf" {
+  interface jsPDF {
+    autoTable: (options: any) => any;
+  }
+}
 
 export interface PDFGeneratorOptions {
   filename: string;
@@ -42,7 +50,8 @@ export const generatePdfFromHtml = async (
     // Add title if provided
     if (options.title) {
       pdf.setFontSize(16);
-      pdf.text(options.title, 10, yPosition);
+      const titleText = String(options.title);
+      pdf.text(titleText, 10, yPosition);
       yPosition += 15;
     }
 
@@ -50,7 +59,8 @@ export const generatePdfFromHtml = async (
     pdf.addImage(imgData, "PNG", 10, yPosition, imgWidth, imgHeight);
 
     // Handle multiple pages if needed
-    let heightLeft = imgHeight - (pdf.internal.pageSize.getHeight() - yPosition - 10);
+    let heightLeft =
+      imgHeight - (pdf.internal.pageSize.getHeight() - yPosition - 10);
     let position = 0;
 
     while (heightLeft > 0) {
@@ -68,7 +78,7 @@ export const generatePdfFromHtml = async (
 };
 
 /**
- * Generate invoice PDF
+ * Generate invoice PDF with enhanced layout (updated based on reference)
  */
 export const generateInvoicePdf = (
   invoiceData: {
@@ -94,105 +104,173 @@ export const generateInvoicePdf = (
   },
   _filename: string = "invoice.pdf"
 ) => {
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "mm",
-    format: "a4",
-  });
+  try {
+    // Validate input data
+    if (!invoiceData || !invoiceData.items) {
+      throw new Error("Invalid invoice data provided");
+    }
 
-  let yPosition = 10;
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  const margin = 10;
-  const maxWidth = pageWidth - 2 * margin;
-
-  // Header
-  pdf.setFontSize(20);
-  pdf.text("INVOICE", margin, yPosition);
-  yPosition += 10;
-
-  pdf.setFontSize(10);
-  pdf.text(`Invoice #: ${invoiceData.orderId}`, margin, yPosition);
-  yPosition += 6;
-  pdf.text(`Date: ${invoiceData.date}`, margin, yPosition);
-  yPosition += 10;
-
-  // Customer Info
-  pdf.setFontSize(11);
-  pdf.text("Bill To:", margin, yPosition);
-  yPosition += 5;
-
-  pdf.setFontSize(10);
-  pdf.text(invoiceData.customerName, margin, yPosition);
-  yPosition += 5;
-  pdf.text(invoiceData.email, margin, yPosition);
-  yPosition += 5;
-  pdf.text(invoiceData.phone || "", margin, yPosition);
-  yPosition += 5;
-
-  const addressLines = pdf.splitTextToSize(invoiceData.address, maxWidth - margin);
-  pdf.text(addressLines, margin, yPosition);
-  yPosition += addressLines.length * 5 + 10;
-
-  // Items Table
-  pdf.setFontSize(11);
-  pdf.text("Items:", margin, yPosition);
-  yPosition += 7;
-
-  // Table header
-  pdf.setFillColor(240, 240, 240);
-  pdf.rect(margin, yPosition, maxWidth, 6, "F");
-  pdf.setFontSize(9);
-  pdf.text("Description", margin + 2, yPosition + 4);
-  pdf.text("Qty", margin + 85, yPosition + 4);
-  pdf.text("Price", margin + 105, yPosition + 4);
-  pdf.text("Total", margin + 135, yPosition + 4);
-  yPosition += 7;
-
-  // Table rows
-  pdf.setFontSize(9);
-  invoiceData.items.forEach((item) => {
-    let description = item.name;
-    if (item.color) description += ` (${item.color})`;
-    if (item.dimensions) description += ` - ${item.dimensions}`;
-
-    const lines = pdf.splitTextToSize(description, 80);
-    const lineHeight = lines.length * 4;
-
-    lines.forEach((line: string, index: number) => {
-      pdf.text(line, margin + 2, yPosition + index * 4);
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
     });
 
-    pdf.text(item.quantity.toString(), margin + 85, yPosition);
-    pdf.text(`₹${item.price.toFixed(2)}`, margin + 105, yPosition);
-    pdf.text(`₹${item.total.toFixed(2)}`, margin + 135, yPosition);
+    // Ensure all required fields are strings
+    invoiceData.customerName = String(invoiceData.customerName || "Customer");
+    invoiceData.email = String(invoiceData.email || "");
+    invoiceData.phone = String(invoiceData.phone || "N/A");
+    invoiceData.address = String(invoiceData.address || "");
+    invoiceData.date = String(
+      invoiceData.date || new Date().toLocaleDateString()
+    );
+    invoiceData.orderId = String(invoiceData.orderId || "");
 
-    yPosition += lineHeight + 2;
-  });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
 
-  yPosition += 5;
+    // ============ HEADER SECTION ============
+    doc.setFillColor(52, 73, 94);
+    doc.rect(0, 0, pageWidth, 40, "F");
 
-  // Totals
-  pdf.setFillColor(250, 250, 250);
-  pdf.rect(margin + 80, yPosition, maxWidth - 80, 5, "F");
-  pdf.setFontSize(10);
-  pdf.text("Subtotal:", margin + 100, yPosition + 3);
-  pdf.text(`₹${invoiceData.subtotal.toFixed(2)}`, margin + 135, yPosition + 3);
-  yPosition += 6;
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(24);
+    doc.text("INVOICE", pageWidth / 2, 20, { align: "center" });
 
-  if (invoiceData.discount > 0) {
-    pdf.text("Discount:", margin + 100, yPosition + 3);
-    pdf.text(`-₹${invoiceData.discount.toFixed(2)}`, margin + 135, yPosition + 3);
-    yPosition += 6;
+    doc.setFontSize(12);
+    doc.text(invoiceData.company || "Your Business Name", pageWidth / 2, 30, {
+      align: "center",
+    });
+
+    // ============ INVOICE DETAILS ============
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+
+    doc.text(`Invoice #: ${invoiceData.orderId}`, pageWidth - 15, 50, {
+      align: "right",
+    });
+
+    const formattedDate = new Date(invoiceData.date).toLocaleDateString(
+      "en-US",
+      {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }
+    );
+
+    doc.text(`Date: ${formattedDate}`, pageWidth - 15, 56, { align: "right" });
+
+    // ============ CUSTOMER SECTION ============
+    const customerSectionY = 70;
+
+    doc.setFillColor(240, 240, 240);
+    doc.rect(15, customerSectionY, pageWidth - 30, 25, "F");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Customer Information:", 20, customerSectionY + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.text(`Name: ${invoiceData.customerName}`, 20, customerSectionY + 14);
+    doc.text(`Phone: ${invoiceData.phone}`, 20, customerSectionY + 21);
+
+    // ============ ITEMS TABLE ============
+    const tableColumn = ["#", "Product", "Price", "Qty", "Total"];
+    const tableRows = invoiceData.items.map((item, index) => [
+      index + 1,
+      item.name,
+      ` ${item.price.toFixed(2)}`,
+      item.quantity,
+      ` ${item.total.toFixed(2)}`,
+    ]);
+
+    const tableStartY = customerSectionY + 35;
+
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: tableStartY,
+      styles: { fontSize: 10, cellPadding: 3 },
+      headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255] },
+      alternateRowStyles: { fillColor: [240, 240, 240] },
+      columnStyles: {
+        0: { cellWidth: 10 },
+        2: { halign: "right" },
+        3: { halign: "center" },
+        4: { halign: "right" },
+      },
+      margin: { left: 15, right: 15 },
+    });
+
+    // ============ TOTALS SECTION ============
+    const tableEndY = (doc as any).lastAutoTable.finalY || tableStartY;
+    let currentY = tableEndY + 10;
+
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("helvetica", "normal");
+
+    const summaryX = pageWidth - 70;
+
+    // Subtotal
+    doc.text(`Subtotal:`, summaryX, currentY);
+    doc.text(` ${invoiceData.subtotal.toFixed(2)}`, pageWidth - 15, currentY, {
+      align: "right",
+    });
+    currentY += 6;
+
+    // Discount
+    if (invoiceData.discount > 0) {
+      doc.setTextColor(255, 0, 0);
+      doc.text("Discount:", summaryX, currentY);
+      doc.text(
+        `- ${invoiceData.discount.toFixed(2)}`,
+        pageWidth - 15,
+        currentY,
+        {
+          align: "right",
+        }
+      );
+      currentY += 6;
+      doc.setTextColor(0, 0, 0);
+    }
+
+    // Total
+    doc.setFont("helvetica", "bold");
+    doc.text("Total:", summaryX, currentY);
+    doc.text(` ${invoiceData.total.toFixed(2)}`, pageWidth - 15, currentY, {
+      align: "right",
+    });
+    doc.setFont("helvetica", "normal");
+    currentY += 10;
+
+    // ============ FOOTER ============
+    doc.setDrawColor(52, 73, 94);
+    doc.setLineWidth(1);
+    doc.line(15, pageHeight - 35, pageWidth - 15, pageHeight - 35);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text("Thank you for your business!", pageWidth / 2, pageHeight - 25, {
+      align: "center",
+    });
+    doc.text("Terms & Conditions Apply", pageWidth / 2, pageHeight - 18, {
+      align: "center",
+    });
+
+    return doc;
+  } catch (error) {
+    console.error("Error generating invoice PDF:", error);
+    throw new Error(
+      `Failed to generate invoice: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
-
-  pdf.setFillColor(200, 200, 200);
-  pdf.rect(margin + 80, yPosition, maxWidth - 80, 6, "F");
-  pdf.setFontSize(12);
-  pdf.setFont("helvetica", "bold");
-  pdf.text("Total:", margin + 100, yPosition + 4);
-  pdf.text(`₹${invoiceData.total.toFixed(2)}`, margin + 135, yPosition + 4);
-
-  return pdf;
 };
 
 /**

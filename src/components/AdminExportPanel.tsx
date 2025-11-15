@@ -10,6 +10,7 @@ import {
   formatRevenueForExport,
   formatProductSalesForExport,
 } from "../utils/exportExcel";
+import { generateReportPdf, downloadPdf } from "../utils/exportPdf";
 
 interface AdminExportProps {
   products?: Product[];

@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { doc, writeBatch, increment } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Order } from "../types/order";
-import { Calendar, Eye, Search, Filter } from "lucide-react";
+import { Calendar, Eye, Search, Filter, Download } from "lucide-react";
+import { InvoiceModal } from "./InvoiceModal";
 
 interface OrderTableProps {
   orders: Order[];
@@ -11,6 +12,7 @@ interface OrderTableProps {
 
 export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [invoiceModalOrder, setInvoiceModalOrder] = useState<Order | null>(null);
   const [sortField, setSortField] = useState<keyof Order>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -307,6 +309,14 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                     <Eye className="w-4 h-4" />
                     View Details
                   </button>
+                  <button
+                    onClick={() => setInvoiceModalOrder(order)}
+                    className="text-green-600 hover:text-green-700 inline-flex items-center gap-1"
+                    title="Download invoice"
+                  >
+                    <Download className="w-4 h-4" />
+                    Invoice
+                  </button>
                   <select
                     value={order.status}
                     onChange={(e) =>
@@ -500,6 +510,13 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
           </div>
         </div>
       )}
+
+      {/* Invoice Modal */}
+      <InvoiceModal
+        order={invoiceModalOrder!}
+        isOpen={invoiceModalOrder !== null}
+        onClose={() => setInvoiceModalOrder(null)}
+      />
     </>
   );
 };

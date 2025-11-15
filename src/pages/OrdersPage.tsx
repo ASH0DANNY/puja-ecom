@@ -10,6 +10,7 @@ import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import type { Order } from "../types/order";
 import { useScrollToTop } from "../utils/scrollToTop";
+import { InvoiceModal } from "../components/InvoiceModal";
 import { OrderInvoice } from "../components/OrderInvoice";
 import {
   ShoppingBag,
@@ -32,6 +33,7 @@ const OrdersPage = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
   const [sortField, setSortField] = useState<keyof Order>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const { user } = useAuth();
@@ -320,8 +322,13 @@ const OrdersPage = () => {
                   <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-lg p-6 shadow-md">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div>
-                        <p className="font-bold text-lg text-gray-900">📄 Invoice Management</p>
-                        <p className="text-sm text-gray-600 mt-1">Download or preview your order invoice with complete details</p>
+                        <p className="font-bold text-lg text-gray-900">
+                          📄 Invoice Management
+                        </p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Download or preview your order invoice with complete
+                          details
+                        </p>
                       </div>
                       <OrderInvoice order={selectedOrder} />
                     </div>
@@ -414,8 +421,12 @@ const OrdersPage = () => {
                               <div className="flex items-center gap-2">
                                 {item.customDimensions && (
                                   <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-md">
-                                    <span className="text-xs font-semibold text-blue-700">📐</span>
-                                    <span className="text-xs font-semibold text-blue-700">CUSTOM</span>
+                                    <span className="text-xs font-semibold text-blue-700">
+                                      📐
+                                    </span>
+                                    <span className="text-xs font-semibold text-blue-700">
+                                      CUSTOM
+                                    </span>
                                   </div>
                                 )}
                                 {item.product.image && (
@@ -446,7 +457,8 @@ const OrdersPage = () => {
                                           {(item.selectedSize ||
                                             item.selectedColor) &&
                                             " | "}
-                                          Dimensions: {item.customDimensions.width} ×{" "}
+                                          Dimensions:{" "}
+                                          {item.customDimensions.width} ×{" "}
                                           {item.customDimensions.height}
                                           {item.customDimensions.depth &&
                                             ` × ${item.customDimensions.depth}`}{" "}
@@ -515,6 +527,13 @@ const OrdersPage = () => {
           </div>
         )}
 
+        {/* Invoice Modal */}
+        <InvoiceModal
+          order={invoiceOrder || ({} as Order)}
+          isOpen={!!invoiceOrder}
+          onClose={() => setInvoiceOrder(null)}
+        />
+
         {/* Orders List */}
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           {filteredOrders.length === 0 ? (
@@ -537,26 +556,7 @@ const OrdersPage = () => {
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Order Details
                     </th>
-                    <th
-                      className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        if (sortField === "userName") {
-                          setSortDirection((prev) =>
-                            prev === "asc" ? "desc" : "asc"
-                          );
-                        } else {
-                          setSortField("userName");
-                          setSortDirection("asc");
-                        }
-                      }}
-                    >
-                      Customer Info
-                      {sortField === "userName" && (
-                        <span className="ml-1">
-                          {sortDirection === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </th>
+
                     <th
                       className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                       onClick={() => {
@@ -658,13 +658,25 @@ const OrdersPage = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="flex items-center gap-2 text-primary hover:text-primary/80 text-sm font-medium transition-colors"
-                        >
-                          <Eye className="w-4 h-4" />
-                          View Details
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setSelectedOrder(order)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium"
+                            title="View order details"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            View
+                          </button>
+
+                          <button
+                            onClick={() => setInvoiceOrder(order)}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-xs font-medium"
+                            title="Download invoice"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            Invoice
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
