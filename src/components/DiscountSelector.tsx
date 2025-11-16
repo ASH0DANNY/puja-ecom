@@ -55,7 +55,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
       if (result.success) {
         onDiscountApplied(discount);
         setMessage({
-          text: `Discount of $${discount.toFixed(
+          text: `Discount of ${discount.toFixed(
             2
           )} (${discountPercent}%) applied successfully!`,
           type: "success",
@@ -185,7 +185,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
                       >
                         {discount.discountType === "percentage"
                           ? `${discount.value}% OFF`
-                          : `₹${discount.value} OFF`}
+                          : `${discount.value} OFF`}
                       </div>
                     </div>
 
@@ -205,7 +205,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
                         discount.maxDiscount > 0 && (
                           <div className="flex items-center text-xs text-gray-500">
                             <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
-                            Maximum discount: ₹{discount.maxDiscount}
+                            Maximum discount: {discount.maxDiscount}
                           </div>
                         )}
                     </div>
@@ -338,7 +338,7 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
           onDiscountApplied(amount);
           const discountPercent = ((amount / subtotal) * 100).toFixed(1);
           setMessage({
-            text: `Discount of ₹${amount.toFixed(
+            text: `Discount of ${amount.toFixed(
               2
             )} (${discountPercent}%) will be applied at checkout`,
             type: "success",

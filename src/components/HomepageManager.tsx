@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, updateDoc, doc, addDoc, deleteDoc, Timestamp } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+  addDoc,
+  deleteDoc,
+  Timestamp,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
 import type { Section } from "../types/section";
@@ -70,7 +78,10 @@ const HomepageManager = () => {
 
   const handleEditSection = (section: Section) => {
     setEditingSectionId(section.id);
-    setSectionForm({ name: section.name, description: section.description || "" });
+    setSectionForm({
+      name: section.name,
+      description: section.description || "",
+    });
     setShowNewSectionForm(true);
   };
 
@@ -112,8 +123,9 @@ const HomepageManager = () => {
   };
 
   const deleteSection = async (sectionId: string) => {
-    if (!window.confirm("Are you sure you want to delete this section?")) return;
-    
+    if (!window.confirm("Are you sure you want to delete this section?"))
+      return;
+
     try {
       await deleteDoc(doc(db, "sections", sectionId));
       await fetchData();
@@ -194,7 +206,7 @@ const HomepageManager = () => {
                       <h4 className="font-medium text-gray-900">
                         {product.name}
                       </h4>
-                      <p className="text-sm text-gray-500">₹{product.price}</p>
+                      <p className="text-sm text-gray-500">{product.price}</p>
                     </div>
                   </div>
                   <button
@@ -232,9 +244,7 @@ const HomepageManager = () => {
                         <h4 className="font-medium text-gray-900">
                           {product.name}
                         </h4>
-                        <p className="text-sm text-gray-500">
-                          ₹{product.price}
-                        </p>
+                        <p className="text-sm text-gray-500">{product.price}</p>
                       </div>
                     </div>
                     <button
@@ -278,7 +288,7 @@ const HomepageManager = () => {
                       <h4 className="font-medium text-gray-900">
                         {product.name}
                       </h4>
-                      <p className="text-sm text-gray-500">₹{product.price}</p>
+                      <p className="text-sm text-gray-500">{product.price}</p>
                     </div>
                   </div>
                   <button
@@ -316,9 +326,7 @@ const HomepageManager = () => {
                         <h4 className="font-medium text-gray-900">
                           {product.name}
                         </h4>
-                        <p className="text-sm text-gray-500">
-                          ₹{product.price}
-                        </p>
+                        <p className="text-sm text-gray-500">{product.price}</p>
                       </div>
                     </div>
                     <button
@@ -339,7 +347,9 @@ const HomepageManager = () => {
       {/* Custom Sections */}
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Custom Sections</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Custom Sections
+          </h2>
           <button
             onClick={() => setShowNewSectionForm(true)}
             className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm"
@@ -364,26 +374,39 @@ const HomepageManager = () => {
             </div>
             <div className="space-y-4">
               <div>
-                <label htmlFor="sectionName" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="sectionName"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Section Name
                 </label>
                 <input
                   type="text"
                   id="sectionName"
                   value={sectionForm.name}
-                  onChange={(e) => setSectionForm({ ...sectionForm, name: e.target.value })}
+                  onChange={(e) =>
+                    setSectionForm({ ...sectionForm, name: e.target.value })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   placeholder="Enter section name"
                 />
               </div>
               <div>
-                <label htmlFor="sectionDescription" className="block text-sm font-medium text-gray-700 mb-1">
+                <label
+                  htmlFor="sectionDescription"
+                  className="block text-sm font-medium text-gray-700 mb-1"
+                >
                   Description (Optional)
                 </label>
                 <textarea
                   id="sectionDescription"
                   value={sectionForm.description}
-                  onChange={(e) => setSectionForm({ ...sectionForm, description: e.target.value })}
+                  onChange={(e) =>
+                    setSectionForm({
+                      ...sectionForm,
+                      description: e.target.value,
+                    })
+                  }
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-primary focus:border-primary"
                   placeholder="Enter section description"
                   rows={3}
@@ -414,9 +437,13 @@ const HomepageManager = () => {
                 <div className="flex items-center gap-3">
                   <GripVertical className="w-5 h-5 text-gray-400 cursor-move" />
                   <div>
-                    <h3 className="font-medium text-gray-900">{section.name}</h3>
+                    <h3 className="font-medium text-gray-900">
+                      {section.name}
+                    </h3>
                     {section.description && (
-                      <p className="text-sm text-gray-500">{section.description}</p>
+                      <p className="text-sm text-gray-500">
+                        {section.description}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -426,8 +453,18 @@ const HomepageManager = () => {
                     className="p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
                     title="Edit section"
                   >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
                   </button>
                   <button
@@ -437,7 +474,11 @@ const HomepageManager = () => {
                     }`}
                     title={section.isActive ? "Hide section" : "Show section"}
                   >
-                    {section.isActive ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                    {section.isActive ? (
+                      <Eye className="w-5 h-5" />
+                    ) : (
+                      <EyeOff className="w-5 h-5" />
+                    )}
                   </button>
                   <button
                     onClick={() => deleteSection(section.id)}
@@ -451,25 +492,36 @@ const HomepageManager = () => {
 
               <div className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Products in this section</h4>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">
+                    Products in this section
+                  </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {products
                       .filter((p) => section.productIds.includes(p.id))
                       .map((product) => (
-                        <div key={product.id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+                        <div
+                          key={product.id}
+                          className="bg-white rounded-lg shadow p-4 flex items-center justify-between"
+                        >
                           <div className="flex items-center space-x-3">
-                            <img 
-                              src={product.image} 
+                            <img
+                              src={product.image}
                               alt={product.name}
                               className="w-12 h-12 rounded-lg object-cover"
                             />
                             <div>
-                              <h4 className="font-medium text-gray-900">{product.name}</h4>
-                              <p className="text-sm text-gray-500">₹{product.price}</p>
+                              <h4 className="font-medium text-gray-900">
+                                {product.name}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {product.price}
+                              </p>
                             </div>
                           </div>
                           <button
-                            onClick={() => toggleSectionProduct(section.id, product.id)}
+                            onClick={() =>
+                              toggleSectionProduct(section.id, product.id)
+                            }
                             className="text-red-600 hover:text-red-800 text-sm font-medium"
                           >
                             Remove
@@ -480,25 +532,36 @@ const HomepageManager = () => {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-medium text-gray-600 mb-2">Add products to this section</h4>
+                  <h4 className="text-sm font-medium text-gray-600 mb-2">
+                    Add products to this section
+                  </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {products
                       .filter((p) => !section.productIds.includes(p.id))
                       .map((product) => (
-                        <div key={product.id} className="bg-white rounded-lg shadow p-4 flex items-center justify-between">
+                        <div
+                          key={product.id}
+                          className="bg-white rounded-lg shadow p-4 flex items-center justify-between"
+                        >
                           <div className="flex items-center space-x-3">
-                            <img 
-                              src={product.image} 
+                            <img
+                              src={product.image}
                               alt={product.name}
                               className="w-12 h-12 rounded-lg object-cover"
                             />
                             <div>
-                              <h4 className="font-medium text-gray-900">{product.name}</h4>
-                              <p className="text-sm text-gray-500">₹{product.price}</p>
+                              <h4 className="font-medium text-gray-900">
+                                {product.name}
+                              </h4>
+                              <p className="text-sm text-gray-500">
+                                {product.price}
+                              </p>
                             </div>
                           </div>
                           <button
-                            onClick={() => toggleSectionProduct(section.id, product.id)}
+                            onClick={() =>
+                              toggleSectionProduct(section.id, product.id)
+                            }
                             className="text-primary hover:text-primary/80 text-sm font-medium"
                           >
                             Add

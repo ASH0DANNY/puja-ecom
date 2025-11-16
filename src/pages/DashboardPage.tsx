@@ -156,7 +156,7 @@ export const DashboardPage = () => {
   const statCards = [
     {
       title: "Total Revenue",
-      value: `₹${stats.totalRevenue.toFixed(2)}`,
+      value: `${stats.totalRevenue.toFixed(2)}`,
       icon: DollarSign,
       color: "bg-green-500",
       bgColor: "bg-green-50",

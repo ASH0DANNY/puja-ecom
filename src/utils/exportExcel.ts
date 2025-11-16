@@ -92,8 +92,8 @@ export const formatProductsForExport = (
     "Product ID": product.id,
     "Product Name": product.name,
     Category: product.category,
-    Price: `₹${product.price}`,
-    "Discount Price": product.discountPrice ? `₹${product.discountPrice}` : "N/A",
+    Price: `${product.price}`,
+    "Discount Price": product.discountPrice ? `${product.discountPrice}` : "N/A",
     Stock: product.stock,
     Sales: product.sales || 0,
     "Has Custom Size": product.hasCustomSize ? "Yes" : "No",
@@ -119,9 +119,9 @@ export const formatOrdersForExport = (
     Date: new Date(order.createdAt).toLocaleDateString(),
     Status: order.status,
     "Items Count": order.items?.length || 0,
-    Subtotal: `₹${order.subtotal || 0}`,
-    Discount: `₹${order.discount || 0}`,
-    Total: `₹${order.total || 0}`,
+    Subtotal: `${order.subtotal || 0}`,
+    Discount: `${order.discount || 0}`,
+    Total: `${order.total || 0}`,
     "Shipping Address": `${order.shippingAddress?.street || ""}, ${order.shippingAddress?.city || ""}`,
     "Payment Method": order.paymentMethod || "N/A",
   }));
@@ -154,7 +154,7 @@ export const formatRevenueForExport = (
     details: revenueData,
     summary: {
       "Metric": ["Total Orders", "Total Revenue", "Average Order Value"],
-      "Value": [totalOrders, `₹${totalRevenue.toFixed(2)}`, `₹${avgOrderValue.toFixed(2)}`],
+      "Value": [totalOrders, `${totalRevenue.toFixed(2)}`, `${avgOrderValue.toFixed(2)}`],
     },
   };
 };
@@ -195,7 +195,7 @@ export const formatProductSalesForExport = (
 
   return Object.values(productSales).map((sale: any) => ({
     ...sale,
-    "Total Revenue": `₹${sale["Total Revenue"].toFixed(2)}`,
-    "Avg Unit Price": `₹${sale["Units Sold"] > 0 ? (sale["Total Revenue"] / sale["Units Sold"]).toFixed(2) : 0}`,
+    "Total Revenue": `${sale["Total Revenue"].toFixed(2)}`,
+    "Avg Unit Price": `${sale["Units Sold"] > 0 ? (sale["Total Revenue"] / sale["Units Sold"]).toFixed(2) : 0}`,
   }));
 };

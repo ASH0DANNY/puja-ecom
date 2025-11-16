@@ -171,7 +171,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const discountPercent = ((result.discount / subtotal) * 100).toFixed(1);
         return {
           success: true,
-          message: `Discount of $${result.discount.toFixed(
+          message: `Discount of ${result.discount.toFixed(
             2
           )} (${discountPercent}%) will be applied at checkout`,
         };

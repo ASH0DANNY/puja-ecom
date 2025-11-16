@@ -10,14 +10,17 @@ import {
   formatRevenueForExport,
   formatProductSalesForExport,
 } from "../utils/exportExcel";
-import { generateReportPdf, downloadPdf } from "../utils/exportPdf";
+import { generateDetailedReportPdf } from "../utils/exportPdf";
 
 interface AdminExportProps {
   products?: Product[];
   orders?: Order[];
 }
 
-export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProps) => {
+export const AdminExportPanel = ({
+  products = [],
+  orders = [],
+}: AdminExportProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,23 +34,29 @@ export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProp
     try {
       if (format === "xlsx") {
         switch (type) {
-          case "products":
+          case "products": {
             const productsData = formatProductsForExport(products);
             exportToExcel(productsData, {
-              filename: `products-export-${new Date().toISOString().split("T")[0]}.xlsx`,
+              filename: `products-export-${
+                new Date().toISOString().split("T")[0]
+              }.xlsx`,
               sheetName: "Products",
             });
             break;
+          }
 
-          case "orders":
+          case "orders": {
             const ordersData = formatOrdersForExport(orders);
             exportToExcel(ordersData, {
-              filename: `orders-export-${new Date().toISOString().split("T")[0]}.xlsx`,
+              filename: `orders-export-${
+                new Date().toISOString().split("T")[0]
+              }.xlsx`,
               sheetName: "Orders",
             });
             break;
+          }
 
-          case "revenue":
+          case "revenue": {
             const revenueData = formatRevenueForExport(orders);
             exportToExcelMultiSheet(
               [
@@ -66,16 +75,20 @@ export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProp
               `revenue-report-${new Date().toISOString().split("T")[0]}.xlsx`
             );
             break;
+          }
 
-          case "sales":
+          case "sales": {
             const salesData = formatProductSalesForExport(orders, products);
             exportToExcel(salesData, {
-              filename: `product-sales-${new Date().toISOString().split("T")[0]}.xlsx`,
+              filename: `product-sales-${
+                new Date().toISOString().split("T")[0]
+              }.xlsx`,
               sheetName: "Product Sales",
             });
             break;
+          }
 
-          case "all":
+          case "all": {
             exportToExcelMultiSheet(
               [
                 {
@@ -98,65 +111,85 @@ export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProp
               `business-report-${new Date().toISOString().split("T")[0]}.xlsx`
             );
             break;
+          }
         }
       } else if (format === "pdf") {
-        let reportTitle = "";
-        let reportData: Array<{ label: string; value: string | number }> = [];
-
         switch (type) {
-          case "products":
-            reportTitle = "Products Export";
-            reportData = [
+          case "products": {
+            const productsExportData = formatProductsForExport(products);
+            generateDetailedReportPdf("Products Export", productsExportData, {
+              filename: `products-export-${
+                new Date().toISOString().split("T")[0]
+              }.pdf`,
+            });
+            break;
+          }
+
+          case "orders": {
+            const ordersExportData = formatOrdersForExport(orders);
+            generateDetailedReportPdf("Orders Export", ordersExportData, {
+              filename: `orders-export-${
+                new Date().toISOString().split("T")[0]
+              }.pdf`,
+            });
+            break;
+          }
+
+          case "revenue": {
+            const revenueExportData = formatRevenueForExport(orders);
+            generateDetailedReportPdf(
+              "Revenue Report",
+              revenueExportData.details,
+              {
+                filename: `revenue-report-${
+                  new Date().toISOString().split("T")[0]
+                }.pdf`,
+              }
+            );
+            break;
+          }
+
+          case "sales": {
+            const salesExportData = formatProductSalesForExport(
+              orders,
+              products
+            );
+            generateDetailedReportPdf("Product Sales Report", salesExportData, {
+              filename: `product-sales-${
+                new Date().toISOString().split("T")[0]
+              }.pdf`,
+            });
+            break;
+          }
+
+          case "all": {
+            const allReportData = [
               { label: "Total Products", value: products.length },
-              { label: "Generated", value: new Date().toLocaleDateString() },
-              { label: "Status", value: "Complete" },
-            ];
-            break;
-
-          case "orders":
-            reportTitle = "Orders Export";
-            reportData = [
               { label: "Total Orders", value: orders.length },
-              { label: "Total Revenue", value: `₹${orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2)}` },
+              {
+                label: "Total Revenue",
+                value: `${orders
+                  .reduce((sum, o) => sum + (o.total || 0), 0)
+                  .toFixed(2)}`,
+              },
+              {
+                label: "Delivered Orders",
+                value: orders.filter((o) => o.status === "delivered").length,
+              },
               { label: "Generated", value: new Date().toLocaleDateString() },
             ];
+            generateDetailedReportPdf(
+              "Complete Business Report",
+              allReportData,
+              {
+                filename: `business-report-${
+                  new Date().toISOString().split("T")[0]
+                }.pdf`,
+              }
+            );
             break;
-
-          case "revenue":
-            reportTitle = "Revenue Report";
-            const totalRevenue = orders
-              .filter(o => o.status === "delivered")
-              .reduce((sum, o) => sum + (o.total || 0), 0);
-            reportData = [
-              { label: "Total Revenue", value: `₹${totalRevenue.toFixed(2)}` },
-              { label: "Total Orders", value: orders.filter(o => o.status === "delivered").length },
-              { label: "Average Order Value", value: `₹${(totalRevenue / (orders.filter(o => o.status === "delivered").length || 1)).toFixed(2)}` },
-              { label: "Generated", value: new Date().toLocaleDateString() },
-            ];
-            break;
-
-          case "sales":
-            reportTitle = "Product Sales Report";
-            reportData = [
-              { label: "Total Products Sold", value: orders.reduce((sum, o) => sum + (o.items?.length || 0), 0) },
-              { label: "Number of Products", value: products.length },
-              { label: "Generated", value: new Date().toLocaleDateString() },
-            ];
-            break;
-
-          case "all":
-            reportTitle = "Complete Business Report";
-            reportData = [
-              { label: "Total Products", value: products.length },
-              { label: "Total Orders", value: orders.length },
-              { label: "Total Revenue", value: `₹${orders.reduce((sum, o) => sum + (o.total || 0), 0).toFixed(2)}` },
-              { label: "Generated", value: new Date().toLocaleDateString() },
-            ];
-            break;
+          }
         }
-
-        const doc = generateReportPdf(reportTitle, reportData);
-        downloadPdf(doc, `${type}-report-${new Date().toISOString().split("T")[0]}.pdf`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Export failed");
@@ -168,8 +201,12 @@ export const AdminExportPanel = ({ products = [], orders = [] }: AdminExportProp
   return (
     <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl shadow-md border-2 border-indigo-200 p-8">
       <div className="mb-6">
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">📊 Export Business Data</h3>
-        <p className="text-gray-600">Download your business reports in Excel or PDF format</p>
+        <h3 className="text-2xl font-bold text-gray-900 mb-2">
+          📊 Export Business Data
+        </h3>
+        <p className="text-gray-600">
+          Download your business reports in Excel or PDF format
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

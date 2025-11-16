@@ -6,6 +6,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useScrollToTop } from "../utils/scrollToTop";
 import CustomSizeSelector from "../components/CustomSizeSelector";
+import RelatedProducts from "../components/RelatedProducts";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -288,14 +289,14 @@ const ProductDetails = () => {
             {/* Price */}
             <div className="flex items-baseline space-x-3">
               <p className="text-3xl lg:text-2xl font-bold text-gray-700 ">
-                ₹
+                
                 {hasDiscount
                   ? product.discountPrice!.toFixed(2)
                   : product.price.toFixed(2)}
               </p>
               {hasDiscount && (
                 <p className="text-xl text-gray-500 line-through">
-                  ₹{product.price.toFixed(2)}
+                  {product.price.toFixed(2)}
                 </p>
               )}
             </div>
@@ -478,6 +479,14 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Related Products Section */}
+      {product && (
+        <RelatedProducts
+          currentProductId={product.id}
+          category={product.category}
+        />
+      )}
     </div>
   );
 };

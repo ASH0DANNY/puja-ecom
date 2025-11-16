@@ -359,6 +359,113 @@ export const generateReportPdf = (
 };
 
 /**
+ * Generate detailed report PDF with data table
+ */
+export const generateDetailedReportPdf = (
+  reportTitle: string,
+  data: Array<any>,
+  options?: { filename?: string; dateRange?: { start: Date; end: Date } }
+) => {
+  try {
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    let yPosition = margin;
+
+    // Header
+    doc.setFontSize(20);
+    doc.setTextColor(0, 51, 102);
+    doc.setFont("helvetica", "bold");
+    doc.text(reportTitle, margin, yPosition);
+
+    yPosition += 12;
+
+    // Date range if provided
+    if (options?.dateRange) {
+      doc.setFontSize(10);
+      doc.setTextColor(100, 100, 100);
+      doc.setFont("helvetica", "normal");
+      const dateText = `Report Period: ${options.dateRange.start.toLocaleDateString()} to ${options.dateRange.end.toLocaleDateString()}`;
+      doc.text(dateText, margin, yPosition);
+      yPosition += 8;
+    }
+
+    // Generated date
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Generated on: ${new Date().toLocaleString()}`, margin, yPosition);
+
+    yPosition += 12;
+
+    // Generate table from data
+    if (data && data.length > 0) {
+      const columns = Object.keys(data[0]);
+      const rows = data.map((item: any) =>
+        columns.map((col) => {
+          const value = item[col];
+          if (typeof value === "string" && value.length > 50) {
+            return value.substring(0, 47) + "...";
+          }
+          return value;
+        })
+      );
+
+      autoTable(doc, {
+        head: [columns],
+        body: rows,
+        startY: yPosition,
+        margin: margin,
+        styles: {
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        headStyles: {
+          fillColor: [0, 51, 102],
+          textColor: [255, 255, 255],
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [240, 240, 240],
+        },
+        columnStyles: {},
+      });
+    }
+
+    // Footer
+    yPosition = pageHeight - 15;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(margin, yPosition, pageWidth - margin, yPosition);
+
+    yPosition += 6;
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont("helvetica", "italic");
+    doc.text("Puja E-Commerce Business Report", margin, yPosition);
+
+    // Auto-download if filename provided
+    if (options?.filename) {
+      doc.save(options.filename);
+    }
+
+    return doc;
+  } catch (error) {
+    console.error("Error generating detailed report PDF:", error);
+    throw new Error(
+      `Failed to generate report PDF: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
+  }
+};
+
+/**
  * Download PDF file
  */
 export const downloadPdf = (pdf: jsPDF, filename: string) => {

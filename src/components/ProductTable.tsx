@@ -106,7 +106,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   {categories.find(c => c.id === product.category)?.name || product.category}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  ₹{product.price.toFixed(2)}
+                  {product.price.toFixed(2)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">

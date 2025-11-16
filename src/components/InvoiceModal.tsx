@@ -175,7 +175,7 @@ export const InvoiceModal = ({
             <div className="flex justify-between text-sm border-t border-gray-200 pt-2 mt-2">
               <span className="text-gray-600 font-medium">Total Amount:</span>
               <span className="font-bold text-lg text-blue-600">
-                ₹{(order.total || 0).toFixed(2)}
+                {(order.total || 0).toFixed(2)}
               </span>
             </div>
           </div>

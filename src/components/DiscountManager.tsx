@@ -387,7 +387,7 @@ const DiscountManager = () => {
                                     {discount.discountType === 'percentage' ? 'Percentage' : 'Fixed'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                    {discount.discountType === 'percentage' ? `${discount.value}%` : `$${discount.value}`}
+                                    {discount.discountType === 'percentage' ? `${discount.value}%` : `${discount.value}`}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {discount.currentUsage} / {discount.usageLimit}

@@ -207,7 +207,7 @@ const PaymentPage = () => {
                   <span className="font-medium">
                     {item.name} × {item.quantity}
                   </span>
-                  <span>₹{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}</span>
+                  <span>{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}</span>
                 </div>
                 {item.selectedSize && (
                   <p className="text-sm text-gray-600">Size: {item.selectedSize}</p>
@@ -223,7 +223,7 @@ const PaymentPage = () => {
             <div className="border-t pt-4">
               <div className="flex justify-between font-bold">
                 <span>Total</span>
-                <span>₹{total.toFixed(2)}</span>
+                <span>{total.toFixed(2)}</span>
               </div>
             </div>
           </div>

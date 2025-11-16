@@ -261,7 +261,7 @@ const OrdersPage = () => {
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Spent</p>
                 <p className="text-2xl font-bold text-primary">
-                  ₹{orderStats.totalSpent.toFixed(2)}
+                  {orderStats.totalSpent.toFixed(2)}
                 </p>
               </div>
               {/* <DollarSign className="w-8 h-8 text-primary" /> */}
@@ -471,13 +471,13 @@ const OrdersPage = () => {
                               </div>
                             </div>
                             <div className="w-1/5 text-center">
-                              ₹{item.priceAtOrder?.toFixed(2)}
+                              {item.priceAtOrder?.toFixed(2)}
                             </div>
                             <div className="w-1/5 text-center">
                               {item.quantity}
                             </div>
                             <div className="w-1/5 text-right">
-                              ₹
+                              
                               {(
                                 (item.priceAtOrder || 0) * (item.quantity || 0)
                               ).toFixed(2)}
@@ -489,7 +489,7 @@ const OrdersPage = () => {
                             Subtotal:
                           </div>
                           <div className="w-1/5 text-right">
-                            ₹
+                            
                             {(
                               selectedOrder.subtotal ||
                               selectedOrder.total ||
@@ -508,14 +508,14 @@ const OrdersPage = () => {
                                 :
                               </div>
                               <div className="w-1/5 text-right text-green-600">
-                                -₹{selectedOrder.discountAmount.toFixed(2)}
+                                -{selectedOrder.discountAmount.toFixed(2)}
                               </div>
                             </div>
                           )}
                         <div className="flex items-center text-sm px-6 py-4 font-bold">
                           <div className="w-4/5 text-right">Total:</div>
                           <div className="w-1/5 text-right">
-                            ₹{(selectedOrder.total || 0).toFixed(2)}
+                            {(selectedOrder.total || 0).toFixed(2)}
                           </div>
                         </div>
                       </div>

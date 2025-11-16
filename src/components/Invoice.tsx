@@ -131,7 +131,7 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceProps>(
           <div className="w-64">
             <div className="flex justify-between mb-2">
               <span>Subtotal:</span>
-              <span>₹{invoice.subtotal.toFixed(2)}</span>
+              <span>{invoice.subtotal.toFixed(2)}</span>
             </div>
             {invoice.discount > 0 && (
               <div className="flex justify-between mb-2 text-green-600">
@@ -139,18 +139,18 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceProps>(
                   Discount{invoice.discountCode && ` (${invoice.discountCode})`}
                   :
                 </span>
-                <span>₹{invoice.discount.toFixed(2)}</span>
+                <span>{invoice.discount.toFixed(2)}</span>
               </div>
             )}
             {type === "detailed" && (
               <div className="flex justify-between mb-2">
                 <span>Tax:</span>
-                <span>₹{invoice.tax.toFixed(2)}</span>
+                <span>{invoice.tax.toFixed(2)}</span>
               </div>
             )}
             <div className="flex justify-between font-bold text-lg border-t border-gray-300 pt-2">
               <span>Total:</span>
-              <span>₹{invoice.total.toFixed(2)}</span>
+              <span>{invoice.total.toFixed(2)}</span>
             </div>
           </div>
         </div>
