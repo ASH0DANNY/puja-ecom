@@ -13,7 +13,7 @@ export const uploadImages = async (files: File[]): Promise<string[]> => {
       );
       formData.append("cloud_name", import.meta.env.VITE_CLOUDINARY_CLOUD_NAME);
       formData.append("api_key", import.meta.env.VITE_CLOUDINARY_API_KEY);
-      formData.append("folder", "product/images");
+      formData.append("folder", import.meta.env.VITE_CLOUDINARY_ASSET_FOLDER);
       formData.append("resource_type", "image");
 
       // Add timestamp and signature

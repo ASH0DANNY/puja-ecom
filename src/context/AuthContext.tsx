@@ -39,8 +39,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               email: firebaseUser.email!,
               displayName: firebaseUser.displayName,
               role: userData.role,
-              createdAt: userData.createdAt.toDate(),
-              lastLogin: userData.lastLogin.toDate(),
+              createdAt: userData.createdAt?.toDate ? userData.createdAt.toDate() : new Date(),
+              lastLogin: userData.lastLogin?.toDate ? userData.lastLogin.toDate() : new Date(),
             });
           }
         } else {
@@ -103,8 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           email: userCredential.user.email!,
           displayName: userCredential.user.displayName,
           role: userData.role,
-          createdAt: userData.createdAt.toDate(),
-          lastLogin: userData.lastLogin.toDate(),
+          createdAt: userData.createdAt?.toDate ? userData.createdAt.toDate() : new Date(),
+          lastLogin: userData.lastLogin?.toDate ? userData.lastLogin.toDate() : new Date(),
         });
       }
     } catch (error) {
