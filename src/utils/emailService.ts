@@ -20,7 +20,7 @@ initializeEmailJS();
 interface EmailConfig {
   recipientEmail: string;
   subject: string;
-  emailType: "order-placed" | "order-confirmed" | "order-delivered";
+  emailType: "order-placed" | "order-confirmed" | "order-delivered" | "admin-notification";
   order: Order;
   adminEmail?: string;
 }
@@ -33,9 +33,15 @@ export const generateOrderPlacedEmail = (order: Order): string => {
     .map(
       (item) => `
     <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.product?.name || "Product"}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(2)}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${
+        item.product?.name || "Product"
+      }</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
+        item.quantity
+      }</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(
+        2
+      )}</td>
     </tr>
   `
     )
@@ -47,15 +53,16 @@ export const generateOrderPlacedEmail = (order: Order): string => {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: Arial, sans-serif; color: #333; }
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background-color: #6366f1; color: white; padding: 20px; text-align: center; border-radius: 5px; }
         .content { margin-top: 20px; }
         .order-number { font-size: 24px; font-weight: bold; color: #6366f1; }
         .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; }
         .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background-color: #e5e7eb; padding: 10px; text-align: left; font-weight: bold; }
+        td { padding: 10px; }
         .total-row { font-weight: bold; font-size: 18px; }
         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
       </style>
@@ -72,8 +79,16 @@ export const generateOrderPlacedEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Details</div>
-            <p><strong>Order Number:</strong> <span class="order-number">${order.id}</span></p>
-            <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleDateString()}</p>
+            <p><strong>Order Number:</strong> <span class="order-number">${
+              order.id.slice(-8).toUpperCase()
+            }</span></p>
+            <p><strong>Order Date:</strong> ${new Date(
+              order.createdAt
+            ).toLocaleDateString('en-IN', { 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}</p>
             <p><strong>Status:</strong> <span style="color: #f97316;">Pending</span></p>
           </div>
 
@@ -102,7 +117,10 @@ export const generateOrderPlacedEmail = (order: Order): string => {
               </tr>
               ${
                 order.discountAmount
-                  ? `<tr style="color: #10b981;"><td>Discount (${order.discountCode}):</td><td style="text-align: right;">-₹${order.discountAmount.toFixed(2)}</td></tr>`
+                  ? `<tr style="color: #10b981;">
+                      <td>Discount (${order.discountCode}):</td>
+                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(2)}</td>
+                    </tr>`
                   : ""
               }
               <tr class="total-row">
@@ -116,7 +134,9 @@ export const generateOrderPlacedEmail = (order: Order): string => {
             <div class="section-title">Shipping Address</div>
             <p>
               ${order.shippingAddress.street}<br>
-              ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
+              ${order.shippingAddress.city}, ${order.shippingAddress.state} ${
+    order.shippingAddress.postalCode
+  }<br>
               ${order.shippingAddress.country}
             </p>
           </div>
@@ -148,8 +168,10 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
   const itemsList = order.items
     .map(
       (item) => `
-    <li style="margin-bottom: 8px;">
-      ${item.product?.name || "Product"} - Qty: ${item.quantity} @ ₹${item.priceAtOrder.toFixed(2)}
+    <li style="margin-bottom: 8px; padding: 5px 0;">
+      ${item.product?.name || "Product"} - Qty: ${
+        item.quantity
+      } @ ₹${item.priceAtOrder.toFixed(2)}
     </li>
   `
     )
@@ -161,13 +183,14 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: Arial, sans-serif; color: #333; }
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; border-radius: 5px; }
         .content { margin-top: 20px; }
         .status-badge { display: inline-block; background-color: #10b981; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
         .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; }
         .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        ul { list-style-type: none; padding-left: 0; }
         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
       </style>
     </head>
@@ -183,7 +206,7 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Status</div>
-            <p><strong>Order ID:</strong> ${order.id}</p>
+            <p><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</p>
             <p><strong>Status:</strong> <span class="status-badge">Processing</span></p>
             <p>Your items are being carefully picked and packed for shipment.</p>
           </div>
@@ -195,7 +218,9 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Total</div>
-            <p style="font-size: 20px; font-weight: bold; color: #6366f1;">₹${order.total.toFixed(2)}</p>
+            <p style="font-size: 20px; font-weight: bold; color: #6366f1;">₹${order.total.toFixed(
+              2
+            )}</p>
           </div>
 
           <p style="margin-top: 20px;">We'll send you a notification as soon as your order ships with tracking information.</p>
@@ -217,7 +242,7 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
   const itemsList = order.items
     .map(
       (item) => `
-    <li style="margin-bottom: 8px;">
+    <li style="margin-bottom: 8px; padding: 5px 0;">
       ${item.product?.name || "Product"} - Qty: ${item.quantity}
     </li>
   `
@@ -230,13 +255,14 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: Arial, sans-serif; color: #333; }
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
         .container { max-width: 600px; margin: 0 auto; padding: 20px; }
         .header { background-color: #10b981; color: white; padding: 20px; text-align: center; border-radius: 5px; }
         .content { margin-top: 20px; }
         .status-badge { display: inline-block; background-color: #10b981; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
         .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; }
         .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        ul { list-style-type: none; padding-left: 0; }
         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
       </style>
     </head>
@@ -252,7 +278,7 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Status</div>
-            <p><strong>Order ID:</strong> ${order.id}</p>
+            <p><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</p>
             <p><strong>Status:</strong> <span class="status-badge">Delivered</span></p>
           </div>
 
@@ -265,7 +291,9 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
             <div class="section-title">Delivery Summary</div>
             <p><strong>Delivered To:</strong><br>
             ${order.shippingAddress.street}<br>
-            ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
+            ${order.shippingAddress.city}, ${order.shippingAddress.state} ${
+    order.shippingAddress.postalCode
+  }<br>
             ${order.shippingAddress.country}
             </p>
           </div>
@@ -292,9 +320,15 @@ export const generateAdminOrderNotification = (order: Order): string => {
     .map(
       (item) => `
     <tr>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.product?.name || "Product"}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(2)}</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${
+        item.product?.name || "Product"
+      }</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
+        item.quantity
+      }</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(
+        2
+      )}</td>
     </tr>
   `
     )
@@ -306,14 +340,15 @@ export const generateAdminOrderNotification = (order: Order): string => {
     <head>
       <meta charset="utf-8">
       <style>
-        body { font-family: Arial, sans-serif; color: #333; background-color: #f3f4f6; }
+        body { font-family: Arial, sans-serif; color: #333; background-color: #f3f4f6; line-height: 1.6; }
         .container { max-width: 700px; margin: 0 auto; padding: 20px; background-color: white; border-radius: 8px; }
         .header { background-color: #8b5cf6; color: white; padding: 20px; text-align: center; border-radius: 5px; }
         .alert { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin-top: 20px; border-radius: 3px; }
         .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb; }
         .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th { background-color: #e5e7eb; padding: 10px; text-align: left; font-weight: bold; }
+        td { padding: 10px; }
         .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; padding-top: 15px; border-top: 1px solid #e5e7eb; }
         .action-btn { display: inline-block; background-color: #8b5cf6; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; margin-top: 10px; }
       </style>
@@ -331,8 +366,16 @@ export const generateAdminOrderNotification = (order: Order): string => {
         <div class="content">
           <div class="section">
             <div class="section-title">Order Information</div>
-            <p><strong>Order ID:</strong> ${order.id}</p>
-            <p><strong>Order Date:</strong> ${new Date(order.createdAt).toLocaleString()}</p>
+            <p><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</p>
+            <p><strong>Order Date:</strong> ${new Date(
+              order.createdAt
+            ).toLocaleString('en-IN', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            })}</p>
             <p><strong>Status:</strong> Pending</p>
           </div>
 
@@ -340,7 +383,7 @@ export const generateAdminOrderNotification = (order: Order): string => {
             <div class="section-title">Customer Information</div>
             <p><strong>Name:</strong> ${order.customerName}</p>
             <p><strong>Email:</strong> ${order.userEmail}</p>
-            <p><strong>Phone:</strong> ${order.customerPhone}</p>
+            <p><strong>Phone:</strong> ${order.customerPhone || 'Not provided'}</p>
           </div>
 
           <div class="section">
@@ -368,10 +411,13 @@ export const generateAdminOrderNotification = (order: Order): string => {
               </tr>
               ${
                 order.discountAmount
-                  ? `<tr><td><strong>Discount:</strong></td><td style="text-align: right;">-₹${order.discountAmount.toFixed(2)}</td></tr>`
+                  ? `<tr>
+                      <td><strong>Discount:</strong></td>
+                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(2)}</td>
+                    </tr>`
                   : ""
               }
-              <tr style="font-size: 18px; font-weight: bold; border-top: 2px solid #e5e7eb; padding-top: 10px;">
+              <tr style="font-size: 18px; font-weight: bold; border-top: 2px solid #e5e7eb;">
                 <td>TOTAL:</td>
                 <td style="text-align: right;">₹${order.total.toFixed(2)}</td>
               </tr>
@@ -382,13 +428,15 @@ export const generateAdminOrderNotification = (order: Order): string => {
             <div class="section-title">Shipping Address</div>
             <p>
               ${order.shippingAddress.street}<br>
-              ${order.shippingAddress.city}, ${order.shippingAddress.state} ${order.shippingAddress.postalCode}<br>
+              ${order.shippingAddress.city}, ${order.shippingAddress.state} ${
+    order.shippingAddress.postalCode
+  }<br>
               ${order.shippingAddress.country}
             </p>
           </div>
 
           <p style="margin-top: 20px; text-align: center;">
-            <a href="${import.meta.env.VITE_ADMIN_DASHBOARD_URL || "https://rachnacreation-2adde.web.app/dashboard"}" class="action-btn">View in Dashboard</a>
+            <a href="https://rachnacreation-2adde.web.app/dashboard" class="action-btn">View in Dashboard</a>
           </p>
         </div>
 
@@ -404,7 +452,6 @@ export const generateAdminOrderNotification = (order: Order): string => {
 
 /**
  * Send email using EmailJS
- * This is a client-side wrapper that uses EmailJS service
  */
 export const sendOrderEmail = async (config: EmailConfig): Promise<boolean> => {
   try {
@@ -415,15 +462,19 @@ export const sendOrderEmail = async (config: EmailConfig): Promise<boolean> => {
     switch (config.emailType) {
       case "order-placed":
         emailHtml = generateOrderPlacedEmail(config.order);
-        subject = "Order Placed Successfully - Rachna Creation";
+        subject = `Order Placed Successfully - Order #${config.order.id.slice(-8).toUpperCase()}`;
         break;
       case "order-confirmed":
         emailHtml = generateOrderConfirmedEmail(config.order);
-        subject = "Order Confirmed - Rachna Creation";
+        subject = `Order Confirmed - Order #${config.order.id.slice(-8).toUpperCase()}`;
         break;
       case "order-delivered":
         emailHtml = generateOrderDeliveredEmail(config.order);
-        subject = "Order Delivered - Rachna Creation";
+        subject = `Order Delivered - Order #${config.order.id.slice(-8).toUpperCase()}`;
+        break;
+      case "admin-notification":
+        emailHtml = generateAdminOrderNotification(config.order);
+        subject = `🛍️ New Order #${config.order.id.slice(-8).toUpperCase()} - Rachna Creation`;
         break;
     }
 
@@ -433,91 +484,117 @@ export const sendOrderEmail = async (config: EmailConfig): Promise<boolean> => {
 
     if (!serviceId || !templateId) {
       console.error("EmailJS configuration missing. Check your .env file.");
-      console.log("Email would be sent with:", {
-        to: config.recipientEmail,
-        subject,
-        emailType: config.emailType,
-      });
       return false;
     }
 
-    // Send email using EmailJS
+    console.log(`Sending ${config.emailType} email to: ${config.recipientEmail}`);
+
+    // Send email using EmailJS with correct parameter names
     const response = await emailjs.send(serviceId, templateId, {
       to_email: config.recipientEmail,
       subject: subject,
-      message: emailHtml,
-      order_id: config.order.id,
-      customer_name: config.order.customerName,
+      html_content: emailHtml,
     });
 
-    console.log("Email sent successfully:", {
-      messageId: response.status,
+    console.log(`✅ Email sent successfully:`, {
+      type: config.emailType,
       to: config.recipientEmail,
-      emailType: config.emailType,
-      orderId: config.order.id,
+      status: response.status,
+      orderId: config.order.id.slice(-8).toUpperCase(),
     });
 
     return response.status === 200;
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("❌ Error sending email:", error);
     return false;
   }
 };
 
 /**
- * Send order placed email to both customer and admin
+ * Send order placed email to customer only
+ * Admin gets a separate notification email
  */
 export const sendOrderPlacedEmails = async (
   order: Order,
   adminEmail: string
 ): Promise<{ customerEmailSent: boolean; adminEmailSent: boolean }> => {
   try {
-    // Send to customer
-    const customerEmailSent = await sendOrderEmail({
-      recipientEmail: order.userEmail,
-      subject: "Order Placed Successfully",
-      emailType: "order-placed",
-      order,
-      adminEmail,
+    console.log("📧 Sending order placed emails:", {
+      customerEmail: order.userEmail,
+      adminEmail: adminEmail,
+      orderId: order.id.slice(-8).toUpperCase(),
     });
 
-    // Send to admin
-    const adminEmailSent = await sendOrderEmail({
-      recipientEmail: adminEmail,
-      subject: "New Order Received",
+    // Send customer email
+    const customerEmailSent = await sendOrderEmail({
+      recipientEmail: order.userEmail,
+      subject: `Order Placed Successfully - Order #${order.id.slice(-8).toUpperCase()}`,
       emailType: "order-placed",
       order,
+    });
+
+    // Send admin notification (separate template)
+    const adminEmailSent = await sendOrderEmail({
+      recipientEmail: adminEmail,
+      subject: `New Order #${order.id.slice(-8).toUpperCase()} - Rachna Creation`,
+      emailType: "admin-notification",
+      order,
+    });
+
+    console.log("📊 Email results:", {
+      customer: customerEmailSent ? "✅ Sent" : "❌ Failed",
+      admin: adminEmailSent ? "✅ Sent" : "❌ Failed",
     });
 
     return { customerEmailSent, adminEmailSent };
   } catch (error) {
-    console.error("Error sending order placed emails:", error);
+    console.error("❌ Error in sendOrderPlacedEmails:", error);
     return { customerEmailSent: false, adminEmailSent: false };
   }
 };
 
 /**
- * Send order confirmation email to customer
+ * Send order confirmation email to customer ONLY
  */
 export const sendOrderConfirmationEmail = async (
   order: Order
 ): Promise<boolean> => {
-  return sendOrderEmail({
+  if (!order.userEmail) {
+    console.error("❌ No customer email found for order:", order.id);
+    return false;
+  }
+
+  console.log("📧 Sending confirmation email to:", order.userEmail);
+  const result = await sendOrderEmail({
     recipientEmail: order.userEmail,
-    subject: "Order Confirmed",
+    subject: `Order Confirmed - Order #${order.id.slice(-8).toUpperCase()}`,
     emailType: "order-confirmed",
     order,
   });
+
+  console.log(result ? "✅ Confirmation sent" : "❌ Confirmation failed");
+  return result;
 };
 
 /**
- * Send order delivered email to customer
+ * Send order delivered email to customer ONLY
  */
-export const sendOrderDeliveredEmail = async (order: Order): Promise<boolean> => {
-  return sendOrderEmail({
+export const sendOrderDeliveredEmail = async (
+  order: Order
+): Promise<boolean> => {
+  if (!order.userEmail) {
+    console.error("❌ No customer email found for order:", order.id);
+    return false;
+  }
+
+  console.log("📧 Sending delivery email to:", order.userEmail);
+  const result = await sendOrderEmail({
     recipientEmail: order.userEmail,
-    subject: "Order Delivered",
+    subject: `Order Delivered - Order #${order.id.slice(-8).toUpperCase()}`,
     emailType: "order-delivered",
     order,
   });
+
+  console.log(result ? "✅ Delivery email sent" : "❌ Delivery email failed");
+  return result;
 };

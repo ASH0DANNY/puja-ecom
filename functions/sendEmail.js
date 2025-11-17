@@ -1,7 +1,7 @@
 /**
  * Firebase Cloud Function for sending order-related emails
  * Deploy with: firebase deploy --only functions
- * 
+ *
  * This function handles sending emails for order placement, confirmation, and delivery.
  * It uses NodeMailer with Gmail SMTP for sending emails.
  */
@@ -151,20 +151,28 @@ exports.onOrderStatusChange = functions.firestore
     const currentOrder = change.after.data();
 
     // Check if status changed to "delivered"
-    if (previousOrder.status !== "delivered" && currentOrder.status === "delivered") {
+    if (
+      previousOrder.status !== "delivered" &&
+      currentOrder.status === "delivered"
+    ) {
       try {
         const mailOptions = {
           from: functions.config().gmail?.email || process.env.GMAIL_USER,
           to: currentOrder.userEmail,
-          subject: "Your Order Has Been Delivered - Rachna Creation",
+          subject: `Your Order Has Been Delivered - ${
+            import.meta.env.VITE_APP_NAME
+          }`,
           html: generateDeliveryEmailHTML(currentOrder),
-          replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
+          replyTo: process.env.REPLY_TO_EMAIL || import.meta.env.VITE_APP_EMAIL,
         };
 
         await transporter.sendMail(mailOptions);
         console.log(`Delivery email sent for order ${context.params.orderId}`);
       } catch (error) {
-        console.error(`Error sending delivery email for order ${context.params.orderId}:`, error);
+        console.error(
+          `Error sending delivery email for order ${context.params.orderId}:`,
+          error
+        );
       }
     }
   });
@@ -225,7 +233,7 @@ function generateDeliveryEmailHTML(order) {
           <p>Thank you for shopping with us! 💚</p>
 
           <div class="footer">
-            <p>© 2025 Rachna Creation. All rights reserved.</p>
+            <p>© 2025 ${import.meta.env.VITE_APP_NAME}. All rights reserved.</p>
           </div>
         </div>
       </div>

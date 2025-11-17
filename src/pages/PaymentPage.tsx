@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
-import { doc, setDoc, collection, serverTimestamp, updateDoc, increment } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  collection,
+  serverTimestamp,
+  updateDoc,
+  increment,
+} from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useAuth } from "../context/AuthContext";
 import { useDiscount } from "../context/DiscountContext";
@@ -112,6 +119,7 @@ const PaymentPage = () => {
         id: orderRef.id,
         orderNumber: orderNum,
         userId: user.uid,
+        userEmail: user.email || "", // Save customer email
         customerName: customerForm.name,
         customerPhone: customerForm.phone,
         userName: customerForm.name, // For backward compatibility
@@ -159,7 +167,7 @@ const PaymentPage = () => {
         if (item.id) {
           const productRef = doc(db, "products", item.id);
           await updateDoc(productRef, {
-            stock: increment(-(item.quantity || 0))
+            stock: increment(-(item.quantity || 0)),
           });
         }
       }
@@ -172,9 +180,13 @@ const PaymentPage = () => {
         const adminEmail =
           import.meta.env.VITE_ORDER_NOTIFICATION_ADMIN_EMAIL ||
           import.meta.env.VITE_EMAIL_SUPPORT_ADDRESS ||
+          import.meta.env.VITE_APP_EMAIL ||
           "rachnacreationrc@gmail.com";
 
-        const emailResult = await sendOrderPlacedEmails(orderData as any, adminEmail);
+        const emailResult = await sendOrderPlacedEmails(
+          orderData as any,
+          adminEmail
+        );
 
         // Log email sending status (emails are configured via environment)
         if (emailResult.customerEmailSent || emailResult.adminEmailSent) {
@@ -221,20 +233,35 @@ const PaymentPage = () => {
           <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
           <div className="space-y-4">
             {items.map((item) => (
-              <div key={`${item.id}-${item.selectedSize}-${JSON.stringify(item.customDimensions)}`} className="pb-4 border-b last:border-b-0">
+              <div
+                key={`${item.id}-${item.selectedSize}-${JSON.stringify(
+                  item.customDimensions
+                )}`}
+                className="pb-4 border-b last:border-b-0"
+              >
                 <div className="flex justify-between mb-2">
                   <span className="font-medium">
                     {item.name} × {item.quantity}
                   </span>
-                  <span>{item.discountPrice ? item.discountPrice.toFixed(2) : item.price.toFixed(2)}</span>
+                  <span>
+                    {item.discountPrice
+                      ? item.discountPrice.toFixed(2)
+                      : item.price.toFixed(2)}
+                  </span>
                 </div>
                 {item.selectedSize && (
-                  <p className="text-sm text-gray-600">Size: {item.selectedSize}</p>
+                  <p className="text-sm text-gray-600">
+                    Size: {item.selectedSize}
+                  </p>
                 )}
                 {item.customDimensions && (
                   <p className="text-sm text-gray-600">
-                    Dimensions: {item.customDimensions.width} × {item.customDimensions.height}
-                    {item.customDimensions.depth ? ` × ${item.customDimensions.depth}` : ""} cm
+                    Dimensions: {item.customDimensions.width} ×{" "}
+                    {item.customDimensions.height}
+                    {item.customDimensions.depth
+                      ? ` × ${item.customDimensions.depth}`
+                      : ""}{" "}
+                    cm
                   </p>
                 )}
               </div>
@@ -265,7 +292,12 @@ const PaymentPage = () => {
                   name="name"
                   required
                   value={customerForm.name}
-                  onChange={(e) => setCustomerForm(prev => ({ ...prev, name: e.target.value }))}
+                  onChange={(e) =>
+                    setCustomerForm((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
@@ -283,13 +315,20 @@ const PaymentPage = () => {
                   name="phone"
                   required
                   value={customerForm.phone}
-                  onChange={(e) => setCustomerForm(prev => ({ ...prev, phone: e.target.value }))}
+                  onChange={(e) =>
+                    setCustomerForm((prev) => ({
+                      ...prev,
+                      phone: e.target.value,
+                    }))
+                  }
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
                 />
               </div>
             </div>
 
-            <h2 className="text-xl font-semibold mt-8 mb-4">Shipping Address</h2>
+            <h2 className="text-xl font-semibold mt-8 mb-4">
+              Shipping Address
+            </h2>
             <div className="space-y-4">
               <div>
                 <label

@@ -150,27 +150,25 @@ const Footer = () => {
               <li className="flex items-center space-x-2">
                 <MdMail className="text-primary w-5 h-5" />
                 <a
-                  href="mailto:support@fashionstore.com"
+                  href={`mailto:${import.meta.env.VITE_APP_EMAIL}`}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  support@kahanastore.com
+                  {import.meta.env.VITE_APP_EMAIL}
                 </a>
               </li>
               <li className="flex items-center space-x-2">
                 <MdPhone className="text-primary w-5 h-5" />
                 <a
-                  href="tel:+1234567890"
+                  href={`tel:${import.meta.env.VITE_APP_MOBILE_NO}`}
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  +91 9876543210
+                  {import.meta.env.VITE_APP_MOBILE_NO}
                 </a>
               </li>
               <li className="flex items-start space-x-2">
                 <MdLocationOn className="text-primary w-5 h-5 mt-1" />
                 <span className="text-gray-400">
-                  Main Road Galudih
-                  <br />
-                  Ghatsila, Jharkhand - 832303
+                  {import.meta.env.VITE_APP_ADDREDSS}
                 </span>
               </li>
             </ul>
