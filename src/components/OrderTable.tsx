@@ -13,7 +13,9 @@ interface OrderTableProps {
 
 export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [invoiceModalOrder, setInvoiceModalOrder] = useState<Order | null>(null);
+  const [invoiceModalOrder, setInvoiceModalOrder] = useState<Order | null>(
+    null
+  );
   const [sortField, setSortField] = useState<keyof Order>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
@@ -258,7 +260,10 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                 Total
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions & Emails
+                Actions
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Emails
               </th>
             </tr>
           </thead>
@@ -299,7 +304,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                    {order.total.toFixed(2)}
+                    ${order.total.toFixed(2)}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm font-medium">
@@ -310,7 +315,8 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                         className="text-primary hover:text-primary/80 inline-flex items-center gap-1"
                       >
                         <Eye className="w-4 h-4" />
-                        View Details
+                        <span className="hidden xl:inline">View Details</span>
+                        <span className="xl:hidden">View</span>
                       </button>
                       <button
                         onClick={() => setInvoiceModalOrder(order)}
@@ -318,7 +324,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                         title="Download invoice"
                       >
                         <Download className="w-4 h-4" />
-                        Invoice
+                        <span className="hidden xl:inline">Invoice</span>
                       </button>
                     </div>
                     <div className="flex gap-2 flex-wrap items-center">
@@ -340,10 +346,10 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                         <option value="cancelled">Cancelled</option>
                       </select>
                     </div>
-                    <div>
-                      <OrderEmailManager order={order} onEmailSent={onUpdate} />
-                    </div>
                   </div>
+                </td>
+                <td className="px-6 py-4">
+                  <OrderEmailManager order={order} onEmailSent={onUpdate} />
                 </td>
               </tr>
             ))}
@@ -458,8 +464,12 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                           <div className="flex items-center gap-2">
                             {item.customDimensions && (
                               <div className="flex items-center gap-1 px-2 py-1 bg-blue-100 rounded-md">
-                                <span className="text-xs font-semibold text-blue-700">📐</span>
-                                <span className="text-xs font-semibold text-blue-700">CUSTOM</span>
+                                <span className="text-xs font-semibold text-blue-700">
+                                  📐
+                                </span>
+                                <span className="text-xs font-semibold text-blue-700">
+                                  CUSTOM
+                                </span>
                               </div>
                             )}
                             <img
@@ -486,8 +496,8 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                                       {(item.product.selectedSize ||
                                         item.product.selectedColor) &&
                                         " | "}
-                                      Dimensions: {item.customDimensions.width} ×{" "}
-                                      {item.customDimensions.height}
+                                      Dimensions: {item.customDimensions.width}{" "}
+                                      × {item.customDimensions.height}
                                       {item.customDimensions.depth &&
                                         ` × ${item.customDimensions.depth}`}{" "}
                                       cm
