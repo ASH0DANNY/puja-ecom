@@ -5,6 +5,8 @@ import {
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
+  confirmPasswordReset,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
@@ -16,6 +18,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<void>;
+  confirmPasswordReset: (oobCode: string, newPassword: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -123,8 +127,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const sendPasswordResetEmailHandler = async (email: string) => {
+    try {
+      // Firebase will send a reset email to the provided email address
+      // The URL will be based on the configured domain
+      const passwordResetUrl = import.meta.env.VITE_PASSWORD_RESET_URL || window.location.origin;
+      
+      await sendPasswordResetEmail(auth, email, {
+        url: `${passwordResetUrl}/reset-password`,
+        handleCodeInApp: false,
+      });
+    } catch (error) {
+      console.error("Password reset email error:", error);
+      throw error;
+    }
+  };
+
+  const confirmPasswordResetHandler = async (oobCode: string, newPassword: string) => {
+    try {
+      await confirmPasswordReset(auth, oobCode, newPassword);
+    } catch (error) {
+      console.error("Password confirmation error:", error);
+      throw error;
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        signup,
+        logout,
+        sendPasswordResetEmail: sendPasswordResetEmailHandler,
+        confirmPasswordReset: confirmPasswordResetHandler,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

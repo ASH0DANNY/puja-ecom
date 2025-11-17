@@ -7,6 +7,8 @@ import { useAuth } from "../context/AuthContext";
 import { useDiscount } from "../context/DiscountContext";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useScrollToTop } from "../utils/scrollToTop";
+import { sendOrderPlacedEmails } from "../utils/emailService";
+import toast from "react-hot-toast";
 
 // Form interfaces
 interface ShippingForm {
@@ -164,6 +166,23 @@ const PaymentPage = () => {
 
       // Save the order
       await setDoc(orderRef, orderData);
+
+      // Send order placement emails if enabled
+      if (import.meta.env.VITE_SEND_ORDER_PLACEMENT_EMAIL !== "false") {
+        const adminEmail =
+          import.meta.env.VITE_ORDER_NOTIFICATION_ADMIN_EMAIL ||
+          import.meta.env.VITE_EMAIL_SUPPORT_ADDRESS ||
+          "rachnacreationrc@gmail.com";
+
+        const emailResult = await sendOrderPlacedEmails(orderData as any, adminEmail);
+
+        // Log email sending status (emails are configured via environment)
+        if (emailResult.customerEmailSent || emailResult.adminEmailSent) {
+          toast.success("Order created! Confirmation email will be sent.");
+        } else {
+          toast.success("Order placed successfully!");
+        }
+      }
 
       // Clear cart and show success animation
       clearCart();

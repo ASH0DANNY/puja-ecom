@@ -4,6 +4,7 @@ import { db } from "../config/firebase";
 import type { Order } from "../types/order";
 import { Calendar, Eye, Search, Filter, Download } from "lucide-react";
 import { InvoiceModal } from "./InvoiceModal";
+import OrderEmailManager from "./OrderEmailManager";
 
 interface OrderTableProps {
   orders: Order[];
@@ -257,7 +258,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                 Total
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
+                Actions & Emails
               </th>
             </tr>
           </thead>
@@ -301,39 +302,48 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                     {order.total.toFixed(2)}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-4">
-                  <button
-                    onClick={() => setSelectedOrder(order)}
-                    className="text-primary hover:text-primary/80 inline-flex items-center gap-1"
-                  >
-                    <Eye className="w-4 h-4" />
-                    View Details
-                  </button>
-                  <button
-                    onClick={() => setInvoiceModalOrder(order)}
-                    className="text-green-600 hover:text-green-700 inline-flex items-center gap-1"
-                    title="Download invoice"
-                  >
-                    <Download className="w-4 h-4" />
-                    Invoice
-                  </button>
-                  <select
-                    value={order.status}
-                    onChange={(e) =>
-                      handleStatusUpdate(
-                        order.id,
-                        e.target.value as Order["status"],
-                        order
-                      )
-                    }
-                    className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="shipped">Shipped</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
+                <td className="px-6 py-4 text-sm font-medium">
+                  <div className="space-y-2">
+                    <div className="flex gap-2 flex-wrap">
+                      <button
+                        onClick={() => setSelectedOrder(order)}
+                        className="text-primary hover:text-primary/80 inline-flex items-center gap-1"
+                      >
+                        <Eye className="w-4 h-4" />
+                        View Details
+                      </button>
+                      <button
+                        onClick={() => setInvoiceModalOrder(order)}
+                        className="text-green-600 hover:text-green-700 inline-flex items-center gap-1"
+                        title="Download invoice"
+                      >
+                        <Download className="w-4 h-4" />
+                        Invoice
+                      </button>
+                    </div>
+                    <div className="flex gap-2 flex-wrap items-center">
+                      <select
+                        value={order.status}
+                        onChange={(e) =>
+                          handleStatusUpdate(
+                            order.id,
+                            e.target.value as Order["status"],
+                            order
+                          )
+                        }
+                        className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    </div>
+                    <div>
+                      <OrderEmailManager order={order} onEmailSent={onUpdate} />
+                    </div>
+                  </div>
                 </td>
               </tr>
             ))}

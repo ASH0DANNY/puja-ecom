@@ -1,0 +1,104 @@
+import React, { useState } from "react";
+import { Send, Mail, Loader } from "lucide-react";
+import {
+  sendOrderConfirmationEmail,
+  sendOrderDeliveredEmail,
+} from "../utils/emailService";
+import type { Order } from "../types/order";
+import toast from "react-hot-toast";
+
+interface OrderEmailManagerProps {
+  order: Order;
+  onEmailSent?: () => void;
+}
+
+const OrderEmailManager: React.FC<OrderEmailManagerProps> = ({
+  order,
+  onEmailSent,
+}) => {
+  const [loading, setLoading] = useState<"confirmation" | "delivery" | null>(
+    null
+  );
+
+  const handleSendConfirmationEmail = async () => {
+    if (!order.userEmail) {
+      toast.error("No customer email found");
+      return;
+    }
+
+    setLoading("confirmation");
+    try {
+      const sent = await sendOrderConfirmationEmail(order);
+      if (sent) {
+        toast.success("Confirmation email sent!");
+        onEmailSent?.();
+      } else {
+        toast.error("Failed to send confirmation email");
+      }
+    } catch (error) {
+      console.error("Error sending confirmation email:", error);
+      toast.error("Error sending email");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  const handleSendDeliveryEmail = async () => {
+    if (!order.userEmail) {
+      toast.error("No customer email found");
+      return;
+    }
+
+    setLoading("delivery");
+    try {
+      const sent = await sendOrderDeliveredEmail(order);
+      if (sent) {
+        toast.success("Delivery confirmation email sent!");
+        onEmailSent?.();
+      } else {
+        toast.error("Failed to send delivery email");
+      }
+    } catch (error) {
+      console.error("Error sending delivery email:", error);
+      toast.error("Error sending email");
+    } finally {
+      setLoading(null);
+    }
+  };
+
+  return (
+    <div className="flex gap-2 flex-wrap">
+      <button
+        onClick={handleSendConfirmationEmail}
+        disabled={loading !== null}
+        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        title="Send order confirmation email to customer"
+      >
+        {loading === "confirmation" ? (
+          <Loader className="w-4 h-4 animate-spin" />
+        ) : (
+          <Mail className="w-4 h-4" />
+        )}
+        <span className="text-sm">Confirmation Email</span>
+      </button>
+
+      {order.status === "delivered" && (
+        <button
+          onClick={handleSendDeliveryEmail}
+          disabled={loading !== null}
+          className="inline-flex items-center gap-2 px-3 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          title="Send delivery confirmation email to customer"
+        >
+          {loading === "delivery" ? (
+            <Loader className="w-4 h-4 animate-spin" />
+          ) : (
+            <Send className="w-4 h-4" />
+          )}
+          <span className="text-sm">Delivery Email</span>
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default OrderEmailManager;
