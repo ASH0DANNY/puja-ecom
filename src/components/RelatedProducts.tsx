@@ -62,13 +62,13 @@ const RelatedProducts = ({
 
   return (
     <div className="mt-16 border-t border-gray-200 pt-12">
-      <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8">
+      <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-8 text-center">
         Related Products
       </h2>
 
       {/* Horizontal Scrollable Container */}
-      <div className="overflow-x-auto pb-4 scrollbar-hide">
-        <div className="flex gap-4 min-w-min">
+      <div className="overflow-x-auto pb-4 scrollbar-hide flex justify-center h-screen">
+        <div className="flex gap-10 min-w-min">
           {relatedProducts.map((product) => (
             <div key={product.id} className="flex-shrink-0 w-48">
               <ProductCard product={product} />

@@ -654,7 +654,7 @@ const OrdersPage = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">
-                          ${(order.total || 0).toFixed(2)}
+                          {(order.total || 0).toFixed(2)}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

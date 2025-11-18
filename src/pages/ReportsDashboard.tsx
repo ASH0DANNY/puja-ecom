@@ -101,11 +101,11 @@ const ReportsDashboard = () => {
         case "sales":
           reportTitle = "Sales Report";
           reportData = [
-            { label: "Total Sales", value: "$25,000" },
-            { label: "Total Discounts Given", value: "$1,500" },
-            { label: "Net Revenue (After Discounts)", value: "$23,500" },
+            { label: "Total Sales", value: "25,000" },
+            { label: "Total Discounts Given", value: "1,500" },
+            { label: "Net Revenue (After Discounts)", value: "23,500" },
             { label: "Total Orders", value: "150" },
-            { label: "Average Order Value", value: "$166.67" },
+            { label: "Average Order Value", value: "166.67" },
             { label: "Top Product", value: "Product 1 - 50 units" },
             { label: "Discount Usage", value: "SUMMER21 - 30 times" },
             { label: "Total Discount Codes Used", value: "5 codes" },

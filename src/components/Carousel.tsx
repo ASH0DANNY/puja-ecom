@@ -13,7 +13,7 @@ interface CarouselSlide {
 const carouselSlides: CarouselSlide[] = [
   {
     image: carouselImage1,
-    heading: "Welcome to Puja E-com",
+    heading: "Welcome to Rachna Creation",
     description: "Your one-stop shop for all your needs",
   },
   // {
@@ -64,7 +64,7 @@ const Carousel = () => {
   }, []);
 
   return (
-    <div className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] overflow-hidden">
+    <div className="relative w-full h-[400px] sm:h-[500px] md:h-[500px] overflow-hidden">
       <div
         className="flex transition-transform duration-1000 ease-out h-full"
         style={{
@@ -96,7 +96,7 @@ const Carousel = () => {
       </div>
 
       {/* Navigation dots */}
-      <div className="absolute bottom-5 left-0 right-0 flex justify-center space-x-2">
+      {/* <div className="absolute bottom-5 left-0 right-0 flex justify-center space-x-2">
         {carouselSlides.map((_, index) => (
           <button
             key={index}
@@ -109,7 +109,7 @@ const Carousel = () => {
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
-      </div>
+      </div> */}
     </div>
   );
 };
