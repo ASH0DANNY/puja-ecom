@@ -53,9 +53,9 @@ const ReportsDashboard = () => {
       switch (selectedReport) {
         case "sales":
           const salesData = [
-            { date: "2024-01-01", orders: 5, revenue: 2500 },
-            { date: "2024-01-02", orders: 8, revenue: 4000 },
-            { date: "2024-01-03", orders: 3, revenue: 1500 },
+            { date: "2024-01-01", orders: 5, revenue: 2500, discounts: 150, netRevenue: 2350 },
+            { date: "2024-01-02", orders: 8, revenue: 4000, discounts: 300, netRevenue: 3700 },
+            { date: "2024-01-03", orders: 3, revenue: 1500, discounts: 100, netRevenue: 1400 },
           ];
           exportToExcel(salesData, {
             filename: `sales-report-${new Date().toISOString().split("T")[0]}.xlsx`,
@@ -102,10 +102,13 @@ const ReportsDashboard = () => {
           reportTitle = "Sales Report";
           reportData = [
             { label: "Total Sales", value: "$25,000" },
+            { label: "Total Discounts Given", value: "$1,500" },
+            { label: "Net Revenue (After Discounts)", value: "$23,500" },
             { label: "Total Orders", value: "150" },
             { label: "Average Order Value", value: "$166.67" },
             { label: "Top Product", value: "Product 1 - 50 units" },
             { label: "Discount Usage", value: "SUMMER21 - 30 times" },
+            { label: "Total Discount Codes Used", value: "5 codes" },
           ];
           break;
         case "inventory":
@@ -282,6 +285,13 @@ const SalesReportSection = ({
     ],
   };
 
+  // Calculate total discounts and net revenue
+  const totalDiscounts = salesData.discountUsage.reduce(
+    (sum, discount) => sum + discount.totalDiscount,
+    0
+  );
+  const netRevenue = salesData.totalSales - totalDiscounts;
+
   const chartData = {
     labels: salesData.salesByDate.map((d) => d.date),
     datasets: [
@@ -316,6 +326,24 @@ const SalesReportSection = ({
           </h3>
           <p className="text-3xl font-bold text-purple-900">
             ${salesData.averageOrderValue.toFixed(2)}
+          </p>
+        </div>
+        <div className="bg-orange-50 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-orange-800">Total Discounts Given</h3>
+          <p className="text-3xl font-bold text-orange-900">
+            ${totalDiscounts.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-red-50 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-red-800">Net Revenue</h3>
+          <p className="text-3xl font-bold text-red-900">
+            ${netRevenue.toLocaleString()}
+          </p>
+        </div>
+        <div className="bg-indigo-50 p-6 rounded-lg">
+          <h3 className="text-lg font-semibold text-indigo-800">Discount Rate</h3>
+          <p className="text-3xl font-bold text-indigo-900">
+            {((totalDiscounts / salesData.totalSales) * 100).toFixed(1)}%
           </p>
         </div>
       </div>

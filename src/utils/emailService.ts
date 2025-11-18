@@ -20,7 +20,11 @@ initializeEmailJS();
 interface EmailConfig {
   recipientEmail: string;
   subject: string;
-  emailType: "order-placed" | "order-confirmed" | "order-delivered" | "admin-notification";
+  emailType:
+    | "order-placed"
+    | "order-confirmed"
+    | "order-delivered"
+    | "admin-notification";
   order: Order;
   adminEmail?: string;
 }
@@ -79,15 +83,15 @@ export const generateOrderPlacedEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Details</div>
-            <p><strong>Order Number:</strong> <span class="order-number">${
-              order.id.slice(-8).toUpperCase()
-            }</span></p>
+            <p><strong>Order Number:</strong> <span class="order-number">${order.id
+              .slice(-8)
+              .toUpperCase()}</span></p>
             <p><strong>Order Date:</strong> ${new Date(
               order.createdAt
-            ).toLocaleDateString('en-IN', { 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
+            ).toLocaleDateString("en-IN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
             })}</p>
             <p><strong>Status:</strong> <span style="color: #f97316;">Pending</span></p>
           </div>
@@ -113,13 +117,17 @@ export const generateOrderPlacedEmail = (order: Order): string => {
             <table style="border: none;">
               <tr>
                 <td>Subtotal:</td>
-                <td style="text-align: right;">₹${order.subtotal.toFixed(2)}</td>
+                <td style="text-align: right;">₹${order.subtotal.toFixed(
+                  2
+                )}</td>
               </tr>
               ${
                 order.discountAmount
                   ? `<tr style="color: #10b981;">
                       <td>Discount (${order.discountCode}):</td>
-                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(2)}</td>
+                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(
+                        2
+                      )}</td>
                     </tr>`
                   : ""
               }
@@ -206,7 +214,9 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Status</div>
-            <p><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</p>
+            <p><strong>Order ID:</strong> ${order.id
+              .slice(-8)
+              .toUpperCase()}</p>
             <p><strong>Status:</strong> <span class="status-badge">Processing</span></p>
             <p>Your items are being carefully picked and packed for shipment.</p>
           </div>
@@ -278,7 +288,9 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Status</div>
-            <p><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</p>
+            <p><strong>Order ID:</strong> ${order.id
+              .slice(-8)
+              .toUpperCase()}</p>
             <p><strong>Status:</strong> <span class="status-badge">Delivered</span></p>
           </div>
 
@@ -366,15 +378,17 @@ export const generateAdminOrderNotification = (order: Order): string => {
         <div class="content">
           <div class="section">
             <div class="section-title">Order Information</div>
-            <p><strong>Order ID:</strong> ${order.id.slice(-8).toUpperCase()}</p>
+            <p><strong>Order ID:</strong> ${order.id
+              .slice(-8)
+              .toUpperCase()}</p>
             <p><strong>Order Date:</strong> ${new Date(
               order.createdAt
-            ).toLocaleString('en-IN', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
+            ).toLocaleString("en-IN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
             })}</p>
             <p><strong>Status:</strong> Pending</p>
           </div>
@@ -383,7 +397,9 @@ export const generateAdminOrderNotification = (order: Order): string => {
             <div class="section-title">Customer Information</div>
             <p><strong>Name:</strong> ${order.customerName}</p>
             <p><strong>Email:</strong> ${order.userEmail}</p>
-            <p><strong>Phone:</strong> ${order.customerPhone || 'Not provided'}</p>
+            <p><strong>Phone:</strong> ${
+              order.customerPhone || "Not provided"
+            }</p>
           </div>
 
           <div class="section">
@@ -407,13 +423,17 @@ export const generateAdminOrderNotification = (order: Order): string => {
             <table style="border: none;">
               <tr>
                 <td><strong>Subtotal:</strong></td>
-                <td style="text-align: right;">₹${order.subtotal.toFixed(2)}</td>
+                <td style="text-align: right;">₹${order.subtotal.toFixed(
+                  2
+                )}</td>
               </tr>
               ${
                 order.discountAmount
                   ? `<tr>
                       <td><strong>Discount:</strong></td>
-                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(2)}</td>
+                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(
+                        2
+                      )}</td>
                     </tr>`
                   : ""
               }
@@ -462,19 +482,27 @@ export const sendOrderEmail = async (config: EmailConfig): Promise<boolean> => {
     switch (config.emailType) {
       case "order-placed":
         emailHtml = generateOrderPlacedEmail(config.order);
-        subject = `Order Placed Successfully - Order #${config.order.id.slice(-8).toUpperCase()}`;
+        subject = `Order Placed Successfully - Order #${config.order.id
+          .slice(-8)
+          .toUpperCase()}`;
         break;
       case "order-confirmed":
         emailHtml = generateOrderConfirmedEmail(config.order);
-        subject = `Order Confirmed - Order #${config.order.id.slice(-8).toUpperCase()}`;
+        subject = `Order Confirmed - Order #${config.order.id
+          .slice(-8)
+          .toUpperCase()}`;
         break;
       case "order-delivered":
         emailHtml = generateOrderDeliveredEmail(config.order);
-        subject = `Order Delivered - Order #${config.order.id.slice(-8).toUpperCase()}`;
+        subject = `Order Delivered - Order #${config.order.id
+          .slice(-8)
+          .toUpperCase()}`;
         break;
       case "admin-notification":
         emailHtml = generateAdminOrderNotification(config.order);
-        subject = `🛍️ New Order #${config.order.id.slice(-8).toUpperCase()} - Rachna Creation`;
+        subject = `🛍️ New Order #${config.order.id
+          .slice(-8)
+          .toUpperCase()} - Rachna Creation`;
         break;
     }
 
@@ -487,7 +515,9 @@ export const sendOrderEmail = async (config: EmailConfig): Promise<boolean> => {
       return false;
     }
 
-    console.log(`Sending ${config.emailType} email to: ${config.recipientEmail}`);
+    console.log(
+      `Sending ${config.emailType} email to: ${config.recipientEmail}`
+    );
 
     // Send email using EmailJS with correct parameter names
     const response = await emailjs.send(serviceId, templateId, {
@@ -528,7 +558,9 @@ export const sendOrderPlacedEmails = async (
     // Send customer email
     const customerEmailSent = await sendOrderEmail({
       recipientEmail: order.userEmail,
-      subject: `Order Placed Successfully - Order #${order.id.slice(-8).toUpperCase()}`,
+      subject: `Order Placed Successfully - Order #${order.id
+        .slice(-8)
+        .toUpperCase()}`,
       emailType: "order-placed",
       order,
     });
@@ -536,7 +568,9 @@ export const sendOrderPlacedEmails = async (
     // Send admin notification (separate template)
     const adminEmailSent = await sendOrderEmail({
       recipientEmail: adminEmail,
-      subject: `New Order #${order.id.slice(-8).toUpperCase()} - Rachna Creation`,
+      subject: `New Order #${order.id
+        .slice(-8)
+        .toUpperCase()} - Rachna Creation`,
       emailType: "admin-notification",
       order,
     });

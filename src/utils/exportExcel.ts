@@ -120,7 +120,8 @@ export const formatOrdersForExport = (
     Status: order.status,
     "Items Count": order.items?.length || 0,
     Subtotal: `${order.subtotal || 0}`,
-    Discount: `${order.discount || 0}`,
+    "Discount Code": order.discountCode || "N/A",
+    Discount: `${order.discountAmount || 0}`,
     Total: `${order.total || 0}`,
     "Shipping Address": `${order.shippingAddress?.street || ""}, ${order.shippingAddress?.city || ""}`,
     "Payment Method": order.paymentMethod || "N/A",
@@ -141,20 +142,22 @@ export const formatRevenueForExport = (
       "Customer Name": order.userName || order.customerName || "N/A",
       "Items Count": order.items?.length || 0,
       Subtotal: order.subtotal || 0,
-      Discount: order.discount || 0,
+      "Discount Code": order.discountCode || "N/A",
+      Discount: order.discountAmount || 0,
       Revenue: order.total || 0,
     }));
 
   // Add summary row
   const totalRevenue = revenueData.reduce((sum, row) => sum + row.Revenue, 0);
+  const totalDiscount = revenueData.reduce((sum, row) => sum + row.Discount, 0);
   const totalOrders = revenueData.length;
   const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   return {
     details: revenueData,
     summary: {
-      "Metric": ["Total Orders", "Total Revenue", "Average Order Value"],
-      "Value": [totalOrders, `${totalRevenue.toFixed(2)}`, `${avgOrderValue.toFixed(2)}`],
+      "Metric": ["Total Orders", "Total Gross Revenue", "Total Discounts", "Net Revenue", "Average Order Value"],
+      "Value": [totalOrders, `${(totalRevenue + totalDiscount).toFixed(2)}`, `${totalDiscount.toFixed(2)}`, `${totalRevenue.toFixed(2)}`, `${avgOrderValue.toFixed(2)}`],
     },
   };
 };

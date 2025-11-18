@@ -16,6 +16,16 @@ import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { sendOrderPlacedEmails } from "../utils/emailService";
 import toast from "react-hot-toast";
+import {
+  User,
+  Phone,
+  MapPin,
+  Home,
+  Globe,
+  CreditCard,
+  ShoppingBag,
+  Loader2,
+} from "lucide-react";
 
 // Form interfaces
 interface ShippingForm {
@@ -62,27 +72,27 @@ const PaymentPage = () => {
 
     // Validate user authentication
     if (!user) {
-      alert("Please login to complete your purchase");
+      toast.error("Please login to complete your purchase");
       navigate("/login");
       return;
     }
 
     // Validate cart items
     if (items.length === 0) {
-      alert("Your cart is empty");
+      toast.error("Your cart is empty");
       navigate("/cart");
       return;
     }
 
     // Validate payment method
     if (!paymentMethod) {
-      alert("Please select a payment method");
+      toast.error("Please select a payment method");
       return;
     }
 
     // Validate customer form
     if (!customerForm.name || !customerForm.phone) {
-      alert("Please fill in all customer information");
+      toast.error("Please fill in all customer information");
       return;
     }
 
@@ -94,19 +104,18 @@ const PaymentPage = () => {
       !shippingForm.postalCode ||
       !shippingForm.country
     ) {
-      alert("Please fill in all shipping information");
+      toast.error("Please fill in all shipping information");
       return;
     }
 
     setLoading(true);
     try {
-      // Generate order number (in production this would be more sophisticated)
+      // Generate order number
       const orderNum = `ORD${Date.now().toString().slice(-6)}`;
       setOrderNumber(orderNum);
 
       // Create order record in Firebase
       const orderRef = doc(collection(db, "orders"));
-      // Calculate values before creating order data
       const calculatedSubtotal = items.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
@@ -119,10 +128,10 @@ const PaymentPage = () => {
         id: orderRef.id,
         orderNumber: orderNum,
         userId: user.uid,
-        userEmail: user.email || "", // Save customer email
+        userEmail: user.email || "",
         customerName: customerForm.name,
         customerPhone: customerForm.phone,
-        userName: customerForm.name, // For backward compatibility
+        userName: customerForm.name,
         items: items.map((item) => ({
           product: {
             id: item.id || "",
@@ -158,7 +167,6 @@ const PaymentPage = () => {
           await applyDiscount(discountCode);
         } catch (error) {
           console.error("Error applying discount:", error);
-          // Continue with the order even if discount application fails
         }
       }
 
@@ -188,7 +196,6 @@ const PaymentPage = () => {
           adminEmail
         );
 
-        // Log email sending status (emails are configured via environment)
         if (emailResult.customerEmailSent || emailResult.adminEmailSent) {
           toast.success("Order created! Confirmation email will be sent.");
         } else {
@@ -208,9 +215,11 @@ const PaymentPage = () => {
     } catch (error) {
       console.error("Payment failed:", error);
       if (error instanceof Error) {
-        alert(`Error: ${error.message}`);
+        toast.error(`Error: ${error.message}`);
       } else {
-        alert("There was an error processing your payment. Please try again.");
+        toast.error(
+          "There was an error processing your payment. Please try again."
+        );
       }
     } finally {
       setLoading(false);
@@ -226,257 +235,326 @@ const PaymentPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-8">Payment</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Order Summary</h2>
-          <div className="space-y-4">
-            {items.map((item) => (
-              <div
-                key={`${item.id}-${item.selectedSize}-${JSON.stringify(
-                  item.customDimensions
-                )}`}
-                className="pb-4 border-b last:border-b-0"
-              >
-                <div className="flex justify-between mb-2">
-                  <span className="font-medium">
-                    {item.name} × {item.quantity}
-                  </span>
-                  <span>
-                    {item.discountPrice
-                      ? item.discountPrice.toFixed(2)
-                      : item.price.toFixed(2)}
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-6 lg:py-10">
+        {/* Page Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Complete Your Order
+          </h1>
+          <p className="text-gray-600">
+            Fill in your details to finalize your purchase
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 max-w-6xl mx-auto">
+          {/* Order Summary */}
+          <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6 h-fit">
+            <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900 mb-6">
+              <ShoppingBag className="w-5 h-5" />
+              Order Summary
+            </h2>
+            <div className="space-y-4">
+              {items.map((item) => (
+                <div
+                  key={`${item.id}-${item.selectedSize}-${JSON.stringify(
+                    item.customDimensions
+                  )}`}
+                  className="pb-4 border-b last:border-b-0"
+                >
+                  <div className="flex justify-between items-start mb-2">
+                    <div className="flex-1">
+                      <span className="font-medium text-gray-900">
+                        {item.name}
+                      </span>
+                      <span className="text-gray-500 ml-2">
+                        × {item.quantity}
+                      </span>
+                    </div>
+                    <span className="font-semibold text-gray-900">
+                      ₹{(item.discountPrice || item.price).toFixed(2)}
+                    </span>
+                  </div>
+                  {item.selectedSize && (
+                    <p className="text-sm text-gray-600">
+                      Size: {item.selectedSize}
+                    </p>
+                  )}
+                  {item.selectedColor && (
+                    <p className="text-sm text-gray-600">
+                      Color: {item.selectedColor}
+                    </p>
+                  )}
+                  {item.customDimensions && (
+                    <p className="text-sm text-gray-600">
+                      Dimensions: {item.customDimensions.width} ×{" "}
+                      {item.customDimensions.height}
+                      {item.customDimensions.depth
+                        ? ` × ${item.customDimensions.depth}`
+                        : ""}{" "}
+                      cm
+                    </p>
+                  )}
+                </div>
+              ))}
+              <div className="pt-4 border-t">
+                <div className="flex justify-between items-center text-lg">
+                  <span className="font-bold text-gray-900">Total Amount</span>
+                  <span className="font-bold text-primary text-xl">
+                    ₹{total.toFixed(2)}
                   </span>
                 </div>
-                {item.selectedSize && (
-                  <p className="text-sm text-gray-600">
-                    Size: {item.selectedSize}
+                {discountCode && (
+                  <p className="text-sm text-green-600 mt-2">
+                    Discount code "{discountCode}" applied
                   </p>
                 )}
-                {item.customDimensions && (
-                  <p className="text-sm text-gray-600">
-                    Dimensions: {item.customDimensions.width} ×{" "}
-                    {item.customDimensions.height}
-                    {item.customDimensions.depth
-                      ? ` × ${item.customDimensions.depth}`
-                      : ""}{" "}
-                    cm
-                  </p>
-                )}
-              </div>
-            ))}
-            <div className="border-t pt-4">
-              <div className="flex justify-between font-bold">
-                <span>Total</span>
-                <span>{total.toFixed(2)}</span>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-4">Customer Information</h2>
-          <form onSubmit={handlePaymentSubmit} className="space-y-6">
-            <div className="space-y-4">
+          {/* Payment Form */}
+          <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
+            <form onSubmit={handlePaymentSubmit} className="space-y-6">
+              {/* Customer Information */}
               <div>
-                <label
-                  htmlFor="customerName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="customerName"
-                  name="name"
-                  required
-                  value={customerForm.name}
-                  onChange={(e) =>
-                    setCustomerForm((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Customer Information
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="customerName"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                    >
+                      <User className="w-4 h-4" />
+                      Full Name
+                    </label>
+                    <input
+                      type="text"
+                      id="customerName"
+                      name="name"
+                      required
+                      value={customerForm.name}
+                      onChange={(e) =>
+                        setCustomerForm((prev) => ({
+                          ...prev,
+                          name: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor="customerPhone"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                    >
+                      <Phone className="w-4 h-4" />
+                      Phone Number
+                    </label>
+                    <input
+                      type="tel"
+                      id="customerPhone"
+                      name="phone"
+                      required
+                      value={customerForm.phone}
+                      onChange={(e) =>
+                        setCustomerForm((prev) => ({
+                          ...prev,
+                          phone: e.target.value,
+                        }))
+                      }
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      placeholder="Enter your phone number"
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* Shipping Address */}
               <div>
-                <label
-                  htmlFor="customerPhone"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  id="customerPhone"
-                  name="phone"
-                  required
-                  value={customerForm.phone}
-                  onChange={(e) =>
-                    setCustomerForm((prev) => ({
-                      ...prev,
-                      phone: e.target.value,
-                    }))
-                  }
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
-              </div>
-            </div>
+                <h2 className="text-xl font-semibold text-gray-900 mb-4">
+                  Shipping Address
+                </h2>
+                <div className="space-y-4">
+                  <div>
+                    <label
+                      htmlFor="street"
+                      className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                    >
+                      <Home className="w-4 h-4" />
+                      Street Address
+                    </label>
+                    <input
+                      type="text"
+                      id="street"
+                      name="street"
+                      required
+                      value={shippingForm.street}
+                      onChange={handleShippingFormChange}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      placeholder="House number and street name"
+                    />
+                  </div>
 
-            <h2 className="text-xl font-semibold mt-8 mb-4">
-              Shipping Address
-            </h2>
-            <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="city"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        City
+                      </label>
+                      <input
+                        type="text"
+                        id="city"
+                        name="city"
+                        required
+                        value={shippingForm.city}
+                        onChange={handleShippingFormChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                        placeholder="City"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="state"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        State
+                      </label>
+                      <input
+                        type="text"
+                        id="state"
+                        name="state"
+                        required
+                        value={shippingForm.state}
+                        onChange={handleShippingFormChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                        placeholder="State"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label
+                        htmlFor="postalCode"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                      >
+                        <MapPin className="w-4 h-4" />
+                        Postal Code
+                      </label>
+                      <input
+                        type="text"
+                        id="postalCode"
+                        name="postalCode"
+                        required
+                        value={shippingForm.postalCode}
+                        onChange={handleShippingFormChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                        placeholder="Postal code"
+                      />
+                    </div>
+
+                    <div>
+                      <label
+                        htmlFor="country"
+                        className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2"
+                      >
+                        <Globe className="w-4 h-4" />
+                        Country
+                      </label>
+                      <input
+                        type="text"
+                        id="country"
+                        name="country"
+                        required
+                        value={shippingForm.country}
+                        onChange={handleShippingFormChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                        placeholder="Country"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Method */}
               <div>
-                <label
-                  htmlFor="street"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Street Address
-                </label>
-                <input
-                  type="text"
-                  id="street"
-                  name="street"
-                  required
-                  value={shippingForm.street}
-                  onChange={handleShippingFormChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
+                <h2 className="flex items-center gap-2 text-xl font-semibold text-gray-900 mb-4">
+                  <CreditCard className="w-5 h-5" />
+                  Payment Method
+                </h2>
+                <div className="space-y-3">
+                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="upi"
+                      checked={paymentMethod === "upi"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                    />
+                    <span className="ml-3 text-gray-700 font-medium">UPI</span>
+                  </label>
+
+                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="card"
+                      checked={paymentMethod === "card"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                    />
+                    <span className="ml-3 text-gray-700 font-medium">
+                      Credit/Debit Card
+                    </span>
+                  </label>
+
+                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                    <input
+                      type="radio"
+                      name="paymentMethod"
+                      value="cod"
+                      checked={paymentMethod === "cod"}
+                      onChange={(e) => setPaymentMethod(e.target.value)}
+                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                    />
+                    <span className="ml-3 text-gray-700 font-medium">
+                      Cash on Delivery
+                    </span>
+                  </label>
+                </div>
               </div>
 
-              <div>
-                <label
-                  htmlFor="city"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  City
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  required
-                  value={shippingForm.city}
-                  onChange={handleShippingFormChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="state"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  State
-                </label>
-                <input
-                  type="text"
-                  id="state"
-                  name="state"
-                  required
-                  value={shippingForm.state}
-                  onChange={handleShippingFormChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="postalCode"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Postal Code
-                </label>
-                <input
-                  type="text"
-                  id="postalCode"
-                  name="postalCode"
-                  required
-                  value={shippingForm.postalCode}
-                  onChange={handleShippingFormChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label
-                  htmlFor="country"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Country
-                </label>
-                <input
-                  type="text"
-                  id="country"
-                  name="country"
-                  required
-                  value={shippingForm.country}
-                  onChange={handleShippingFormChange}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-                />
-              </div>
-            </div>
-
-            <h2 className="text-xl font-semibold mt-8 mb-4">Payment Method</h2>
-            <div className="space-y-4">
-              <div className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  id="upi"
-                  name="paymentMethod"
-                  value="upi"
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="h-4 w-4 text-primary"
-                />
-                <label htmlFor="upi" className="text-gray-700">
-                  UPI
-                </label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  id="card"
-                  name="paymentMethod"
-                  value="card"
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="h-4 w-4 text-primary"
-                />
-                <label htmlFor="card" className="text-gray-700">
-                  Credit/Debit Card
-                </label>
-              </div>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="radio"
-                  id="other"
-                  name="paymentMethod"
-                  value="other"
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="h-4 w-4 text-primary"
-                />
-                <label htmlFor="other" className="text-gray-700">
-                  Other
-                </label>
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading || !paymentMethod}
-              className={`w-full py-3 mt-6 rounded-lg text-white font-semibold
-                ${
-                  loading || !paymentMethod
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-primary hover:bg-primary/90"
-                }`}
-            >
-              {loading ? "Processing..." : "Make Payment"}
-            </button>
-          </form>
+              {/* Submit Button */}
+              <button
+                type="submit"
+                disabled={loading || !paymentMethod}
+                className="w-full flex items-center justify-center gap-2 bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Processing Payment...
+                  </>
+                ) : (
+                  <>
+                    <CreditCard className="w-4 h-4" />
+                    Complete Payment
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
         </div>
       </div>
 

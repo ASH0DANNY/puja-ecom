@@ -517,7 +517,26 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                         </div>
                       </div>
                     ))}
-                    <div className="flex items-center text-sm px-6 py-4 font-medium">
+                    <div className="flex items-center text-sm px-6 py-4 border-t-2 border-gray-300">
+                      <div className="w-4/5 text-right font-medium">Subtotal:</div>
+                      <div className="w-1/5 text-right">
+                        ${selectedOrder.subtotal.toFixed(2)}
+                      </div>
+                    </div>
+                    {(selectedOrder.discountAmount || 0) > 0 && (
+                      <div className="flex items-center text-sm px-6 py-4 bg-green-50">
+                        <div className="w-4/5 text-right font-medium text-green-700">
+                          Discount
+                          {selectedOrder.discountCode &&
+                            ` (${selectedOrder.discountCode})`}
+                          :
+                        </div>
+                        <div className="w-1/5 text-right text-green-700 font-medium">
+                          -${(selectedOrder.discountAmount || 0).toFixed(2)}
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex items-center text-sm px-6 py-4 font-bold text-lg bg-gray-50 border-t border-gray-300">
                       <div className="w-4/5 text-right">Total:</div>
                       <div className="w-1/5 text-right">
                         ${selectedOrder.total.toFixed(2)}

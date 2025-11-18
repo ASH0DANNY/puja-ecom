@@ -90,9 +90,14 @@ export const DashboardPage = () => {
         return {
           id: doc.id,
           ...data,
+          userEmail: data.userEmail || data.email || "", // Handle old orders without userEmail field
           createdAt:
             data.createdAt instanceof Timestamp
               ? data.createdAt.toDate()
+              : new Date(),
+          updatedAt:
+            data.updatedAt instanceof Timestamp
+              ? data.updatedAt.toDate()
               : new Date(),
         } as Order;
       });

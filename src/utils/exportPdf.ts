@@ -78,29 +78,54 @@ export const generatePdfFromHtml = async (
 };
 
 /**
- * Generate invoice PDF with enhanced layout (updated based on reference)
+ * Generate invoice PDF matching tax invoice format
  */
 export const generateInvoicePdf = (
   invoiceData: {
     orderId: string;
+    invoiceNumber?: string;
     date: string;
     customerName: string;
     email: string;
     phone: string;
     address: string;
+    billingAddress?: {
+      name: string;
+      street: string;
+      city: string;
+      state: string;
+      country: string;
+      postalCode: string;
+    };
+    shippingAddress?: {
+      name: string;
+      street: string;
+      city: string;
+      state: string;
+      country: string;
+      postalCode: string;
+    };
     items: Array<{
       name: string;
+      hsn?: string;
       quantity: number;
       price: number;
       total: number;
+      discount?: number;
+      taxRate?: number;
       dimensions?: string;
       color?: string;
     }>;
-    subtotal: number;
     discount: number;
+    taxAmount?: number;
+    taxRate?: number;
     total: number;
     company?: string;
+    companyAddress?: string;
+    companyGST?: string;
     logoUrl?: string;
+    placeOfSupply?: string;
+    paymentTerms?: string;
   },
   _filename: string = "invoice.pdf"
 ) => {
@@ -111,7 +136,7 @@ export const generateInvoicePdf = (
     }
 
     const doc = new jsPDF({
-      orientation: "portrait",
+      orientation: "landscape",
       unit: "mm",
       format: "a4",
     });
@@ -127,141 +152,348 @@ export const generateInvoicePdf = (
     invoiceData.orderId = String(invoiceData.orderId || "");
 
     const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
 
-    // Note: Using hardcoded margin values (15) in this version of invoice template
-
-    // ============ HEADER SECTION ============
-    doc.setFillColor(52, 73, 94);
-    doc.rect(0, 0, pageWidth, 40, "F");
-
+    // ============ HEADER - Tax Invoice Title ============
     doc.setFont("helvetica", "bold");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(24);
-    doc.text("INVOICE", pageWidth / 2, 20, { align: "center" });
-
-    doc.setFontSize(12);
-    doc.text(invoiceData.company || "Your Business Name", pageWidth / 2, 30, {
-      align: "center",
-    });
-
-    // ============ INVOICE DETAILS ============
+    doc.setFontSize(16);
     doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
+    doc.text("Tax Invoice", pageWidth - margin, 15, { align: "right" });
 
-    doc.text(`Invoice #: ${invoiceData.orderId}`, pageWidth - 15, 50, {
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Original For Recipient", pageWidth - margin, 20, {
       align: "right",
     });
 
-    const formattedDate = new Date(invoiceData.date).toLocaleDateString(
-      "en-US",
+    // ============ COMPANY NAME IN CENTER ============
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text(
+      invoiceData.company ||
+        import.meta.env.VITE_APP_NAME ||
+        "Your Business Name",
+      pageWidth / 2,
+      15,
       {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
+        align: "center",
       }
     );
 
-    doc.text(`Date: ${formattedDate}`, pageWidth - 15, 56, { align: "right" });
-
-    // ============ CUSTOMER SECTION ============
-    const customerSectionY = 70;
-
-    doc.setFillColor(240, 240, 240);
-    doc.rect(15, customerSectionY, pageWidth - 30, 25, "F");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Customer Information:", 20, customerSectionY + 7);
-
-    doc.setFont("helvetica", "normal");
-    doc.text(`Name: ${invoiceData.customerName}`, 20, customerSectionY + 14);
-    doc.text(`Phone: ${invoiceData.phone}`, 20, customerSectionY + 21);
-
-    // ============ ITEMS TABLE ============
-    const tableColumn = ["#", "Product", "Price", "Qty", "Total"];
-    const tableRows = invoiceData.items.map((item, index) => [
-      index + 1,
-      item.name,
-      ` ${item.price.toFixed(2)}`,
-      item.quantity,
-      ` ${item.total.toFixed(2)}`,
-    ]);
-
-    const tableStartY = customerSectionY + 35;
-
-    autoTable(doc, {
-      head: [tableColumn],
-      body: tableRows,
-      startY: tableStartY,
-      styles: { fontSize: 10, cellPadding: 3 },
-      headStyles: { fillColor: [52, 73, 94], textColor: [255, 255, 255] },
-      alternateRowStyles: { fillColor: [240, 240, 240] },
-      columnStyles: {
-        0: { cellWidth: 10 },
-        2: { halign: "right" },
-        3: { halign: "center" },
-        4: { halign: "right" },
-      },
-      margin: { left: 15, right: 15 },
-    });
-
-    // ============ TOTALS SECTION ============
-    const tableEndY = (doc as any).lastAutoTable.finalY || tableStartY;
-    let currentY = tableEndY + 10;
-
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "normal");
-
-    const summaryX = pageWidth - 70;
-
-    // Subtotal
-    doc.text(`Subtotal:`, summaryX, currentY);
-    doc.text(` ${invoiceData.subtotal.toFixed(2)}`, pageWidth - 15, currentY, {
-      align: "right",
-    });
-    currentY += 6;
-
-    // Discount
-    if (invoiceData.discount > 0) {
-      doc.setTextColor(255, 0, 0);
-      doc.text("Discount:", summaryX, currentY);
+    if (invoiceData.companyAddress || import.meta.env.VITE_APP_ADDREDSS) {
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
       doc.text(
-        `- ${invoiceData.discount.toFixed(2)}`,
-        pageWidth - 15,
-        currentY,
+        invoiceData.companyAddress
+          ? invoiceData.companyAddress
+          : import.meta.env.VITE_APP_ADDREDSS,
+        pageWidth / 2,
+        20,
         {
-          align: "right",
+          align: "center",
         }
       );
-      currentY += 6;
-      doc.setTextColor(0, 0, 0);
     }
 
-    // Total
+    // ============ BILL TO & SHIP TO SECTION ============
+    let yPos = 25;
+
+    // Bill To
     doc.setFont("helvetica", "bold");
-    doc.text("Total:", summaryX, currentY);
-    doc.text(` ${invoiceData.total.toFixed(2)}`, pageWidth - 15, currentY, {
-      align: "right",
-    });
-    doc.setFont("helvetica", "normal");
-    currentY += 10;
-
-    // ============ FOOTER ============
-    doc.setDrawColor(52, 73, 94);
-    doc.setLineWidth(1);
-    doc.line(15, pageHeight - 35, pageWidth - 15, pageHeight - 35);
-
-    doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("Thank you for your business!", pageWidth / 2, pageHeight - 25, {
-      align: "center",
+    doc.text("BILL TO:", margin, yPos);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    yPos += 5;
+
+    if (invoiceData.billingAddress) {
+      doc.text(
+        invoiceData.billingAddress.name || invoiceData.customerName,
+        margin,
+        yPos
+      );
+      yPos += 4;
+      doc.text(invoiceData.billingAddress.street, margin, yPos);
+      yPos += 4;
+      doc.text(
+        `${invoiceData.billingAddress.city}, ${invoiceData.billingAddress.state}, ${invoiceData.billingAddress.postalCode}`,
+        margin,
+        yPos
+      );
+      yPos += 4;
+    } else {
+      doc.text(invoiceData.customerName, margin, yPos);
+      yPos += 4;
+      const addressLines = doc.splitTextToSize(invoiceData.address, 80);
+      doc.text(addressLines, margin, yPos);
+      yPos += addressLines.length * 4;
+    }
+
+    if (invoiceData.placeOfSupply) {
+      doc.text(`Place of Supply: ${invoiceData.placeOfSupply}`, margin, yPos);
+      yPos += 4;
+    }
+
+    // Ship To (below Bill To)
+    yPos += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("SHIP TO:", margin, yPos);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    yPos += 5;
+
+    if (invoiceData.shippingAddress) {
+      doc.text(
+        invoiceData.shippingAddress.name || invoiceData.customerName,
+        margin,
+        yPos
+      );
+      yPos += 4;
+      doc.text(invoiceData.shippingAddress.street, margin, yPos);
+      yPos += 4;
+      doc.text(
+        `${invoiceData.shippingAddress.city}, ${invoiceData.shippingAddress.state}, ${invoiceData.shippingAddress.postalCode}`,
+        margin,
+        yPos
+      );
+      yPos += 4;
+    } else {
+      doc.text(invoiceData.customerName, margin, yPos);
+      yPos += 4;
+      const addressLines = doc.splitTextToSize(invoiceData.address, 80);
+      doc.text(addressLines, margin, yPos);
+      yPos += addressLines.length * 4;
+    }
+
+    // ============ ORDER & INVOICE DETAILS ============
+    yPos = 65;
+
+    // Left side - Order Number
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Order Number", margin, yPos);
+
+    yPos += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(invoiceData.orderId, margin, yPos);
+
+    yPos += 7;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Order Date", margin, yPos);
+
+    yPos += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    const formattedDate = new Date(invoiceData.date)
+      .toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      })
+      .replace(/\//g, "-");
+    doc.text(
+      formattedDate +
+        " " +
+        new Date(invoiceData.date).toLocaleTimeString("en-GB"),
+      margin,
+      yPos
+    );
+
+    // Right side - Invoice Number
+    yPos = 65;
+    const rightX = pageWidth - margin;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Invoice Number", rightX, yPos, { align: "right" });
+
+    yPos += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      invoiceData.invoiceNumber || `INV-${invoiceData.orderId.slice(-8)}`,
+      rightX,
+      yPos,
+      { align: "right" }
+    );
+
+    yPos += 7;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Invoice Date", rightX, yPos, { align: "right" });
+
+    yPos += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      formattedDate + " " + new Date().toLocaleTimeString("en-GB"),
+      rightX,
+      yPos,
+      { align: "right" }
+    );
+
+    // ============ ITEMS TABLE ============
+    const tableStartY = yPos + 10;
+
+    // Calculate discount per item if order-level discount exists
+    const totalOrderDiscount = invoiceData.discount || 0;
+    const totalItemsPrice = invoiceData.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+
+    // Simple table without tax calculations
+    const tableRows = invoiceData.items.map((item, index) => {
+      const grossAmount = item.price * item.quantity;
+      // Distribute order discount proportionally to each item
+      const itemDiscount =
+        totalItemsPrice > 0
+          ? (grossAmount / totalItemsPrice) * totalOrderDiscount
+          : 0;
+      const netAmount = grossAmount - itemDiscount;
+
+      return [
+        index + 1,
+        item.name +
+          (item.dimensions ? ` - ${item.dimensions}` : "") +
+          (item.color ? ` - ${item.color}` : ""),
+        item.hsn || "N/A",
+        item.quantity,
+        `Rs.${grossAmount.toFixed(2)}`,
+        `Rs.${itemDiscount.toFixed(2)}`,
+        `Rs.${netAmount.toFixed(2)}`,
+      ];
     });
-    doc.text("Terms & Conditions Apply", pageWidth / 2, pageHeight - 18, {
-      align: "center",
+
+    autoTable(doc, {
+      head: [
+        [
+          "SN.",
+          "Description",
+          "HSN",
+          "Qty.",
+          "Gross Amount",
+          "Discount",
+          "Total",
+        ],
+      ],
+      body: tableRows,
+      startY: tableStartY,
+      styles: {
+        fontSize: 9,
+        cellPadding: 3,
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+      },
+      headStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        halign: "center",
+      },
+      columnStyles: {
+        0: { halign: "center" },
+        1: { cellWidth: 120 },
+        2: { cellWidth: 25, halign: "center" },
+        3: { cellWidth: 20, halign: "center" },
+        4: { cellWidth: 35, halign: "right" },
+        5: { cellWidth: 30, halign: "right" },
+        6: { cellWidth: 35, halign: "right" },
+      },
+      margin: { left: margin, right: margin },
+      theme: "grid",
+      tableWidth: "auto",
     });
+
+    // ============ TOTALS ROW ============
+    const tableEndY = (doc as any).lastAutoTable.finalY || tableStartY;
+
+    // Create totals table with total
+    const totalsData = [];
+
+    totalsData.push([
+      "",
+      "Total",
+      "",
+      "",
+      "",
+      "",
+      `Rs.${invoiceData.total.toFixed(2)}`,
+    ]);
+
+    autoTable(doc, {
+      body: totalsData,
+      startY: tableEndY,
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        fontStyle: "bold",
+        lineColor: [0, 0, 0],
+        lineWidth: 0.1,
+      },
+      columnStyles: {
+        0: { halign: "center" },
+        1: { cellWidth: 120 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 20 },
+        4: { cellWidth: 35 },
+        5: { cellWidth: 30 },
+        6: { cellWidth: 35, halign: "right" },
+      },
+      margin: { left: margin, right: margin },
+      theme: "grid",
+      tableWidth: "auto",
+    });
+
+    // ============ TERMS & CONDITIONS ============
+    yPos = (doc as any).lastAutoTable.finalY + 10;
+
+    yPos += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+
+    if (invoiceData.company) {
+      doc.text(`Sold by: ${invoiceData.company}`, margin, yPos);
+      yPos += 4;
+    }
+
+    if (invoiceData.companyAddress) {
+      const addressLines = doc.splitTextToSize(
+        invoiceData.companyAddress,
+        pageWidth - 2 * margin
+      );
+      doc.text(addressLines, margin, yPos);
+      yPos += addressLines.length * 4;
+    }
+
+    if (invoiceData.companyGST) {
+      doc.text(`GST: ${invoiceData.companyGST}`, margin, yPos);
+      yPos += 4;
+    }
+
+    yPos += 2;
+    doc.text(
+      invoiceData.paymentTerms || "Tax is not payable on reverse charge basis",
+      margin,
+      yPos
+    );
+    yPos += 4;
+    doc.text(
+      "This is a computer generated invoice and does not require signature",
+      margin,
+      yPos
+    );
+    yPos += 4;
+    doc.text(
+      "Includes discounts for your city, limited returns and/or for online payments (as applicable)",
+      margin,
+      yPos
+    );
 
     return doc;
   } catch (error) {
