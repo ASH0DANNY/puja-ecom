@@ -31,6 +31,8 @@ import { AuthProvider } from "./context/AuthContext";
 import { DiscountProvider } from "./context/DiscountContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DashboardPage } from "./pages/DashboardPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsAndConditionsPage from "./pages/TermsAndConditionsPage";
 
 function RootLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -105,6 +107,8 @@ const router = createBrowserRouter(
         }
       />
       <Route path="/contact" element={<ContactPage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/terms" element={<TermsAndConditionsPage />} />
       <Route
         path="/dashboard"
         element={

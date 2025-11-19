@@ -6,6 +6,7 @@ import Carousel from "../components/Carousel";
 import ProductCard from "../components/ProductCard";
 import ProductGrid from "../components/ProductGrid";
 import HomepageSections from "../components/HomepageSections";
+import SpecialOffers from "../components/SpecialOffers";
 import type { Product } from "../types/product";
 import { useScrollToTop } from "../utils/scrollToTop";
 
@@ -66,6 +67,9 @@ const HomePage = () => {
         </div>
       </section>
 
+      {/* Special Offers Section */}
+      <SpecialOffers />
+
       {/* Featured Products */}
       <section className="px-2 py-12 lg:py-16">
         <div className="container mx-auto px-0 lg:px-6">
@@ -105,7 +109,7 @@ const HomePage = () => {
               </div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 px-2">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 px-2">
               {suggestedProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}

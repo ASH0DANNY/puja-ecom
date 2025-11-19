@@ -13,7 +13,7 @@ interface CarouselSlide {
 const carouselSlides: CarouselSlide[] = [
   {
     image: carouselImage1,
-    heading: "Welcome to Rachna Creation",
+    heading: `Welcome to ${import.meta.env.VITE_APP_NAME}`,
     description: "Your one-stop shop for all your needs",
   },
   // {
