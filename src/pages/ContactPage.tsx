@@ -148,7 +148,7 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Phone</h3>
-                    <p className="text-gray-600 text-sm">(555) 123-4567</p>
+                    <p className="text-gray-600 text-sm">+91 8340764515</p>
                   </div>
                 </div>
 
@@ -159,7 +159,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-medium text-gray-900">Email</h3>
                     <p className="text-gray-600 text-sm">
-                      info@fashionstore.com
+                      rachnacreationrc@gmail.com
                     </p>
                   </div>
                 </div>
@@ -200,11 +200,11 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-medium text-gray-900">Address</h3>
                   <p className="text-gray-600 text-sm">
-                    123 Fashion Street
+                    Main Road Galudih, Ghatsila
                     <br />
-                    New York, NY 10001
+                    Jharkhand
                     <br />
-                    United States
+                    India
                   </p>
                   <button className="mt-3 text-primary hover:text-primary/80 text-sm font-medium">
                     Get Directions →
