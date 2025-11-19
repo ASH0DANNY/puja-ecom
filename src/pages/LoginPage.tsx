@@ -1,6 +1,6 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import { useScrollToTop } from "../utils/scrollToTop";
 import toast from "react-hot-toast";
 import { Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
@@ -13,7 +13,7 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
-  const { login, user } = useAuth();
+  const { login, user } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
   useEffect(() => {

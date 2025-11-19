@@ -9,6 +9,11 @@ import {
   Outlet,
 } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { Provider } from "react-redux";
+import { store } from "./redux/store";
+import { AuthReduxInitializer } from "./redux/AuthReduxInitializer";
+import { CartReduxInitializer } from "./redux/CartReduxInitializer";
+import { DiscountReduxInitializer } from "./redux/DiscountReduxInitializer";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Footer from "./components/Footer";
@@ -26,9 +31,7 @@ import ResetPasswordPage from "./pages/ResetPasswordPage";
 import SearchPage from "./pages/SearchPage";
 import ProductDetails from "./pages/ProductDetails";
 import PaymentPage from "./pages/PaymentPage";
-import { CartProvider } from "./context/CartContext";
-import { AuthProvider } from "./context/AuthContext";
-import { DiscountProvider } from "./context/DiscountContext";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import { DashboardPage } from "./pages/DashboardPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
@@ -43,9 +46,9 @@ function RootLayout() {
   };
 
   return (
-    <AuthProvider>
-      <DiscountProvider>
-        <CartProvider>
+    <AuthReduxInitializer>
+      <CartReduxInitializer>
+        <DiscountReduxInitializer>
           <ScrollRestoration />
           <div className="min-h-screen bg-white">
             <Toaster
@@ -65,9 +68,9 @@ function RootLayout() {
             </MainLayout>
             <Footer />
           </div>
-        </CartProvider>
-      </DiscountProvider>
-    </AuthProvider>
+        </DiscountReduxInitializer>
+      </CartReduxInitializer>
+    </AuthReduxInitializer>
   );
 }
 
@@ -125,7 +128,11 @@ const router = createBrowserRouter(
 );
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <Provider store={store}>
+      <RouterProvider router={router} />
+    </Provider>
+  );
 }
 
 export default App;

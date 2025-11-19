@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { menuItems } from "../constants/menuItems";
-import { useCart } from "../context/CartContext";
-import { useAuth } from "../context/AuthContext";
+import { useReduxCart } from "../redux/useReduxCart";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import type { CartItem } from "../types/product";
 import {
   ShoppingCart,
@@ -20,8 +20,8 @@ interface NavbarProps {
 }
 
 const Navbar = ({ onMenuClick }: NavbarProps) => {
-  const { items } = useCart();
-  const { user, logout } = useAuth();
+  const { items } = useReduxCart();
+  const { user, logout } = useReduxAuth();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const cartItemsCount = items.reduce(
     (sum: number, item: CartItem) => sum + item.quantity,

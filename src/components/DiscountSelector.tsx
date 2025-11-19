@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import { useDiscount } from "../context/DiscountContext";
-import { useCart } from "../context/CartContext";
+import { useReduxDiscount } from "../redux/useReduxDiscount";
+import { useReduxCart } from "../redux/useReduxCart";
 import { motion } from "framer-motion";
 import CelebrationEffects from "./animations/CelebrationEffects";
 import { X, Tag, Percent, Gift } from "lucide-react";
@@ -23,8 +23,8 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
   subtotal,
   onDiscountApplied,
 }) => {
-  const { activeDiscounts, validateDiscount, loading } = useDiscount();
-  const { applyDiscount } = useCart();
+  const { activeDiscounts, validateDiscount } = useReduxDiscount();
+  const { applyDiscount, setDiscountCode } = useReduxCart();
   const [selectedCode, setSelectedCode] = useState<string>("");
   const [showCelebration, setShowCelebration] = useState(false);
   const [message, setMessage] = useState<{
@@ -50,23 +50,19 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
     if (isValid) {
       const discountPercent = ((discount / subtotal) * 100).toFixed(1);
 
-      // Apply the discount to the cart first
-      const result = await applyDiscount(code);
-      if (result.success) {
-        onDiscountApplied(discount);
-        setMessage({
-          text: `Discount of ${discount.toFixed(
-            2
-          )} (${discountPercent}%) applied successfully!`,
-          type: "success",
-        });
-        setShowCelebration(true);
-        setTimeout(() => setShowCelebration(false), 3000);
-        setTimeout(() => onClose(), 1500);
-      } else {
-        setMessage({ text: result.message, type: "error" });
-        setSelectedCode("");
-      }
+      // Apply the discount to the cart
+      applyDiscount(discount);
+      setDiscountCode(code);
+      onDiscountApplied(discount);
+      setMessage({
+        text: `Discount of ${discount.toFixed(
+          2
+        )} (${discountPercent}%) applied successfully!`,
+        type: "success",
+      });
+      setShowCelebration(true);
+      setTimeout(() => setShowCelebration(false), 3000);
+      setTimeout(() => onClose(), 1500);
     } else {
       setMessage({ text: validationMessage, type: "error" });
       setSelectedCode("");
@@ -117,16 +113,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
 
           {/* Body */}
           <div className="bg-white p-4 lg:p-6">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary mx-auto"></div>
-                  <p className="mt-4 text-gray-600">
-                    Loading available offers...
-                  </p>
-                </div>
-              </div>
-            ) : activeDiscounts.length === 0 ? (
+            {activeDiscounts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="bg-gray-50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                   <Tag className="w-12 h-12 text-gray-400" />
@@ -264,7 +251,7 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
   onDiscountApplied,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { activeDiscounts } = useDiscount();
+  const { activeDiscounts } = useReduxDiscount();
   const [message, setMessage] = useState<{
     text: string;
     type: "success" | "error";

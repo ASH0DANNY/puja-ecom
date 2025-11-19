@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { menuItems } from "../constants/menuItems";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import { X, ShoppingBag, LayoutDashboard, LogOut } from "lucide-react";
 
 interface SidebarProps {
@@ -9,7 +9,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
-  const { user, logout } = useAuth();
+  const { user, logout } = useReduxAuth();
 
   const handleLogout = async () => {
     try {

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useDiscount } from '../context/DiscountContext';
-import { useAuth } from '../context/AuthContext';
+import { useReduxDiscount } from '../redux/useReduxDiscount';
+import { useReduxAuth } from '../redux/useReduxAuth';
 
 const FirstTimeDiscountPopup = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [discountCode, setDiscountCode] = useState('');
-    const { checkFirstTimeDiscount } = useDiscount();
-    const { user } = useAuth();
+    const { checkFirstTimeDiscount } = useReduxDiscount();
+    const { user } = useReduxAuth();
 
     useEffect(() => {
         const checkDiscount = async () => {

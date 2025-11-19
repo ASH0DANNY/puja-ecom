@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useReduxCart } from "../redux/useReduxCart";
 import {
   doc,
   setDoc,
@@ -10,8 +10,8 @@ import {
   increment,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
-import { useDiscount } from "../context/DiscountContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
+import { useReduxDiscount } from "../redux/useReduxDiscount";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { sendOrderPlacedEmails } from "../utils/emailService";
@@ -57,9 +57,9 @@ const PaymentPage = () => {
     postalCode: "",
     country: "",
   });
-  const { items, total, clearCart, discountCode } = useCart();
-  const { user } = useAuth();
-  const { applyDiscount } = useDiscount();
+  const { items, total, clearCart, discountCode } = useReduxCart();
+  const { user } = useReduxAuth();
+  const { applyDiscount } = useReduxDiscount();
   const navigate = useNavigate();
   const scrollToTop = useScrollToTop();
 

@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useCart } from "../context/CartContext";
+import { useReduxCart } from "../redux/useReduxCart";
+import { useReduxDiscount } from "../redux/useReduxDiscount";
 import { motion, AnimatePresence } from "framer-motion";
 
 const DiscountField = () => {
@@ -7,16 +8,20 @@ const DiscountField = () => {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showAnimation, setShowAnimation] = useState(false);
-  const { applyDiscount, removeDiscount, discountCode, discount } = useCart();
+  const { removeDiscount, discountCode, discount, subtotal, setDiscountCode, applyDiscount } = useReduxCart();
+  const { validateDiscount } = useReduxDiscount();
 
   const handleApplyDiscount = async () => {
     if (!code.trim()) return;
 
     setLoading(true);
     try {
-      const result = await applyDiscount(code.trim().toUpperCase());
+      const result = await validateDiscount(code.trim().toUpperCase(), subtotal);
       setMessage(result.message);
-      if (result.success) {
+      if (result.isValid) {
+        // Apply the discount and store the code
+        applyDiscount(result.discount);
+        setDiscountCode(code.trim().toUpperCase());
         setCode("");
         setShowAnimation(true);
         setTimeout(() => setShowAnimation(false), 3000);

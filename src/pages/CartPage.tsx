@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { useCart } from "../context/CartContext";
+import { useReduxCart } from "../redux/useReduxCart";
 import { TrashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import DiscountSelector from "../components/DiscountSelector";
 import DiscountField from "../components/DiscountField";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import { useScrollToTop } from "../utils/scrollToTop";
 import type { CartItem, CustomDimensions } from "../types/product";
 
@@ -18,8 +18,8 @@ const CartPage = () => {
     total,
     subtotal,
     discount,
-  } = useCart();
-  const { user } = useAuth();
+  } = useReduxCart();
+  const { user } = useReduxAuth();
   const navigate = useNavigate();
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [discountMessage, setDiscountMessage] = useState("");

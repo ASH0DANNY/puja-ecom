@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import toast from "react-hot-toast";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
@@ -14,7 +14,7 @@ const SignUpPage = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-  const { signup } = useAuth();
+  const { signup } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
   useEffect(() => {

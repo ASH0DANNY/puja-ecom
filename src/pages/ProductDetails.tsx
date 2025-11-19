@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { useCart } from "../context/CartContext";
+import { useReduxCart } from "../redux/useReduxCart";
 import type { Product, CustomDimensions } from "../types/product";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
@@ -16,7 +16,7 @@ const ProductDetails = () => {
     useState<CustomDimensions>();
   const [selectedColor, setSelectedColor] = useState<string>();
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
+  const { addToCart } = useReduxCart();
   const [isAdded, setIsAdded] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);

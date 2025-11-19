@@ -1,6 +1,6 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import toast from "react-hot-toast";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { Lock, Eye, EyeOff } from "lucide-react";
@@ -17,7 +17,7 @@ const ResetPasswordPage = () => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { confirmPasswordReset } = useAuth();
+  const { confirmPasswordReset } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
   const oobCode = searchParams.get("oobCode");

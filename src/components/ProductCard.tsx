@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { Product, CustomDimensions } from "../types/product";
-import { useCart } from "../context/CartContext";
+import { useReduxCart } from "../redux/useReduxCart";
 import CustomSizeSelector from "./CustomSizeSelector";
 
 interface ProductCardProps {
@@ -9,7 +9,7 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
-  const { addToCart } = useCart();
+  const { addToCart } = useReduxCart();
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState<string | undefined>();
   const [selectedCustomDimensions, setSelectedCustomDimensions] =

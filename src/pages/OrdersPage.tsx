@@ -7,7 +7,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import type { Order } from "../types/order";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { InvoiceModal } from "../components/InvoiceModal";
@@ -36,7 +36,7 @@ const OrdersPage = () => {
   const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
   const [sortField, setSortField] = useState<keyof Order>("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
-  const { user } = useAuth();
+  const { user } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
   useEffect(() => {

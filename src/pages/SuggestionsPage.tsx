@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
 import { addDoc, collection, Timestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import { useScrollToTop } from "../utils/scrollToTop";
 import {
   MessageSquare,
@@ -23,7 +23,7 @@ const SuggestionsPage = () => {
     category: "",
     email: "",
   });
-  const { user } = useAuth();
+  const { user } = useReduxAuth();
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const scrollToTop = useScrollToTop();

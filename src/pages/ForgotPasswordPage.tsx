@@ -1,6 +1,6 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { useReduxAuth } from "../redux/useReduxAuth";
 import toast from "react-hot-toast";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { Mail, ArrowLeft } from "lucide-react";
@@ -10,7 +10,7 @@ const ForgotPasswordPage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { sendPasswordResetEmail } = useAuth();
+  const { sendPasswordResetEmail } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
   useEffect(() => {
