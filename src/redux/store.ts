@@ -2,12 +2,16 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./slices/authSlice";
 import cartReducer from "./slices/cartSlice";
 import discountReducer from "./slices/discountSlice";
+import promotionReducer from "./slices/promotionSlice";
+import emailSubscriptionReducer from "./slices/emailSubscriptionSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     cart: cartReducer,
     discount: discountReducer,
+    promotion: promotionReducer,
+    emailSubscription: emailSubscriptionReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

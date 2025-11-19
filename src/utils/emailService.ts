@@ -766,3 +766,193 @@ export const sendOrderCancelledEmail = async (
   console.log(result ? "✅ Cancellation email sent" : "❌ Cancellation email failed");
   return result;
 };
+
+/**
+ * Generate HTML email template for promotional campaign
+ */
+export const generatePromotionalEmail = (config: {
+  campaignTitle: string;
+  campaignDescription: string;
+  campaignType: "offer" | "product" | "discount";
+  campaignContent: string;
+  discountPercentage?: number;
+  discountCode?: string;
+  validFrom: string;
+  imageUrl?: string;
+}): string => {
+  const discountBadge =
+    config.discountPercentage && config.discountCode
+      ? `
+      <div style="background-color: #dc2626; color: white; padding: 15px; text-align: center; border-radius: 5px; margin: 15px 0;">
+        <p style="font-size: 12px; margin: 0; opacity: 0.9;">EXCLUSIVE OFFER</p>
+        <p style="font-size: 28px; font-weight: bold; margin: 5px 0;">
+          <span style="font-size: 20px;">Get </span>${config.discountPercentage}%<span style="font-size: 20px;"> OFF</span>
+        </p>
+        <p style="font-size: 14px; margin: 10px 0; background-color: rgba(255,255,255,0.2); padding: 8px; border-radius: 3px; font-weight: bold;">
+          Code: ${config.discountCode}
+        </p>
+      </div>
+    `
+      : "";
+
+  const imageSection = config.imageUrl
+    ? `
+      <div style="margin: 20px 0; text-align: center;">
+        <img src="${config.imageUrl}" alt="${config.campaignTitle}" style="max-width: 100%; height: auto; border-radius: 5px; max-height: 300px;">
+      </div>
+    `
+    : "";
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 30px 20px; text-align: center; border-radius: 5px; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 10px 0 0 0; opacity: 0.9; }
+        .content { margin-top: 20px; }
+        .section { margin: 20px 0; padding: 20px; background-color: #f9fafb; border-left: 4px solid #6366f1; border-radius: 5px; }
+        .section-title { font-size: 18px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        .campaign-type { display: inline-block; background-color: #6366f1; color: white; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: bold; margin-bottom: 10px; }
+        .cta-button { display: inline-block; background-color: #6366f1; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 15px 0; }
+        .cta-button:hover { background-color: #4f46e5; }
+        .footer { margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb; text-align: center; color: #666; font-size: 12px; }
+        .highlight { color: #6366f1; font-weight: bold; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🎉 Exclusive ${
+            config.campaignType.charAt(0).toUpperCase() +
+            config.campaignType.slice(1)
+          } Alert!</h1>
+          <p>We have something special for you</p>
+        </div>
+
+        <div class="content">
+          <p>Hi there,</p>
+          <p>We thought you'd love to know about our latest <span class="highlight">${config.campaignType}</span>!</p>
+
+          <div class="section">
+            <span class="campaign-type">${config.campaignType.toUpperCase()}</span>
+            <div class="section-title">${config.campaignTitle}</div>
+            <p>${config.campaignDescription}</p>
+            
+            ${imageSection}
+
+            <p style="font-size: 15px; line-height: 1.8;">${config.campaignContent}</p>
+
+            ${discountBadge}
+
+            <p style="font-size: 13px; color: #666; margin-top: 15px;">
+              <strong>Valid from:</strong> ${new Date(
+                config.validFrom
+              ).toLocaleDateString("en-IN", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+          </div>
+
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${import.meta.env.VITE_APP_BASE_URL || "https://rachnacreation-2adde.web.app"}" class="cta-button">
+              Shop Now 🛍️
+            </a>
+          </div>
+
+          <div class="section" style="background-color: #fef3c7; border-left-color: #f59e0b;">
+            <p style="margin: 0; font-size: 13px;">
+              <strong>⏰ Limited Time Offer!</strong> Don't miss out on this exclusive ${config.campaignType}. 
+              ${config.discountCode ? `Use code <strong>${config.discountCode}</strong> at checkout.` : ""}
+            </p>
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>You're receiving this email because you subscribed to our newsletter at Rachna Creation.</p>
+          <p>© 2024 Rachna Creation. All rights reserved.</p>
+          <p><a href="${import.meta.env.VITE_APP_BASE_URL || "https://rachnacreation-2adde.web.app"}" style="color: #6366f1; text-decoration: none;">Visit our store</a></p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Send promotional campaign email to subscribers
+ */
+export const sendPromotionalEmailToSubscribers = async (config: {
+  subscriberEmails: string[];
+  campaignTitle: string;
+  campaignDescription: string;
+  campaignType: "offer" | "product" | "discount";
+  campaignContent: string;
+  discountPercentage?: number;
+  discountCode?: string;
+  validFrom: string;
+  imageUrl?: string;
+}): Promise<{ successCount: number; failureCount: number; errors: string[] }> => {
+  const results = {
+    successCount: 0,
+    failureCount: 0,
+    errors: [] as string[],
+  };
+
+  if (!config.subscriberEmails || config.subscriberEmails.length === 0) {
+    console.warn("⚠️ No subscriber emails provided");
+    return results;
+  }
+
+  // Get EmailJS configuration
+  const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+
+  if (!serviceId || !templateId) {
+    console.error("EmailJS configuration missing. Check your .env file.");
+    results.failureCount = config.subscriberEmails.length;
+    results.errors.push("EmailJS configuration missing");
+    return results;
+  }
+
+  // Generate email template
+  const emailHtml = generatePromotionalEmail(config);
+
+  console.log(
+    `📧 Sending promotional campaign to ${config.subscriberEmails.length} subscribers...`
+  );
+
+  // Send email to each subscriber
+  for (const email of config.subscriberEmails) {
+    try {
+      const response = await emailjs.send(serviceId, templateId, {
+        to_email: email,
+        subject: `${config.campaignTitle} - ${config.campaignType.toUpperCase()} Alert from Rachna Creation`,
+        html_content: emailHtml,
+      });
+
+      if (response.status === 200) {
+        results.successCount++;
+        console.log(`✅ Email sent to: ${email}`);
+      } else {
+        results.failureCount++;
+        results.errors.push(`Failed to send to ${email}`);
+        console.error(`❌ Failed to send to ${email}:`, response);
+      }
+    } catch (error) {
+      results.failureCount++;
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      results.errors.push(`${email}: ${errorMessage}`);
+      console.error(`❌ Error sending to ${email}:`, error);
+    }
+  }
+
+  console.log(`📊 Campaign Results: ${results.successCount} sent, ${results.failureCount} failed`);
+  return results;
+};

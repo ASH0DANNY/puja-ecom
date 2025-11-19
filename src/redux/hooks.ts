@@ -28,3 +28,26 @@ export const selectActiveDiscounts = (state: RootState) =>
 export const selectDiscountLoading = (state: RootState) =>
   state.discount.loading;
 export const selectDiscountError = (state: RootState) => state.discount.error;
+
+// Promotion selectors
+export const selectPromotions = (state: RootState) =>
+  state.promotion.promotions;
+export const selectActivePromotions = (state: RootState) =>
+  state.promotion.promotions.filter((p: any) => p.isActive);
+export const selectPromotionLoading = (state: RootState) =>
+  state.promotion.loading;
+export const selectPromotionError = (state: RootState) =>
+  state.promotion.error;
+export const selectPromotionEmailHistory = (state: RootState) =>
+  state.promotion.emailHistory;
+
+// Email subscription selectors
+export const selectSubscribers = (state: RootState) =>
+  state.emailSubscription.subscribers;
+export const selectActiveSubscribers = (state: RootState) =>
+  state.emailSubscription.subscribers.filter((sub: any) => sub.isActive);
+export const selectEmailSubscriptionLoading = (state: RootState) =>
+  state.emailSubscription.loading;
+export const selectEmailSubscriptionError = (state: RootState) =>
+  state.emailSubscription.error;
+

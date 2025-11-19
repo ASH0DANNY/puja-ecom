@@ -14,6 +14,7 @@ import { store } from "./redux/store";
 import { AuthReduxInitializer } from "./redux/AuthReduxInitializer";
 import { CartReduxInitializer } from "./redux/CartReduxInitializer";
 import { DiscountReduxInitializer } from "./redux/DiscountReduxInitializer";
+import PromotionReduxInitializer from "./redux/PromotionReduxInitializer";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Footer from "./components/Footer";
@@ -49,25 +50,27 @@ function RootLayout() {
     <AuthReduxInitializer>
       <CartReduxInitializer>
         <DiscountReduxInitializer>
-          <ScrollRestoration />
-          <div className="min-h-screen bg-white">
-            <Toaster
-              position="top-right"
-              toastOptions={{
-                duration: 3000,
-                style: {
-                  background: "#333",
-                  color: "#fff",
-                },
-              }}
-            />
-            <Navbar onMenuClick={toggleSidebar} />
-            <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
-            <MainLayout>
-              <Outlet />
-            </MainLayout>
-            <Footer />
-          </div>
+          <PromotionReduxInitializer>
+            <ScrollRestoration />
+            <div className="min-h-screen bg-white">
+              <Toaster
+                position="top-right"
+                toastOptions={{
+                  duration: 3000,
+                  style: {
+                    background: "#333",
+                    color: "#fff",
+                  },
+                }}
+              />
+              <Navbar onMenuClick={toggleSidebar} />
+              <Sidebar isOpen={isSidebarOpen} onClose={toggleSidebar} />
+              <MainLayout>
+                <Outlet />
+              </MainLayout>
+              <Footer />
+            </div>
+          </PromotionReduxInitializer>
         </DiscountReduxInitializer>
       </CartReduxInitializer>
     </AuthReduxInitializer>
