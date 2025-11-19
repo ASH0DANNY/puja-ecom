@@ -3,15 +3,15 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../config/firebase";
 import FeaturedCategories from "../components/FeaturedCategories";
 import Carousel from "../components/Carousel";
-import ProductCard from "../components/ProductCard";
-import ProductGrid from "../components/ProductGrid";
 import HomepageSections from "../components/HomepageSections";
 import SpecialOffers from "../components/SpecialOffers";
+import HorizontalProductScroll from "../components/HorizontalProductScroll";
 import type { Product } from "../types/product";
 import { useScrollToTop } from "../utils/scrollToTop";
 
 const HomePage = () => {
   const [suggestedProducts, setSuggestedProducts] = useState<Product[]>([]);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const scrollToTop = useScrollToTop();
 
@@ -20,13 +20,24 @@ const HomePage = () => {
   }, []);
 
   useEffect(() => {
-    const fetchSuggestedProducts = async () => {
+    const fetchProducts = async () => {
       try {
-        const q = query(
-          collection(db, "products"),
-          where("isSuggested", "==", true)
+        const productsCollection = collection(db, "products");
+        const allSnapshot = await getDocs(productsCollection);
+        const allData = allSnapshot.docs.map(
+          (doc) =>
+            ({
+              id: doc.id,
+              ...doc.data(),
+            } as Product)
         );
-        const suggestedSnapshot = await getDocs(q);
+        // Featured products - show all products as featured
+        setFeaturedProducts(allData);
+
+        // Suggested products - filter by isSuggested flag
+        const suggestedSnapshot = await getDocs(
+          query(productsCollection, where("isSuggested", "==", true))
+        );
         const suggestedData = suggestedSnapshot.docs.map(
           (doc) =>
             ({
@@ -36,13 +47,13 @@ const HomePage = () => {
         );
         setSuggestedProducts(suggestedData);
       } catch (error) {
-        console.error("Error fetching suggested products:", error);
+        console.error("Error fetching products:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchSuggestedProducts();
+    fetchProducts();
   }, []);
 
   return (
@@ -82,7 +93,12 @@ const HomePage = () => {
               chosen to match your style and preferences.
             </p>
           </div>
-          <ProductGrid />
+          <HorizontalProductScroll
+            products={featuredProducts}
+            loading={loading}
+            title="Featured Products"
+            showMorePath="/all-products?type=featured"
+          />
         </div>
       </section>
 
@@ -99,22 +115,12 @@ const HomePage = () => {
             </p>
           </div>
 
-          {loading ? (
-            <div className="w-full h-48 flex items-center justify-center">
-              <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-primary mx-auto"></div>
-                <p className="mt-4 text-gray-600 text-sm lg:text-base">
-                  Loading suggestions...
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 lg:gap-6 px-2">
-              {suggestedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          )}
+          <HorizontalProductScroll
+            products={suggestedProducts}
+            loading={loading}
+            title="Suggested Products"
+            showMorePath="/all-products?type=suggested"
+          />
         </div>
       </section>
 
