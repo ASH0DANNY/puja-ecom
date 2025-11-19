@@ -148,7 +148,9 @@ const ContactPage = () => {
                   </div>
                   <div>
                     <h3 className="font-medium text-gray-900">Phone</h3>
-                    <p className="text-gray-600 text-sm">+91 8340764515</p>
+                    <p className="text-gray-600 text-sm">
+                      {import.meta.env.VITE_APP_MOBILE_NO}
+                    </p>
                   </div>
                 </div>
 
@@ -159,7 +161,7 @@ const ContactPage = () => {
                   <div>
                     <h3 className="font-medium text-gray-900">Email</h3>
                     <p className="text-gray-600 text-sm">
-                      rachnacreationrc@gmail.com
+                      {import.meta.env.VITE_APP_EMAIL}
                     </p>
                   </div>
                 </div>
@@ -200,11 +202,7 @@ const ContactPage = () => {
                 <div>
                   <h3 className="font-medium text-gray-900">Address</h3>
                   <p className="text-gray-600 text-sm">
-                    Main Road Galudih, Ghatsila
-                    <br />
-                    Jharkhand
-                    <br />
-                    India
+                    {import.meta.env.VITE_APP_ADDREDSS}
                   </p>
                   <button className="mt-3 text-primary hover:text-primary/80 text-sm font-medium">
                     Get Directions →

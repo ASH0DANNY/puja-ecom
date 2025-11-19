@@ -24,6 +24,7 @@ interface EmailConfig {
     | "order-placed"
     | "order-confirmed"
     | "order-delivered"
+    | "order-cancelled"
     | "admin-notification";
   order: Order;
   adminEmail?: string;
@@ -325,6 +326,110 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
 };
 
 /**
+ * Generate HTML email template for order cancelled
+ */
+export const generateOrderCancelledEmail = (order: Order): string => {
+  const itemsList = order.items
+    .map(
+      (item) => `
+    <tr>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${
+        item.product?.name || "Product"
+      }</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
+        item.quantity
+      }</td>
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(
+        2
+      )}</td>
+    </tr>
+  `
+    )
+    .join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #ef4444; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+        .content { margin-top: 20px; }
+        .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; }
+        .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        .warning-banner { background-color: #fee2e2; border-left: 4px solid #ef4444; padding: 12px; margin-top: 15px; border-radius: 3px; color: #991b1b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background-color: #e5e7eb; padding: 10px; text-align: left; font-weight: bold; }
+        td { padding: 10px; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+        .total-row { font-weight: bold; background-color: #fff3cd; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Order Cancelled</h1>
+        </div>
+
+        <div class="content">
+          <p>Hi ${order.customerName},</p>
+          <p>Your order has been cancelled as per your request.</p>
+
+          <div class="section">
+            <div class="section-title">Cancellation Details</div>
+            <p><strong>Order Number:</strong> ${order.id
+              .slice(-8)
+              .toUpperCase()}</p>
+            <p><strong>Order Date:</strong> ${new Date(
+              order.createdAt
+            ).toLocaleDateString("en-IN", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}</p>
+            <p><strong>Status:</strong> <span style="color: #dc2626;">Cancelled</span></p>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Cancelled Items</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th style="text-align: center;">Quantity</th>
+                  <th style="text-align: right;">Price</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsList}
+                <tr class="total-row">
+                  <td colspan="2" style="text-align: right; padding: 12px 10px;">Total Amount:</td>
+                  <td style="text-align: right; padding: 12px 10px;">₹${order.total.toFixed(2)}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="warning-banner">
+            <strong>Refund Information:</strong> If payment was already processed, a refund will be initiated to your original payment method within 5-7 business days.
+          </div>
+
+          <p style="margin-top: 20px;">If you have any questions about this cancellation or need assistance, please don't hesitate to contact us.</p>
+
+          <div class="footer">
+            <p>© 2025 Rachna Creation. All rights reserved.</p>
+            <p>This is an automated email. Please do not reply directly to this message.</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
  * Generate HTML email template for admin notification
  */
 export const generateAdminOrderNotification = (order: Order): string => {
@@ -498,6 +603,12 @@ export const sendOrderEmail = async (config: EmailConfig): Promise<boolean> => {
           .slice(-8)
           .toUpperCase()}`;
         break;
+      case "order-cancelled":
+        emailHtml = generateOrderCancelledEmail(config.order);
+        subject = `Order Cancelled - Order #${config.order.id
+          .slice(-8)
+          .toUpperCase()}`;
+        break;
       case "admin-notification":
         emailHtml = generateAdminOrderNotification(config.order);
         subject = `🛍️ New Order #${config.order.id
@@ -630,5 +741,28 @@ export const sendOrderDeliveredEmail = async (
   });
 
   console.log(result ? "✅ Delivery email sent" : "❌ Delivery email failed");
+  return result;
+};
+
+/**
+ * Send order cancelled email to customer ONLY
+ */
+export const sendOrderCancelledEmail = async (
+  order: Order
+): Promise<boolean> => {
+  if (!order.userEmail) {
+    console.error("❌ No customer email found for order:", order.id);
+    return false;
+  }
+
+  console.log("📧 Sending cancellation email to:", order.userEmail);
+  const result = await sendOrderEmail({
+    recipientEmail: order.userEmail,
+    subject: `Order Cancelled - Order #${order.id.slice(-8).toUpperCase()}`,
+    emailType: "order-cancelled",
+    order,
+  });
+
+  console.log(result ? "✅ Cancellation email sent" : "❌ Cancellation email failed");
   return result;
 };
