@@ -180,7 +180,7 @@ const CartPage = () => {
                         {item.name}
                       </h3>
                       <p className="text-gray-600 text-sm lg:text-base mb-2">
-                        {
+                      ₹{
                           // Get price from selected size if available
                           item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
                             ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price).toFixed(2)
@@ -250,7 +250,7 @@ const CartPage = () => {
                     </div>
                     <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-base lg:text-lg text-gray-900">
-                        {(
+                      ₹{(
                           (
                             item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
                               ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price)
@@ -378,7 +378,7 @@ const CartPage = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between text-gray-600">
                   <span>Subtotal</span>
-                  <span className="font-medium">{subtotal.toFixed(2)}</span>
+                  <span className="font-medium">₹{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-gray-600">
                   <span>Shipping</span>
@@ -392,7 +392,7 @@ const CartPage = () => {
                 )}
                 <div className="border-t border-gray-200 pt-4 flex justify-between font-bold text-lg text-gray-900">
                   <span>Total</span>
-                  <span>{total.toFixed(2)}</span>
+                  <span>₹{total.toFixed(2)}</span>
                 </div>
               </div>
 
@@ -468,7 +468,7 @@ const CartPage = () => {
                 onClick={() => navigate("/payment")}
                 className="w-full bg-primary text-white py-4 rounded-lg font-semibold text-lg hover:bg-primary/90 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
-                Proceed to Payment • {total.toFixed(2)}
+                Proceed to Payment • ₹{total.toFixed(2)}
               </button>
 
               {showOrderSuccess && !discountMessage && (
