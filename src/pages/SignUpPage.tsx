@@ -1,9 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useReduxAuth } from "../redux/useReduxAuth";
 import toast from "react-hot-toast";
 import { useScrollToTop } from "../utils/scrollToTop";
-import { Mail, Lock, Eye, EyeOff, UserPlus } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, UserPlus, CheckCircle } from "lucide-react";
 
 const SignUpPage = () => {
   const [email, setEmail] = useState("");
@@ -13,8 +13,8 @@ const SignUpPage = () => {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const navigate = useNavigate();
-  const { signup } = useReduxAuth();
+  const [verificationEmailSent, setVerificationEmailSent] = useState(false);
+  const { signup, sendEmailVerification, logout } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
   useEffect(() => {
@@ -34,13 +34,35 @@ const SignUpPage = () => {
       setLoading(true);
       await signup(email, password);
 
-      // Show success message
-      toast.success("Account created successfully! Welcome aboard!");
+      // Send email verification link
+      try {
+        await sendEmailVerification();
 
-      // Short delay to ensure Firebase auth state is updated
-      setTimeout(() => {
-        navigate("/");
-      }, 1000);
+        // Logout user from Firebase so they can't access protected routes
+        // They will be logged in automatically after verifying email
+        await logout();
+
+        toast.success(
+          "Account created! Check your email for verification link."
+        );
+        setVerificationEmailSent(true);
+
+        // Stay on the verification page - DO NOT redirect
+        // User will need to verify email before accessing the app
+      } catch (verificationError) {
+        // Account created but verification email failed
+        // Still logout the user
+        try {
+          await logout();
+        } catch (logoutError) {
+          console.error("Logout after verification error:", logoutError);
+        }
+
+        toast.error(
+          "Account created! Verification email could not be sent. Please request it from your profile."
+        );
+        setVerificationEmailSent(true);
+      }
     } catch (error) {
       const errorMessage =
         "Failed to create an account. " +
@@ -85,6 +107,39 @@ const SignUpPage = () => {
                   </div>
                   <div className="ml-3">
                     <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {verificationEmailSent && (
+              <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-green-800">
+                      Account created successfully!
+                    </p>
+                    <p className="text-sm text-green-700 mt-2">
+                      A verification link has been sent to{" "}
+                      <strong>{email}</strong>.
+                    </p>
+                    <p className="text-sm text-green-700 mt-2">
+                      <strong>Next steps:</strong>
+                    </p>
+                    <ul className="text-sm text-green-700 mt-1 ml-4 list-disc">
+                      <li>Check your email inbox (and spam folder)</li>
+                      <li>
+                        Click the verification link to verify your account
+                      </li>
+                      <li>Once verified, you'll be able to log in and shop</li>
+                    </ul>
+                    <p className="text-xs text-green-600 mt-3">
+                      Didn't receive the email? Check your spam folder or
+                      request a new one after logging in.
+                    </p>
                   </div>
                 </div>
               </div>

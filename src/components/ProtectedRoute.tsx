@@ -24,6 +24,11 @@ const ProtectedRoute = ({
     return <Navigate to="/login" />;
   }
 
+  // Check if user's email is verified (skip for admins)
+  if (!user.emailVerified && user.role !== "admin") {
+    return <Navigate to="/signup" />;
+  }
+
   if (requireAdmin && user.role !== "admin") {
     return <Navigate to="/" />;
   }

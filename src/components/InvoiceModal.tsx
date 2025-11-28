@@ -42,9 +42,16 @@ export const InvoiceModal = ({
         items: order.items.map((item) => ({
           name: item.product?.name || "Product",
           quantity: item.quantity,
-          price: item.priceAtOrder || 0,
-          total: (item.priceAtOrder || 0) * item.quantity,
-          dimensions: item.customDimensions
+          price: item.priceAtSelectedSize || item.priceAtOrder || 0,
+          total: (item.priceAtSelectedSize || item.priceAtOrder || 0) * item.quantity,
+          size: item.selectedSize,
+          weight: item.product?.sizesWithPrices?.find(
+            (swp) => swp.size === item.selectedSize
+          )?.weight,
+          dimensions: item.selectedSize && item.product?.sizesWithPrices?.find(
+            (swp) => swp.size === item.selectedSize
+          )?.dimensions,
+          customDimensions: item.customDimensions
             ? `${item.customDimensions.width} × ${item.customDimensions.height}${
                 item.customDimensions.depth
                   ? ` × ${item.customDimensions.depth}`
@@ -92,9 +99,16 @@ export const InvoiceModal = ({
         items: order.items.map((item) => ({
           name: item.product?.name || "Product",
           quantity: item.quantity,
-          price: item.priceAtOrder || 0,
-          total: (item.priceAtOrder || 0) * item.quantity,
-          dimensions: item.customDimensions
+          price: item.priceAtSelectedSize || item.priceAtOrder || 0,
+          total: (item.priceAtSelectedSize || item.priceAtOrder || 0) * item.quantity,
+          size: item.selectedSize,
+          weight: item.product?.sizesWithPrices?.find(
+            (swp) => swp.size === item.selectedSize
+          )?.weight,
+          dimensions: item.selectedSize && item.product?.sizesWithPrices?.find(
+            (swp) => swp.size === item.selectedSize
+          )?.dimensions,
+          customDimensions: item.customDimensions
             ? `${item.customDimensions.width} × ${item.customDimensions.height}${
                 item.customDimensions.depth
                   ? ` × ${item.customDimensions.depth}`

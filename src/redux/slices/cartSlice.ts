@@ -25,14 +25,24 @@ const calculateTotals = (
   discount: number
 ): { subtotal: number; total: number } => {
   const subtotal = items.reduce(
-    (sum, item) =>
-      sum +
-      parseFloat(
-        item.discountPrice
-          ? item.discountPrice.toFixed(2)
-          : item.price.toFixed(2)
-      ) *
-        item.quantity,
+    (sum, item) => {
+      // Get the correct price: either from selected size or from base price
+      let itemPrice = item.price;
+      
+      if (item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0) {
+        const sizeWithPrice = item.sizesWithPrices.find(
+          (swp) => swp.size === item.selectedSize
+        );
+        if (sizeWithPrice) {
+          itemPrice = sizeWithPrice.price;
+        }
+      }
+
+      // Use discount price if available, otherwise use base price
+      const finalPrice = item.discountPrice ? item.discountPrice : itemPrice;
+
+      return sum + parseFloat(finalPrice.toFixed(2)) * item.quantity;
+    },
     0
   );
 

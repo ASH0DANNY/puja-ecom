@@ -32,7 +32,17 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
   const handleUpdate = async (product: Product, newImage?: File) => {
     setLoading(true);
     try {
+      // Validate that at least one size with price exists
+      if (!product.sizesWithPrices || product.sizesWithPrices.length === 0) {
+        alert("Please add at least one size with price");
+        setLoading(false);
+        return;
+      }
+
       const updateData = { ...product };
+
+      // Set price from first size with price
+      updateData.price = product.sizesWithPrices[0].price || 0;
 
       if (newImage) {
         const imageUrl = await uploadImage(newImage);
@@ -106,7 +116,11 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   {categories.find(c => c.id === product.category)?.name || product.category}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {product.price.toFixed(2)}
+                  {product.sizesWithPrices && product.sizesWithPrices.length > 0
+                    ? product.sizesWithPrices
+                        .map((size) => `₹${size.price.toFixed(2)}`)
+                        .join(" / ")
+                    : `₹${product.price.toFixed(2)}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -209,27 +223,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Price (Rs)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          required
-                          value={editingProduct.price}
-                          onChange={(e) =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              price: parseFloat(e.target.value),
-                            })
-                          }
-                          className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                      </div>
 
-                    </div>
                   </div>
 
                   {/* Categories & Details */}
@@ -347,47 +341,160 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                     </div>
                   </div>
 
-                  {/* Shipping */}
+                  {/* Custom Size Feature */}
                   <div className="bg-white p-6 rounded-lg shadow-sm space-y-4">
                     <h3 className="text-lg font-medium text-gray-900">
-                      Shipping
+                      Product Sizes with Prices & Details
                     </h3>
+                    <p className="text-sm text-gray-600">
+                      Add or edit different sizes with their prices, weight, and dimensions
+                    </p>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Weight (kg)
-                        </label>
-                        <input
-                          type="number"
-                          step="0.1"
-                          value={editingProduct.weight}
-                          onChange={(e) =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              weight: e.target.value,
-                            })
-                          }
-                          className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Dimensions (cm)
-                        </label>
-                        <input
-                          type="text"
-                          value={editingProduct.dimensions}
-                          onChange={(e) =>
-                            setEditingProduct({
-                              ...editingProduct,
-                              dimensions: e.target.value,
-                            })
-                          }
-                          className="block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary"
-                        />
-                      </div>
-                    </div>
+                    {editingProduct.sizesWithPrices &&
+                      editingProduct.sizesWithPrices.length > 0 && (
+                        <div className="space-y-3 mb-4">
+                          {editingProduct.sizesWithPrices.map((item, index) => (
+                            <div
+                              key={index}
+                              className="border border-gray-200 rounded-lg p-3 bg-gray-50 space-y-2"
+                            >
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Size
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={item.size}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...editingProduct.sizesWithPrices!,
+                                      ];
+                                      updated[index] = {
+                                        ...item,
+                                        size: e.target.value,
+                                      };
+                                      setEditingProduct({
+                                        ...editingProduct,
+                                        sizesWithPrices: updated,
+                                      });
+                                    }}
+                                    placeholder="e.g., S, M, L"
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-primary focus:border-primary"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Price
+                                  </label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={item.price}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...editingProduct.sizesWithPrices!,
+                                      ];
+                                      updated[index] = {
+                                        ...item,
+                                        price: parseFloat(e.target.value) || 0,
+                                      };
+                                      setEditingProduct({
+                                        ...editingProduct,
+                                        sizesWithPrices: updated,
+                                      });
+                                    }}
+                                    placeholder="0.00"
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-primary focus:border-primary"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Weight
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={item.weight || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...editingProduct.sizesWithPrices!,
+                                      ];
+                                      updated[index] = {
+                                        ...item,
+                                        weight: e.target.value || undefined,
+                                      };
+                                      setEditingProduct({
+                                        ...editingProduct,
+                                        sizesWithPrices: updated,
+                                      });
+                                    }}
+                                    placeholder="e.g., 500g"
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-primary focus:border-primary"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                                    Dimensions
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={item.dimensions || ""}
+                                    onChange={(e) => {
+                                      const updated = [
+                                        ...editingProduct.sizesWithPrices!,
+                                      ];
+                                      updated[index] = {
+                                        ...item,
+                                        dimensions: e.target.value || undefined,
+                                      };
+                                      setEditingProduct({
+                                        ...editingProduct,
+                                        sizesWithPrices: updated,
+                                      });
+                                    }}
+                                    placeholder="e.g., 30x20x10cm"
+                                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-primary focus:border-primary"
+                                  />
+                                </div>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const updated =
+                                    editingProduct.sizesWithPrices!.filter(
+                                      (_, i) => i !== index
+                                    );
+                                  setEditingProduct({
+                                    ...editingProduct,
+                                    sizesWithPrices: updated,
+                                  });
+                                }}
+                                className="text-xs text-red-600 hover:text-red-700 font-medium"
+                              >
+                                Remove Size
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingProduct({
+                          ...editingProduct,
+                          sizesWithPrices: [
+                            ...(editingProduct.sizesWithPrices || []),
+                            { size: "", price: 0 },
+                          ],
+                        });
+                      }}
+                      className="text-sm px-3 py-2 bg-primary text-white rounded hover:bg-primary/90 transition-colors"
+                    >
+                      + Add Size
+                    </button>
                   </div>
 
                   {/* Custom Size Feature */}

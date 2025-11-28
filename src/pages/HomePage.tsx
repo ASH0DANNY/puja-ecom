@@ -5,6 +5,7 @@ import FeaturedCategories from "../components/FeaturedCategories";
 import Carousel from "../components/Carousel";
 import HomepageSections from "../components/HomepageSections";
 import SpecialOffers from "../components/SpecialOffers";
+import FeaturesSection from "../components/FeaturesSection";
 import HorizontalProductScroll from "../components/HorizontalProductScroll";
 import StayUpdated from "../components/StayUpdated";
 import type { Product } from "../types/product";
@@ -62,7 +63,7 @@ const HomePage = () => {
       <Carousel />
 
       {/* Featured Categories */}
-      <section className="py-12 lg:py-16">
+      <section className="py-12 lg:py-14">
         <div className="container mx-auto px-1 lg:px-6">
           <div className="bg-white rounded-xl shadow-sm overflow-hidden">
             <div className="text-center mb-8 lg:mb-12">
@@ -82,8 +83,11 @@ const HomePage = () => {
       {/* Special Offers Section */}
       <SpecialOffers />
 
+      {/* Features Section */}
+      <FeaturesSection variant="homepage" />
+
       {/* Featured Products */}
-      <section className="px-2 py-12 lg:py-16">
+      <section className="px-2 py-12 lg:py-14">
         <div className="container mx-auto px-0 lg:px-6">
           <div className="text-center mb-8 lg:mb-12">
             <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">
@@ -104,7 +108,7 @@ const HomePage = () => {
       </section>
 
       {/* Suggested Products */}
-      <section className="px-2 py-12 lg:py-16">
+      <section className="px-2 py-12 lg:py-14">
         <div className="container mx-auto px-0 lg:px-6">
           <div className="text-center mb-8 lg:mb-12">
             <h2 className="text-2xl lg:text-4xl font-bold mb-4 text-gray-900">

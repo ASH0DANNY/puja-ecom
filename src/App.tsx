@@ -18,6 +18,7 @@ import PromotionReduxInitializer from "./redux/PromotionReduxInitializer";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Footer from "./components/Footer";
+import WhatsAppButton from "./components/WhatsAppButton";
 import MainLayout from "./layouts/MainLayout";
 import CategoriesPage from "./pages/CategoriesPage";
 import ContactPage from "./pages/ContactPage";
@@ -69,6 +70,7 @@ function RootLayout() {
                 <Outlet />
               </MainLayout>
               <Footer />
+              <WhatsAppButton />
             </div>
           </PromotionReduxInitializer>
         </DiscountReduxInitializer>

@@ -12,6 +12,7 @@ export interface OrderItem {
   product: Product;
   quantity: number;
   priceAtOrder: number;
+  priceAtSelectedSize?: number;
   selectedSize?: string;
   selectedColor?: string;
   customDimensions?: {

@@ -5,10 +5,16 @@ import {
   signOut,
   sendPasswordResetEmail as firebaseSendPasswordResetEmail,
   confirmPasswordReset,
+  sendEmailVerification as firebaseSendEmailVerification,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
-import { useAppDispatch, useAppSelector, selectUser, selectAuthLoading } from "./hooks";
+import {
+  useAppDispatch,
+  useAppSelector,
+  selectUser,
+  selectAuthLoading,
+} from "./hooks";
 import { setUser, clearUser, setAuthError } from "./slices/authSlice";
 import type { User, UserRole } from "../types/dashboard";
 
@@ -49,6 +55,7 @@ export const useReduxAuth = () => {
             email: userCredential.user.email!,
             displayName: userCredential.user.displayName,
             role: userData.role as UserRole,
+            emailVerified: userCredential.user.emailVerified,
             createdAt: userData.createdAt?.toDate
               ? userData.createdAt.toDate()
               : new Date(),
@@ -83,20 +90,14 @@ export const useReduxAuth = () => {
           createdAt: serverTimestamp(),
           lastLogin: serverTimestamp(),
           displayName: null,
+          emailVerified: false, // Mark email as not verified
         };
 
         await setDoc(doc(db, "users", userCredential.user.uid), userData);
 
-        // Set user data in Redux
-        const user: User = {
-          uid: userCredential.user.uid,
-          email: userCredential.user.email!,
-          displayName: userCredential.user.displayName,
-          role: userData.role,
-          createdAt: new Date(),
-          lastLogin: new Date(),
-        };
-        dispatch(setUser(user));
+        // DO NOT set user in Redux - keep them logged out until email is verified
+        // User will only be authenticated after clicking verification link
+        console.log("Account created. User must verify email before access.");
       } catch (error) {
         console.error("Signup error:", error);
         dispatch(setAuthError((error as Error).message));
@@ -149,6 +150,55 @@ export const useReduxAuth = () => {
     [dispatch]
   );
 
+  const sendEmailVerification = useCallback(async () => {
+    try {
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No user is currently signed in");
+      }
+
+      const verificationUrl =
+        import.meta.env.VITE_APP_BASE_URL || window.location.origin;
+
+      await firebaseSendEmailVerification(currentUser, {
+        url: `${verificationUrl}/?emailVerified=true`,
+        handleCodeInApp: true,
+      });
+
+      console.log("Email verification link sent to:", currentUser.email);
+      return true;
+    } catch (error) {
+      console.error("Email verification error:", error);
+      dispatch(setAuthError((error as Error).message));
+      throw error;
+    }
+  }, [dispatch]);
+
+  const verifyEmailWithCode = useCallback(async () => {
+    try {
+      // Verify the email with Firebase
+      // Firebase automatically verifies when user clicks link in email
+      // This function checks if email is verified on current user
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        throw new Error("No user is currently signed in");
+      }
+
+      // Reload user to get latest verification status
+      await currentUser.reload();
+
+      if (currentUser.emailVerified) {
+        console.log("Email successfully verified!");
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Email verification error:", error);
+      dispatch(setAuthError((error as Error).message));
+      throw error;
+    }
+  }, [dispatch]);
+
   return {
     user,
     loading,
@@ -157,5 +207,7 @@ export const useReduxAuth = () => {
     logout,
     sendPasswordResetEmail,
     confirmPasswordReset: confirmPasswordResetHandler,
+    sendEmailVerification,
+    verifyEmailWithCode,
   };
 };

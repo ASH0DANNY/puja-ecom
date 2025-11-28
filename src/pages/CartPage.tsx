@@ -180,9 +180,12 @@ const CartPage = () => {
                         {item.name}
                       </h3>
                       <p className="text-gray-600 text-sm lg:text-base mb-2">
-                        {item.discountPrice
-                          ? item.discountPrice.toFixed(2)
-                          : item.price.toFixed(2)}
+                        {
+                          // Get price from selected size if available
+                          item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
+                            ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price).toFixed(2)
+                            : (item.discountPrice ? item.discountPrice : item.price).toFixed(2)
+                        }
                       </p>
                       {item.selectedSize && (
                         <p className="text-sm text-gray-500 mb-1">
@@ -248,9 +251,11 @@ const CartPage = () => {
                     <div className="text-right flex-shrink-0">
                       <p className="font-semibold text-base lg:text-lg text-gray-900">
                         {(
-                          (item.discountPrice !== undefined
-                            ? item.discountPrice
-                            : item.price) * item.quantity
+                          (
+                            item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
+                              ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price)
+                              : (item.discountPrice !== undefined ? item.discountPrice : item.price)
+                          ) * item.quantity
                         ).toFixed(2)}
                       </p>
                     </div>

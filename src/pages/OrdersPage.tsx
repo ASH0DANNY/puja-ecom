@@ -465,13 +465,47 @@ const OrdersPage = () => {
                                           cm
                                         </>
                                       )}
+                                      {item.selectedSize &&
+                                        !item.customDimensions &&
+                                        item.product.sizesWithPrices && (
+                                          <>
+                                            {item.product.sizesWithPrices.find(
+                                              (swp) =>
+                                                swp.size === item.selectedSize
+                                            )?.weight && (
+                                              <>
+                                                <br />
+                                                Weight:{" "}
+                                                {item.product.sizesWithPrices.find(
+                                                  (swp) =>
+                                                    swp.size ===
+                                                    item.selectedSize
+                                                )?.weight}
+                                              </>
+                                            )}
+                                            {item.product.sizesWithPrices.find(
+                                              (swp) =>
+                                                swp.size === item.selectedSize
+                                            )?.dimensions && (
+                                              <>
+                                                <br />
+                                                Dimensions:{" "}
+                                                {item.product.sizesWithPrices.find(
+                                                  (swp) =>
+                                                    swp.size ===
+                                                    item.selectedSize
+                                                )?.dimensions}
+                                              </>
+                                            )}
+                                          </>
+                                        )}
                                     </p>
                                   )}
                                 </div>
                               </div>
                             </div>
                             <div className="w-1/5 text-center">
-                              {item.priceAtOrder?.toFixed(2)}
+                              {(item.priceAtSelectedSize || item.priceAtOrder)?.toFixed(2)}
                             </div>
                             <div className="w-1/5 text-center">
                               {item.quantity}
@@ -479,7 +513,7 @@ const OrdersPage = () => {
                             <div className="w-1/5 text-right">
                               
                               {(
-                                (item.priceAtOrder || 0) * (item.quantity || 0)
+                                (item.priceAtSelectedSize || item.priceAtOrder || 0) * (item.quantity || 0)
                               ).toFixed(2)}
                             </div>
                           </div>

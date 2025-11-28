@@ -11,6 +11,7 @@ export interface User {
   role: UserRole;
   createdAt: Date;
   lastLogin: Date;
+  emailVerified?: boolean;
 }
 
 export interface DashboardProduct extends Product {

@@ -10,6 +10,13 @@ export interface CustomDimensions {
   depth?: number;
 }
 
+export interface SizeWithPrice {
+  size: string;
+  price: number;
+  weight?: string;
+  dimensions?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -35,12 +42,7 @@ export interface Product {
   sizes?: SizeOption[] | string[];
   colors?: string[];
   tags?: string[];
-  shipping?: {
-    width: string;
-    height: string;
-    depth: string;
-    weight: string;
-  };
+  sizesWithPrices?: SizeWithPrice[];
   images?: string[];
   // Custom size feature flag - admin enables/disables only
   hasCustomSize?: boolean;

@@ -479,22 +479,22 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                             />
                             <div>
                               <p className="font-medium">{item.product.name}</p>
-                              {(item.product.selectedSize ||
-                                item.product.selectedColor ||
+                              {(item.selectedSize ||
+                                item.selectedColor ||
                                 item.customDimensions) && (
                                 <p className="text-xs text-gray-500">
-                                  {item.product.selectedSize &&
-                                    `Size: ${item.product.selectedSize}`}
-                                  {item.product.selectedSize &&
-                                    (item.product.selectedColor ||
+                                  {item.selectedSize &&
+                                    `Size: ${item.selectedSize}`}
+                                  {item.selectedSize &&
+                                    (item.selectedColor ||
                                       item.customDimensions) &&
                                     " | "}
-                                  {item.product.selectedColor &&
-                                    `Color: ${item.product.selectedColor}`}
+                                  {item.selectedColor &&
+                                    `Color: ${item.selectedColor}`}
                                   {item.customDimensions && (
                                     <>
-                                      {(item.product.selectedSize ||
-                                        item.product.selectedColor) &&
+                                      {(item.selectedSize ||
+                                        item.selectedColor) &&
                                         " | "}
                                       Dimensions: {item.customDimensions.width}{" "}
                                       × {item.customDimensions.height}
@@ -503,17 +503,47 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                                       cm
                                     </>
                                   )}
+                                  {item.selectedSize &&
+                                    !item.customDimensions &&
+                                    item.product.sizesWithPrices && (
+                                      <>
+                                        {item.product.sizesWithPrices.find(
+                                          (swp) => swp.size === item.selectedSize
+                                        )?.weight && (
+                                          <>
+                                            <br />
+                                            Weight:{" "}
+                                            {item.product.sizesWithPrices.find(
+                                              (swp) =>
+                                                swp.size === item.selectedSize
+                                            )?.weight}
+                                          </>
+                                        )}
+                                        {item.product.sizesWithPrices.find(
+                                          (swp) => swp.size === item.selectedSize
+                                        )?.dimensions && (
+                                          <>
+                                            <br />
+                                            Dimensions:{" "}
+                                            {item.product.sizesWithPrices.find(
+                                              (swp) =>
+                                                swp.size === item.selectedSize
+                                            )?.dimensions}
+                                          </>
+                                        )}
+                                      </>
+                                    )}
                                 </p>
                               )}
                             </div>
                           </div>
                         </div>
                         <div className="w-1/5 text-center">
-                          ${item.priceAtOrder.toFixed(2)}
+                          ${(item.priceAtSelectedSize || item.priceAtOrder).toFixed(2)}
                         </div>
                         <div className="w-1/5 text-center">{item.quantity}</div>
                         <div className="w-1/5 text-right">
-                          ${(item.priceAtOrder * item.quantity).toFixed(2)}
+                          ${((item.priceAtSelectedSize || item.priceAtOrder) * item.quantity).toFixed(2)}
                         </div>
                       </div>
                     ))}

@@ -7,7 +7,7 @@ import {
   Timestamp,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { Zap, Gift, Percent, Truck, Tag } from "lucide-react";
+import { Zap, Gift, Percent, Truck, Tag, Copy, Check } from "lucide-react";
 import type { Discount } from "../types/discount";
 
 interface DisplayOffer {
@@ -28,6 +28,7 @@ interface DisplayOffer {
 const SpecialOffers = () => {
   const [offers, setOffers] = useState<DisplayOffer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     fetchActiveDiscounts();
@@ -150,18 +151,24 @@ const SpecialOffers = () => {
     }
   };
 
+  const handleCopyCode = (code: string) => {
+    navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
   return (
-    <section className="py-8 md:py-12 lg:py-16 bg-gradient-to-b from-white to-gray-50">
+    <section className="py-8 md:py-12 lg:py-14 bg-gradient-to-b from-white to-gray-50">
       <div className="container mx-auto px-3 sm:px-4 lg:px-6">
         {/* Section Header */}
-        <div className="text-center mb-6 md:mb-8 lg:mb-12">
+        <div className="text-center mb-6 md:mb-8 lg:mb-10">
           <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2 md:mb-4">
             Exclusive Offers & Discounts
           </h2>
           <p className="text-sm md:text-base lg:text-lg text-gray-600 mb-2">
             Don't miss out on our amazing deals
           </p>
-          <div className="w-20 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full"></div>
+          <div className="w-16 h-1 bg-gradient-to-r from-primary to-secondary mx-auto rounded-full mt-3 md:mt-4"></div>
         </div>
 
         {/* Loading State */}
@@ -185,70 +192,100 @@ const SpecialOffers = () => {
           </div>
         ) : (
           <>
-            {/* Offers Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-5 xl:gap-6 max-w-7xl mx-auto">
-              {offers.map((offer) => (
-                <div
-                  key={offer.id}
-                  className={`relative group overflow-hidden rounded-lg lg:rounded-xl border-2 ${offer.borderColor} transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer h-[180px] sm:h-[200px] lg:h-[220px]`}
-                >
-                  {/* Background with gradient */}
-                  <div
-                    className={`absolute inset-0 bg-gradient-to-br ${offer.bgColor} opacity-60 group-hover:opacity-100 transition-opacity duration-300`}
-                  ></div>
+            {/* Offers Horizontal Scroll Container */}
+            <div className="relative group overflow-hidden">
+              {/* Scroll Container */}
+              <div className="overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide">
+                <div className="flex gap-3 md:gap-4 lg:gap-5 pb-4 min-w-max px-1 mt-2">
+                  {offers.map((offer) => (
+                    <div
+                      key={offer.id}
+                      className={`relative group overflow-hidden rounded-lg lg:rounded-xl border-2 ${offer.borderColor} transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 cursor-pointer h-[180px] sm:h-[200px] lg:h-[220px] max-w-[200px]`}
+                    >
+                      {/* Background with gradient */}
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-br ${offer.bgColor} opacity-60 group-hover/card:opacity-100 transition-opacity duration-300`}
+                      ></div>
 
-                  {/* Content */}
-                  <div className="relative p-4 sm:p-5 lg:p-6 flex flex-col h-full">
-                    {/* Top Section - Icon and Discount Badge */}
-                    <div className="flex items-start justify-between mb-3 lg:mb-4">
-                      {/* Icon */}
-                      <div className="text-primary group-hover:scale-110 transition-transform duration-300 w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 flex-shrink-0">
-                        {offer.icon}
+                      {/* Content */}
+                      <div className="relative p-4 md:p-5 lg:p-6 flex flex-col h-full">
+                        {/* Top Section - Icon and Discount Badge */}
+                        <div className="flex items-start justify-between mb-3 md:mb-4">
+                          {/* Icon */}
+                          <div className="text-primary group-hover/card:scale-110 transition-transform duration-300 w-6 h-6 sm:w-8 sm:h-8 md:w-8 md:h-8 flex-shrink-0">
+                            {offer.icon}
+                          </div>
+
+                          {/* Discount Badge */}
+                          <div className="bg-primary text-white px-3 md:px-4 py-1 md:py-1.5 rounded-full text-sm md:text-base font-bold shadow-md">
+                            {offer.discount}
+                          </div>
+                        </div>
+
+                        {/* Title with Copy Button */}
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <h3 className="text-base md:text-lg lg:text-xl font-bold text-gray-900 line-clamp-1">
+                            {offer.title}
+                          </h3>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleCopyCode(offer.code);
+                            }}
+                            className="flex-shrink-0 p-1.5 md:p-2 hover:bg-gray-200 rounded-lg transition-colors duration-200"
+                            title="Copy code"
+                          >
+                            {copiedCode === offer.code ? (
+                              <Check className="w-5 h-5 md:w-6 md:h-6 text-green-600" />
+                            ) : (
+                              <Copy className="w-5 h-5 md:w-6 md:h-6 text-gray-600 hover:text-gray-900" />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-gray-700 text-sm md:text-base line-clamp-2 mb-3">
+                          {offer.description}
+                        </p>
+
+                        {/* Bottom Info */}
+                        <div className="mt-auto pt-3 md:pt-4 border-t border-gray-300 space-y-2">
+                          <div className="flex items-center justify-between text-xs md:text-sm">
+                            {offer.minPurchase && offer.minPurchase > 0 && (
+                              <span className="text-gray-600 font-medium">
+                                Min Purchase: ₹{offer.minPurchase}
+                              </span>
+                            )}
+                            {offer.daysLeft && offer.daysLeft > 0 && (
+                              <span className="text-orange-600 font-semibold ml-auto">
+                                {offer.daysLeft} days left
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
 
-                      {/* Discount Badge */}
-                      <div className="bg-primary text-white px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-bold shadow-md">
-                        {offer.discount}
-                      </div>
+                      {/* Decorative corners */}
+                      <div className="absolute top-0 right-0 w-16 h-16 bg-primary opacity-5 rounded-full -mr-8 -mt-8 group-hover/card:scale-150 transition-transform duration-300"></div>
+                      <div className="absolute bottom-0 left-0 w-12 h-12 bg-secondary opacity-5 rounded-full -ml-6 -mb-6 group-hover/card:scale-150 transition-transform duration-300"></div>
                     </div>
-
-                    {/* Title */}
-                    <h3 className="text-base sm:text-lg lg:text-xl font-bold text-gray-900 mb-1 sm:mb-2 line-clamp-1">
-                      {offer.title}
-                    </h3>
-
-                    {/* Description */}
-                    <p className="text-gray-700 text-xs sm:text-sm mb-auto line-clamp-2 flex-grow">
-                      {offer.description}
-                    </p>
-
-                    {/* Bottom Info */}
-                    <div className="mt-3 pt-2 sm:pt-3 border-t border-gray-300 space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        {offer.minPurchase && offer.minPurchase > 0 && (
-                          <span className="text-gray-600">
-                            Min: ₹{offer.minPurchase}
-                          </span>
-                        )}
-                        {offer.daysLeft && offer.daysLeft > 0 && (
-                          <span className="text-orange-600 font-semibold ml-auto">
-                            {offer.daysLeft} day
-                            {offer.daysLeft !== 1 ? "s" : ""} left
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Decorative corners */}
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-primary opacity-5 rounded-full -mr-8 -mt-8 group-hover:scale-150 transition-transform duration-300"></div>
-                  <div className="absolute bottom-0 left-0 w-12 h-12 bg-secondary opacity-5 rounded-full -ml-6 -mb-6 group-hover:scale-150 transition-transform duration-300"></div>
+                  ))}
                 </div>
-              ))}
+              </div>
             </div>
           </>
         )}
       </div>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}</style>
     </section>
   );
 };

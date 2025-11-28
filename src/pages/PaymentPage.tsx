@@ -117,7 +117,19 @@ const PaymentPage = () => {
       // Create order record in Firebase
       const orderRef = doc(collection(db, "orders"));
       const calculatedSubtotal = items.reduce(
-        (sum, item) => sum + item.price * item.quantity,
+        (sum, item) => {
+          // Get the correct price: either from selected size or from base price
+          let itemPrice = item.price || 0;
+          if (item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0) {
+            const sizePrice = item.sizesWithPrices.find(
+              (s) => s.size === item.selectedSize
+            );
+            if (sizePrice) {
+              itemPrice = sizePrice.price;
+            }
+          }
+          return sum + itemPrice * item.quantity;
+        },
         0
       );
       const calculatedDiscountAmount = discountCode
@@ -132,18 +144,32 @@ const PaymentPage = () => {
         customerName: customerForm.name,
         customerPhone: customerForm.phone,
         userName: customerForm.name,
-        items: items.map((item) => ({
-          product: {
-            id: item.id || "",
-            name: item.name || "",
-            image: item.image || "",
-          },
-          quantity: item.quantity || 0,
-          priceAtOrder: item.price || 0,
-          selectedSize: item.selectedSize || null,
-          selectedColor: item.selectedColor || null,
-          customDimensions: item.customDimensions || null,
-        })),
+        items: items.map((item) => {
+          // Calculate price at selected size
+          let priceAtSelectedSize = item.price || 0;
+          if (item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0) {
+            const sizePrice = item.sizesWithPrices.find(
+              (s) => s.size === item.selectedSize
+            );
+            if (sizePrice) {
+              priceAtSelectedSize = sizePrice.price;
+            }
+          }
+
+          return {
+            product: {
+              id: item.id || "",
+              name: item.name || "",
+              image: item.image || "",
+            },
+            quantity: item.quantity || 0,
+            priceAtOrder: item.price || 0,
+            priceAtSelectedSize: priceAtSelectedSize,
+            selectedSize: item.selectedSize || null,
+            selectedColor: item.selectedColor || null,
+            customDimensions: item.customDimensions || null,
+          };
+        }),
         total: total || 0,
         subtotal: calculatedSubtotal,
         discountCode: discountCode || null,
@@ -272,7 +298,11 @@ const PaymentPage = () => {
                       </span>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      ₹{(item.discountPrice || item.price).toFixed(2)}
+                      ₹{(
+                        item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
+                          ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price)
+                          : (item.discountPrice || item.price)
+                      ).toFixed(2)}
                     </span>
                   </div>
                   {item.selectedSize && (

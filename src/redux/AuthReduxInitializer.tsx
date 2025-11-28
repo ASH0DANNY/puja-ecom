@@ -32,11 +32,19 @@ export const AuthReduxInitializer: React.FC<AuthReduxInitializerProps> = ({
             const userData = userDoc.data();
 
             if (userData) {
+              // Check if user's email is verified (skip for admins)
+              if (!firebaseUser.emailVerified && userData.role !== "admin") {
+                console.log("User email not verified. Keeping user logged out.");
+                dispatch(initializeAuth(null));
+                return;
+              }
+
               const user: User = {
                 uid: firebaseUser.uid,
                 email: firebaseUser.email!,
                 displayName: firebaseUser.displayName,
                 role: userData.role as UserRole,
+                emailVerified: firebaseUser.emailVerified,
                 createdAt: userData.createdAt?.toDate
                   ? userData.createdAt.toDate()
                   : new Date(),

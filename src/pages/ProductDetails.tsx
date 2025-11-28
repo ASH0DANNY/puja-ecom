@@ -7,6 +7,7 @@ import { db } from "../config/firebase";
 import { useScrollToTop } from "../utils/scrollToTop";
 import CustomSizeSelector from "../components/CustomSizeSelector";
 import RelatedProducts from "../components/RelatedProducts";
+import FeaturesSection from "../components/FeaturesSection";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -289,12 +290,12 @@ const ProductDetails = () => {
             {/* Price */}
             <div className="flex items-baseline space-x-3">
               <p className="text-3xl lg:text-2xl font-bold text-gray-700 ">
-                
-                {hasDiscount
-                  ? product.discountPrice!.toFixed(2)
+                ₹
+                {selectedSize && product.sizesWithPrices && product.sizesWithPrices.length > 0
+                  ? product.sizesWithPrices.find(s => s.size === selectedSize)?.price.toFixed(2) || product.price.toFixed(2)
                   : product.price.toFixed(2)}
               </p>
-              {hasDiscount && (
+              {hasDiscount && !selectedSize && (
                 <p className="text-xl text-gray-500 line-through">
                   {product.price.toFixed(2)}
                 </p>
@@ -331,8 +332,44 @@ const ProductDetails = () => {
             </p>
           </div>
 
-          {/* Size Selection */}
-          {product.sizes && product.sizes.length > 0 && (
+          {/* Size Selection with Prices */}
+          {product.sizesWithPrices && product.sizesWithPrices.length > 0 ? (
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Select Size
+              </h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {product.sizesWithPrices.map((sizeOption) => (
+                  <button
+                    key={sizeOption.size}
+                    onClick={() => setSelectedSize(sizeOption.size)}
+                    className={`relative p-4 border-2 rounded-lg transition-all text-center ${
+                      selectedSize === sizeOption.size
+                        ? "border-primary bg-primary/5 shadow-md"
+                        : "border-gray-300 hover:border-primary hover:shadow-sm"
+                    }`}
+                  >
+                    <div className="font-semibold text-gray-900">
+                      {sizeOption.size}
+                    </div>
+                    <div className="text-primary font-bold mt-1">
+                      ₹{sizeOption.price.toFixed(2)}
+                    </div>
+                    {sizeOption.weight && (
+                      <div className="text-xs text-gray-600 mt-2">
+                        {sizeOption.weight}
+                      </div>
+                    )}
+                    {sizeOption.dimensions && (
+                      <div className="text-xs text-gray-600">
+                        {sizeOption.dimensions}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : product.sizes && product.sizes.length > 0 ? (
             <CustomSizeSelector
               product={product}
               onSelectSize={(size, customDimensions) => {
@@ -342,7 +379,7 @@ const ProductDetails = () => {
               selectedSize={selectedSize}
               selectedCustomDimensions={selectedCustomDimensions}
             />
-          )}
+          ) : null}
 
           {/* Color Selection */}
           {product.colors && product.colors.length > 0 && (
@@ -433,14 +470,20 @@ const ProductDetails = () => {
                 </div>
                 <div>
                   <span className="font-medium text-gray-700">Weight:</span>
-                  <span className="ml-2 text-gray-600">{product.weight}</span>
+                  <span className="ml-2 text-gray-600">
+                    {selectedSize && product.sizesWithPrices && product.sizesWithPrices.length > 0
+                      ? product.sizesWithPrices.find(s => s.size === selectedSize)?.weight || product.weight || "N/A"
+                      : product.weight || "N/A"}
+                  </span>
                 </div>
               </div>
               <div className="space-y-3">
                 <div>
                   <span className="font-medium text-gray-700">Dimensions:</span>
                   <span className="ml-2 text-gray-600">
-                    {product.dimensions}
+                    {selectedSize && product.sizesWithPrices && product.sizesWithPrices.length > 0
+                      ? product.sizesWithPrices.find(s => s.size === selectedSize)?.dimensions || product.dimensions || "N/A"
+                      : product.dimensions || "N/A"}
                   </span>
                 </div>
                 <div>
@@ -449,12 +492,6 @@ const ProductDetails = () => {
                     {product.sku}
                   </span>
                 </div>
-                {/* <div>
-                  <span className="font-medium text-gray-700">Sales:</span>
-                  <span className="ml-2 text-gray-600">
-                    {product.sales} sold
-                  </span>
-                </div> */}
               </div>
             </div>
 
@@ -479,6 +516,9 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+
+      {/* Features Section */}
+      <FeaturesSection variant="product-details" />
 
       {/* Related Products Section */}
       {product && (

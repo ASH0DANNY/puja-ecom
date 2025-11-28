@@ -360,6 +360,7 @@ export const generateInvoicePdf = (
       return [
         index + 1,
         item.name +
+          (item.size ? ` - ${item.size}` : "") +
           (item.dimensions ? ` - ${item.dimensions}` : "") +
           (item.color ? ` - ${item.color}` : ""),
         item.hsn || "N/A",

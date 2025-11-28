@@ -98,19 +98,39 @@ const CustomSizeSelector = ({
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-gray-700">Standard Sizes</h4>
         <div className="flex flex-wrap gap-3">
-          {standardSizes.map((size) => (
-            <button
-              key={size}
-              onClick={() => handleStandardSizeSelect(size)}
-              className={`px-6 py-3 border-2 rounded-lg font-medium transition-all ${
-                selectedSize === size && !showCustomInput
-                  ? "border-primary bg-primary text-white shadow-md"
-                  : "border-gray-300 hover:border-primary hover:shadow-sm"
-              }`}
-            >
-              {size}
-            </button>
-          ))}
+          {standardSizes.map((size) => {
+            const sizeWithPrice = product.sizesWithPrices?.find(
+              (swp) => swp.size === size
+            );
+            const price = sizeWithPrice?.price || 0;
+            const weight = sizeWithPrice?.weight;
+            const dimensions = sizeWithPrice?.dimensions;
+
+            return (
+              <div key={size} className="flex flex-col items-start">
+                <button
+                  onClick={() => handleStandardSizeSelect(size)}
+                  className={`px-6 py-3 border-2 rounded-lg font-medium transition-all ${
+                    selectedSize === size && !showCustomInput
+                      ? "border-primary bg-primary text-white shadow-md"
+                      : "border-gray-300 hover:border-primary hover:shadow-sm"
+                  }`}
+                >
+                  {size}
+                </button>
+                {price > 0 && (
+                  <span className="text-xs text-gray-600 mt-1">₹{price.toFixed(2)}</span>
+                )}
+                {(weight || dimensions) && (
+                  <span className="text-xs text-gray-500 mt-0.5">
+                    {weight && `${weight}`}
+                    {weight && dimensions && " • "}
+                    {dimensions}
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 

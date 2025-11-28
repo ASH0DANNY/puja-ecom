@@ -2,32 +2,24 @@ import React, { useState } from "react";
 import { uploadImages } from "../utils/cloudinary";
 import { addDoc, collection } from "firebase/firestore";
 import { db } from "../config/firebase";
-import type { Product } from "../types/product";
+import type { Product, SizeWithPrice } from "../types/product";
 import { categories } from "../data/categories";
+import { Trash2, Plus } from "lucide-react";
 
 interface FormData {
   name: string;
   description: string;
-  price: string;
   category: string;
   brand: string;
   material: string;
-  weight: string;
-  dimensions: string;
   sku: string;
   stock: string;
-  sizes: string[];
+  sizesWithPrices: SizeWithPrice[];
   colors: string[];
   tags: string[];
   isFeatured: boolean;
   isSuggested: boolean;
   discountPrice: string;
-  shipping: {
-    width: string;
-    height: string;
-    depth: string;
-    weight: string;
-  };
   hasCustomSize: boolean;
 }
 
@@ -40,26 +32,17 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
   const [formData, setFormData] = useState<FormData>({
     name: "",
     description: "",
-    price: "",
     category: "",
     brand: "",
     material: "",
-    weight: "",
-    dimensions: "",
     sku: "",
     stock: "1",
-    sizes: [],
+    sizesWithPrices: [],
     colors: [],
     tags: [],
     isFeatured: false,
     isSuggested: false,
     discountPrice: "",
-    shipping: {
-      width: "",
-      height: "",
-      depth: "",
-      weight: "",
-    },
     hasCustomSize: false,
   });
   const [productImages, setProductImages] = useState<File[]>([]);
@@ -72,28 +55,35 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       return;
     }
 
+    if (formData.sizesWithPrices.length === 0) {
+      alert("Please add at least one size with price");
+      return;
+    }
+
     setLoading(true);
     try {
       // Upload product images
       const imageUrls = await uploadImages(productImages);
 
+      // Use the first size's price as the base price
+      const basePrice = formData.sizesWithPrices[0].price || 0;
+
       const productData: Omit<Product, "id"> = {
         name: formData.name,
         description: formData.description.trim(),
-        price: parseFloat(formData.price),
+        price: basePrice,
         image: imageUrls[0],
         images: imageUrls,
         category: formData.category.trim(),
         brand: formData.brand.trim(),
         material: formData.material.trim(),
-        weight: formData.weight.trim(),
-        dimensions: formData.dimensions.trim(),
         sku: formData.sku.trim(),
         stock: Math.max(0, parseInt(formData.stock) || 0),
         isSuggested: formData.isSuggested,
         sales: 0,
         reviews: 0,
         hasCustomSize: formData.hasCustomSize,
+        sizesWithPrices: formData.sizesWithPrices,
       };
 
       await addDoc(collection(db, "products"), productData);
@@ -107,22 +97,14 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         category: "",
         brand: "",
         material: "",
-        weight: "",
-        dimensions: "",
         sku: "",
         stock: "1",
-        sizes: [],
+        sizesWithPrices: [],
         colors: [],
         tags: [],
         isFeatured: false,
         isSuggested: false,
         discountPrice: "",
-        shipping: {
-          width: "",
-          height: "",
-          depth: "",
-          weight: "",
-        },
         hasCustomSize: false,
       });
       setProductImages([]);
@@ -154,11 +136,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
     }
   };
 
-  const handleSizesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const sizes = e.target.value.split(",").map((size) => size.trim());
-    setFormData((prev) => ({ ...prev, sizes }));
-  };
-
   const handleColorsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const colors = e.target.value.split(",").map((color) => color.trim());
     setFormData((prev) => ({ ...prev, colors }));
@@ -169,14 +146,36 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
     setFormData((prev) => ({ ...prev, tags }));
   };
 
-  const handleShippingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+  const addSizeWithPrice = () => {
     setFormData((prev) => ({
       ...prev,
-      shipping: {
-        ...prev.shipping,
-        [name]: value,
-      },
+      sizesWithPrices: [...prev.sizesWithPrices, { size: "", price: 0 }],
+    }));
+  };
+
+  const removeSizeWithPrice = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      sizesWithPrices: prev.sizesWithPrices.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleSizeChange = (
+    index: number,
+    field: string,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({
+      ...prev,
+      sizesWithPrices: prev.sizesWithPrices.map((item, i) =>
+        i === index
+          ? {
+              ...item,
+              [field]:
+                field === "price" ? parseFloat(String(value)) || 0 : value,
+            }
+          : item
+      ),
     }));
   };
 
@@ -294,38 +293,18 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         </div>
       </div>
 
-      {/* Pricing and Stock */}
+      {/* Stock */}
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Pricing and Stock
+          Stock
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div>
-            <label
-              htmlFor="price"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Price
-            </label>
-            <input
-              id="price"
-              type="number"
-              step="0.01"
-              required
-              value={formData.price}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, price: e.target.value }))
-              }
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
               htmlFor="stock"
               className="block text-sm font-medium text-gray-700"
             >
-              Stock
+              Stock Quantity
             </label>
             <input
               id="stock"
@@ -373,44 +352,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
           <div>
             <label
-              htmlFor="dimensions"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Dimensions
-            </label>
-            <input
-              id="dimensions"
-              type="text"
-              value={formData.dimensions}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, dimensions: e.target.value }))
-              }
-              placeholder="e.g., 30cm x 20cm x 10cm"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="weight"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Weight
-            </label>
-            <input
-              id="weight"
-              type="text"
-              value={formData.weight}
-              onChange={(e) =>
-                setFormData((prev) => ({ ...prev, weight: e.target.value }))
-              }
-              placeholder="e.g., 500g"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label
               htmlFor="tags"
               className="block text-sm font-medium text-gray-700"
             >
@@ -422,23 +363,6 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
               value={formData.tags.join(", ")}
               onChange={handleTagsChange}
               placeholder="Fashion, Summer, New"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="sizes"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Sizes
-            </label>
-            <input
-              id="sizes"
-              type="text"
-              value={formData.sizes.join(", ")}
-              onChange={handleSizesChange}
-              placeholder="S, M, L, XL"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
             />
           </div>
@@ -462,84 +386,103 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         </div>
       </div>
 
-      {/* Shipping Information */}
+      {/* Sizes with Different Rates */}
       <div className="bg-white p-6 rounded-lg shadow-sm">
         <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Shipping Information
+          Product Sizes with Rates & Dimensions
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label
-              htmlFor="shipping-width"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Width (cm)
-            </label>
-            <input
-              id="shipping-width"
-              type="number"
-              step="0.1"
-              name="width"
-              value={formData.shipping.width}
-              onChange={handleShippingChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
+        <p className="text-sm text-gray-600 mb-4">
+          Add different sizes with their respective prices, dimensions, and weight
+        </p>
 
-          <div>
-            <label
-              htmlFor="shipping-height"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Height (cm)
-            </label>
-            <input
-              id="shipping-height"
-              type="number"
-              step="0.1"
-              name="height"
-              value={formData.shipping.height}
-              onChange={handleShippingChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
+        {formData.sizesWithPrices.length > 0 && (
+          <div className="space-y-4 mb-4">
+            {formData.sizesWithPrices.map((item, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Size
+                    </label>
+                    <input
+                      type="text"
+                      value={item.size}
+                      onChange={(e) =>
+                        handleSizeChange(index, "size", e.target.value)
+                      }
+                      placeholder="e.g., S, M, L, XL, Custom"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={item.price}
+                      onChange={(e) =>
+                        handleSizeChange(index, "price", e.target.value)
+                      }
+                      placeholder="e.g., 100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Dimensions
+                    </label>
+                    <input
+                      type="text"
+                      value={item.dimensions || ""}
+                      onChange={(e) =>
+                        handleSizeChange(index, "dimensions", e.target.value)
+                      }
+                      placeholder="e.g., 30cm x 20cm x 10cm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Weight
+                    </label>
+                    <input
+                      type="text"
+                      value={item.weight || ""}
+                      onChange={(e) =>
+                        handleSizeChange(index, "weight", e.target.value)
+                      }
+                      placeholder="e.g., 500g"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary focus:border-primary"
+                    />
+                  </div>
+                </div>
 
-          <div>
-            <label
-              htmlFor="shipping-depth"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Depth (cm)
-            </label>
-            <input
-              id="shipping-depth"
-              type="number"
-              step="0.1"
-              name="depth"
-              value={formData.shipping.depth}
-              onChange={handleShippingChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
+                <button
+                  type="button"
+                  onClick={() => removeSizeWithPrice(index)}
+                  className="flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Remove Size
+                </button>
+              </div>
+            ))}
           </div>
+        )}
 
-          <div>
-            <label
-              htmlFor="shipping-weight"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Weight (kg)
-            </label>
-            <input
-              id="shipping-weight"
-              type="number"
-              step="0.1"
-              name="weight"
-              value={formData.shipping.weight}
-              onChange={handleShippingChange}
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary"
-            />
-          </div>
-        </div>
+        <button
+          type="button"
+          onClick={addSizeWithPrice}
+          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/80 transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Add Size & Rate
+        </button>
       </div>
 
       {/* Custom Size Feature */}
@@ -568,8 +511,9 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           </label>
         </div>
         <p className="text-sm text-gray-600 mt-3">
-          When enabled, customers can enter their own custom dimensions (width, height, depth) during checkout. 
-          Make sure to include "Custom" as a size option in the "Product Details" section above.
+          When enabled, customers can enter their own custom dimensions (width,
+          height, depth) during checkout. Make sure to include "Custom" as a
+          size option in the "Product Sizes with Rates" section above.
         </p>
       </div>
 
