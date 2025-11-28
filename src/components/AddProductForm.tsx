@@ -19,7 +19,7 @@ interface FormData {
   tags: string[];
   isFeatured: boolean;
   isSuggested: boolean;
-  discountPrice: string;
+
   hasCustomSize: boolean;
 }
 
@@ -42,7 +42,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
     tags: [],
     isFeatured: false,
     isSuggested: false,
-    discountPrice: "",
+
     hasCustomSize: false,
   });
   const [productImages, setProductImages] = useState<File[]>([]);
@@ -93,7 +93,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
       setFormData({
         name: "",
         description: "",
-        price: "",
+
         category: "",
         brand: "",
         material: "",
@@ -104,7 +104,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
         tags: [],
         isFeatured: false,
         isSuggested: false,
-        discountPrice: "",
+
         hasCustomSize: false,
       });
       setProductImages([]);
@@ -295,9 +295,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
 
       {/* Stock */}
       <div className="bg-white p-6 rounded-lg shadow-sm">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">
-          Stock
-        </h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Stock</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label
@@ -392,13 +390,17 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
           Product Sizes with Rates & Dimensions
         </h3>
         <p className="text-sm text-gray-600 mb-4">
-          Add different sizes with their respective prices, dimensions, and weight
+          Add different sizes with their respective prices, dimensions, and
+          weight
         </p>
 
         {formData.sizesWithPrices.length > 0 && (
           <div className="space-y-4 mb-4">
             {formData.sizesWithPrices.map((item, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <div
+                key={index}
+                className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -430,7 +432,7 @@ const AddProductForm: React.FC<AddProductFormProps> = ({ onSuccess }) => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
