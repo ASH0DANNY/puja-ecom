@@ -115,6 +115,9 @@ export const generateInvoicePdf = (
       taxRate?: number;
       dimensions?: string;
       color?: string;
+      size?: string;
+      weight?: string;
+      customDimensions?: string;
     }>;
     discount: number;
     taxAmount?: number;
@@ -357,12 +360,30 @@ export const generateInvoicePdf = (
           : 0;
       const netAmount = grossAmount - itemDiscount;
 
+      // Build description with size, dimensions, color, and custom dimensions
+      let description = item.name;
+
+      if (item.size) {
+        description += ` - Size: ${item.size}`;
+      }
+
+      if (item.customDimensions) {
+        description += ` - Custom Dims: ${item.customDimensions}`;
+      } else if (item.dimensions) {
+        description += ` - Dims: ${item.dimensions}`;
+      }
+
+      if (item.weight) {
+        description += ` (${item.weight})`;
+      }
+
+      if (item.color) {
+        description += ` - Color: ${item.color}`;
+      }
+
       return [
         index + 1,
-        item.name +
-          (item.size ? ` - ${item.size}` : "") +
-          (item.dimensions ? ` - ${item.dimensions}` : "") +
-          (item.color ? ` - ${item.color}` : ""),
+        description,
         item.hsn || "N/A",
         item.quantity,
         `Rs.${grossAmount.toFixed(2)}`,
