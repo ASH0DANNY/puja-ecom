@@ -70,85 +70,47 @@ const FeaturesSection = ({ variant = "homepage" }: FeaturesSectionProps) => {
 
         {/* Features Container */}
         {variant === "homepage" ? (
-          // Horizontal scroll for small screens, single row for large screens
+          // Grid for all screen sizes with responsive card sizing
           <div className="w-full">
-            {/* Mobile/Tablet: Horizontal Scroll */}
-            <div className="lg:hidden overflow-x-auto pb-4 -mx-3 sm:-mx-4 px-3 sm:px-4">
-              <div className="flex gap-3 sm:gap-4 min-w-min">
-                {displayFeatures.map((feature, index) => (
-                  <div
-                    key={index}
-                    className="flex-shrink-0 w-72 sm:w-80 group relative overflow-hidden rounded-lg md:rounded-xl bg-white border border-gray-200 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
-                  >
-                    {/* Gradient background on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                    {/* Content */}
-                    <div className="relative p-4 sm:p-5 text-center h-full flex flex-col">
-                      {/* Icon Container */}
-                      <div
-                        className={`inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${feature.color} text-white mb-3 group-hover:scale-110 transition-transform duration-300 shadow-md mx-auto`}
-                      >
-                        {feature.icon}
-                      </div>
-
-                      {/* Title */}
-                      <h3 className="text-sm sm:text-base font-bold text-gray-900 mb-2">
-                        {feature.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-xs sm:text-sm text-gray-600 leading-relaxed flex-grow">
-                        {feature.description}
-                      </p>
-
-                      {/* Decorative element */}
-                      <div className="absolute top-0 right-0 w-10 h-10 bg-primary/10 rounded-full -mr-5 -mt-5 group-hover:scale-150 transition-transform duration-300"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Desktop: Single Row Grid */}
-            <div className="hidden lg:grid grid-cols-4 gap-6 max-w-7xl mx-auto">
+            {/* Mobile/Tablet/Desktop: Responsive Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 max-w-7xl mx-auto">
               {displayFeatures.map((feature, index) => (
                 <div
                   key={index}
-                  className="group relative overflow-hidden rounded-xl bg-white border border-gray-200 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+                  className="group relative overflow-hidden rounded-lg md:rounded-xl bg-white border border-gray-200 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                 >
                   {/* Gradient background on hover */}
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                   {/* Content */}
-                  <div className="relative p-6 text-center h-full flex flex-col">
+                  <div className="relative p-3 sm:p-4 md:p-5 lg:p-6 text-center h-full flex flex-col">
                     {/* Icon Container */}
                     <div
-                      className={`inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br ${feature.color} text-white mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md mx-auto`}
+                      className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br ${feature.color} text-white mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300 shadow-md mx-auto`}
                     >
                       {feature.icon}
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">
+                    <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 sm:mb-2 md:mb-3">
                       {feature.title}
                     </h3>
 
                     {/* Description */}
-                    <p className="text-base text-gray-600 leading-relaxed flex-grow">
+                    <p className="text-xs sm:text-xs md:text-sm lg:text-base text-gray-600 leading-relaxed flex-grow line-clamp-2 sm:line-clamp-3 md:line-clamp-none">
                       {feature.description}
                     </p>
 
                     {/* Decorative element */}
-                    <div className="absolute top-0 right-0 w-12 h-12 bg-primary/10 rounded-full -mr-6 -mt-6 group-hover:scale-150 transition-transform duration-300"></div>
+                    <div className="absolute top-0 right-0 w-10 h-10 bg-primary/10 rounded-full -mr-4 -mt-4 sm:-mr-5 sm:-mt-5 lg:-mr-6 lg:-mt-6 group-hover:scale-150 transition-transform duration-300"></div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         ) : (
-          // Product details variant - keep original grid
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-5 max-w-6xl mx-auto">
+          // Product details variant - responsive grid with smaller cards on mobile
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-5 max-w-6xl mx-auto">
             {displayFeatures.map((feature, index) => (
               <div
                 key={index}
@@ -158,26 +120,26 @@ const FeaturesSection = ({ variant = "homepage" }: FeaturesSectionProps) => {
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                 {/* Content */}
-                <div className="relative p-5 md:p-6 lg:p-7 text-center">
+                <div className="relative p-3 sm:p-4 md:p-5 lg:p-6 text-center">
                   {/* Icon Container */}
                   <div
-                    className={`inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 rounded-full bg-gradient-to-br ${feature.color} text-white mb-4 md:mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}
+                    className={`inline-flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-full bg-gradient-to-br ${feature.color} text-white mb-2 sm:mb-3 md:mb-4 lg:mb-5 group-hover:scale-110 transition-transform duration-300 shadow-md`}
                   >
                     {feature.icon}
                   </div>
 
                   {/* Title */}
-                  <h3 className="text-base md:text-lg lg:text-xl font-bold text-gray-900 mb-2 md:mb-3">
+                  <h3 className="text-xs sm:text-sm md:text-base lg:text-lg font-bold text-gray-900 mb-1 sm:mb-2 md:mb-3">
                     {feature.title}
                   </h3>
 
                   {/* Description */}
-                  <p className="text-sm md:text-base text-gray-600 leading-relaxed">
+                  <p className="text-xs sm:text-xs md:text-sm lg:text-base text-gray-600 leading-relaxed line-clamp-3 sm:line-clamp-4">
                     {feature.description}
                   </p>
 
                   {/* Decorative element */}
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-primary/10 rounded-full -mr-6 -mt-6 group-hover:scale-150 transition-transform duration-300"></div>
+                  <div className="absolute top-0 right-0 w-10 h-10 bg-primary/10 rounded-full -mr-4 -mt-4 sm:-mr-5 sm:-mt-5 lg:-mr-6 lg:-mt-6 group-hover:scale-150 transition-transform duration-300"></div>
                 </div>
               </div>
             ))}

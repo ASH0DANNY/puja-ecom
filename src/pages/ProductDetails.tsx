@@ -326,8 +326,8 @@ const ProductDetails = () => {
           </div>
 
           {/* Description */}
-          <div className="prose prose-gray">
-            <p className="text-gray-700 leading-relaxed">
+          <div className="max-w-full overflow-hidden">
+            <p className="text-gray-700 leading-relaxed break-words whitespace-normal">
               {product.description}
             </p>
           </div>
