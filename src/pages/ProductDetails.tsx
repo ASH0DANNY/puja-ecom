@@ -352,9 +352,9 @@ const ProductDetails = () => {
                     <div className="font-semibold text-gray-900">
                       {sizeOption.size}
                     </div>
-                    <div className="text-primary font-bold mt-1">
+                    {/* <div className="text-primary font-bold mt-1">
                       ₹{sizeOption.price.toFixed(2)}
-                    </div>
+                    </div> */}
                     {sizeOption.weight && (
                       <div className="text-xs text-gray-600 mt-2">
                         {sizeOption.weight}

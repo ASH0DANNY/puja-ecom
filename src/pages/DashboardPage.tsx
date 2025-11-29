@@ -297,7 +297,7 @@ export const DashboardPage = () => {
         {activeTab === "products" && (
           <button
             onClick={() => setShowAddProduct(true)}
-            className="sm:hidden fixed bottom-6 right-6 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors z-40"
+            className="sm:hidden fixed bottom-6 left-6 bg-primary text-white p-4 rounded-full shadow-lg hover:bg-primary/90 transition-colors z-40"
           >
             <Plus className="w-6 h-6" />
           </button>
