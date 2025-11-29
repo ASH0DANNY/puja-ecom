@@ -118,9 +118,9 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   {product.sizesWithPrices && product.sizesWithPrices.length > 0
                     ? product.sizesWithPrices
-                        .map((size) => `₹${size.price.toFixed(2)}`)
+                        .map((size) => `${size.price.toFixed(2)}`)
                         .join(" / ")
-                    : `₹${product.price.toFixed(2)}`}
+                    : `${product.price.toFixed(2)}`}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
                 <td className="px-6 py-4 whitespace-nowrap">

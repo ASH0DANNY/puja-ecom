@@ -124,7 +124,7 @@ const SpecialOffers = () => {
           const displayValue =
             discount.discountType === "percentage"
               ? `${discount.value}%`
-              : `₹${discount.value}`;
+              : `${discount.value}`;
 
           return {
             id: discount.id,
@@ -253,7 +253,7 @@ const SpecialOffers = () => {
                           <div className="flex items-center justify-between text-xs md:text-sm">
                             {offer.minPurchase && offer.minPurchase > 0 && (
                               <span className="text-gray-600 font-medium">
-                                Min Purchase: ₹{offer.minPurchase}
+                                Min Purchase: {offer.minPurchase}
                               </span>
                             )}
                             {offer.daysLeft && offer.daysLeft > 0 && (

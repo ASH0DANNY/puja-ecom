@@ -119,7 +119,7 @@ const CustomSizeSelector = ({
                   {size}
                 </button>
                 {price > 0 && (
-                  <span className="text-xs text-gray-600 mt-1">₹{price.toFixed(2)}</span>
+                  <span className="text-xs text-gray-600 mt-1">{price.toFixed(2)}</span>
                 )}
                 {(weight || dimensions) && (
                   <span className="text-xs text-gray-500 mt-0.5">

@@ -298,7 +298,7 @@ const PaymentPage = () => {
                       </span>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      ₹{(
+                      {(
                         item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
                           ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price)
                           : (item.discountPrice || item.price)
@@ -331,7 +331,7 @@ const PaymentPage = () => {
                 <div className="flex justify-between items-center text-lg">
                   <span className="font-bold text-gray-900">Total Amount</span>
                   <span className="font-bold text-primary text-xl">
-                    ₹{total.toFixed(2)}
+                    {total.toFixed(2)}
                   </span>
                 </div>
                 {discountCode && (

@@ -17,7 +17,7 @@ const FeaturesSection = ({ variant = "homepage" }: FeaturesSectionProps) => {
       icon: <Truck className="w-8 h-8 md:w-10 md:h-10" />,
       title: "Free Shipping",
       description:
-        "Free delivery on orders over ₹500. Fast and reliable shipping across India.",
+        "Free delivery on orders over 500. Fast and reliable shipping across India.",
       color: "from-blue-500 to-blue-600",
     },
     {

@@ -43,7 +43,7 @@ const DiscountField = () => {
             <div>
               <p className="font-medium text-gray-900">{discountCode}</p>
               <p className="text-sm text-gray-600">
-                Discount: ₹{discount.toFixed(2)}
+                Discount: {discount.toFixed(2)}
               </p>
             </div>
             <button

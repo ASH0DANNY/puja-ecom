@@ -112,7 +112,13 @@ const ProductDetails = () => {
   //   : 0;
 
   const handleAddToCart = () => {
-    addToCart(product, quantity, selectedSize, selectedColor, selectedCustomDimensions);
+    addToCart(
+      product,
+      quantity,
+      selectedSize,
+      selectedColor,
+      selectedCustomDimensions
+    );
     setIsAdded(true);
     setTimeout(() => setIsAdded(false), 2000);
   };
@@ -291,8 +297,12 @@ const ProductDetails = () => {
             <div className="flex items-baseline space-x-3">
               <p className="text-3xl lg:text-2xl font-bold text-gray-700 ">
                 ₹
-                {selectedSize && product.sizesWithPrices && product.sizesWithPrices.length > 0
-                  ? product.sizesWithPrices.find(s => s.size === selectedSize)?.price.toFixed(2) || product.price.toFixed(2)
+                {selectedSize &&
+                product.sizesWithPrices &&
+                product.sizesWithPrices.length > 0
+                  ? product.sizesWithPrices
+                      .find((s) => s.size === selectedSize)
+                      ?.price.toFixed(2) || product.price.toFixed(2)
                   : product.price.toFixed(2)}
               </p>
               {hasDiscount && !selectedSize && (
@@ -353,7 +363,7 @@ const ProductDetails = () => {
                       {sizeOption.size}
                     </div>
                     {/* <div className="text-primary font-bold mt-1">
-                      ₹{sizeOption.price.toFixed(2)}
+                      {sizeOption.price.toFixed(2)}
                     </div> */}
                     {sizeOption.weight && (
                       <div className="text-xs text-gray-600 mt-2">
@@ -471,8 +481,14 @@ const ProductDetails = () => {
                 <div>
                   <span className="font-medium text-gray-700">Weight:</span>
                   <span className="ml-2 text-gray-600">
-                    {selectedSize && product.sizesWithPrices && product.sizesWithPrices.length > 0
-                      ? product.sizesWithPrices.find(s => s.size === selectedSize)?.weight || product.weight || "N/A"
+                    {selectedSize &&
+                    product.sizesWithPrices &&
+                    product.sizesWithPrices.length > 0
+                      ? product.sizesWithPrices.find(
+                          (s) => s.size === selectedSize
+                        )?.weight ||
+                        product.weight ||
+                        "N/A"
                       : product.weight || "N/A"}
                   </span>
                 </div>
@@ -481,8 +497,14 @@ const ProductDetails = () => {
                 <div>
                   <span className="font-medium text-gray-700">Dimensions:</span>
                   <span className="ml-2 text-gray-600">
-                    {selectedSize && product.sizesWithPrices && product.sizesWithPrices.length > 0
-                      ? product.sizesWithPrices.find(s => s.size === selectedSize)?.dimensions || product.dimensions || "N/A"
+                    {selectedSize &&
+                    product.sizesWithPrices &&
+                    product.sizesWithPrices.length > 0
+                      ? product.sizesWithPrices.find(
+                          (s) => s.size === selectedSize
+                        )?.dimensions ||
+                        product.dimensions ||
+                        "N/A"
                       : product.dimensions || "N/A"}
                   </span>
                 </div>

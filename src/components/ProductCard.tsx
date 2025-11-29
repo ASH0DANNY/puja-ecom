@@ -160,7 +160,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
           <div className="flex flex-col mt-auto">
             <div className="mb-1 md:mb-2">
               <span className="text-gray-600 md:text-lg font-medium">
-                ₹{product.sizesWithPrices && product.sizesWithPrices.length > 0
+                {product.sizesWithPrices && product.sizesWithPrices.length > 0
                   ? product.sizesWithPrices[0].price.toFixed(2)
                   : (product.discountPrice ?? product.price).toFixed(2)}
               </span>

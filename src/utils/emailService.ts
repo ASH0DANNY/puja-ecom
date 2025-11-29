@@ -44,7 +44,7 @@ export const generateOrderPlacedEmail = (order: Order): string => {
       <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
         item.quantity
       }</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.priceAtOrder.toFixed(
         2
       )}</td>
     </tr>
@@ -118,7 +118,7 @@ export const generateOrderPlacedEmail = (order: Order): string => {
             <table style="border: none;">
               <tr>
                 <td>Subtotal:</td>
-                <td style="text-align: right;">₹${order.subtotal.toFixed(
+                <td style="text-align: right;">${order.subtotal.toFixed(
                   2
                 )}</td>
               </tr>
@@ -126,7 +126,7 @@ export const generateOrderPlacedEmail = (order: Order): string => {
                 order.discountAmount
                   ? `<tr style="color: #10b981;">
                       <td>Discount (${order.discountCode}):</td>
-                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(
+                      <td style="text-align: right;">-${order.discountAmount.toFixed(
                         2
                       )}</td>
                     </tr>`
@@ -134,7 +134,7 @@ export const generateOrderPlacedEmail = (order: Order): string => {
               }
               <tr class="total-row">
                 <td>Total:</td>
-                <td style="text-align: right;">₹${order.total.toFixed(2)}</td>
+                <td style="text-align: right;">${order.total.toFixed(2)}</td>
               </tr>
             </table>
           </div>
@@ -180,7 +180,7 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
     <li style="margin-bottom: 8px; padding: 5px 0;">
       ${item.product?.name || "Product"} - Qty: ${
         item.quantity
-      } @ ₹${item.priceAtOrder.toFixed(2)}
+      } @ ${item.priceAtOrder.toFixed(2)}
     </li>
   `
     )
@@ -229,7 +229,7 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
 
           <div class="section">
             <div class="section-title">Order Total</div>
-            <p style="font-size: 20px; font-weight: bold; color: #6366f1;">₹${order.total.toFixed(
+            <p style="font-size: 20px; font-weight: bold; color: #6366f1;">${order.total.toFixed(
               2
             )}</p>
           </div>
@@ -339,7 +339,7 @@ export const generateOrderCancelledEmail = (order: Order): string => {
       <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
         item.quantity
       }</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.priceAtOrder.toFixed(
         2
       )}</td>
     </tr>
@@ -406,7 +406,7 @@ export const generateOrderCancelledEmail = (order: Order): string => {
                 ${itemsList}
                 <tr class="total-row">
                   <td colspan="2" style="text-align: right; padding: 12px 10px;">Total Amount:</td>
-                  <td style="text-align: right; padding: 12px 10px;">₹${order.total.toFixed(2)}</td>
+                  <td style="text-align: right; padding: 12px 10px;">${order.total.toFixed(2)}</td>
                 </tr>
               </tbody>
             </table>
@@ -443,7 +443,7 @@ export const generateAdminOrderNotification = (order: Order): string => {
       <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${
         item.quantity
       }</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₹${item.priceAtOrder.toFixed(
+      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">${item.priceAtOrder.toFixed(
         2
       )}</td>
     </tr>
@@ -528,7 +528,7 @@ export const generateAdminOrderNotification = (order: Order): string => {
             <table style="border: none;">
               <tr>
                 <td><strong>Subtotal:</strong></td>
-                <td style="text-align: right;">₹${order.subtotal.toFixed(
+                <td style="text-align: right;">${order.subtotal.toFixed(
                   2
                 )}</td>
               </tr>
@@ -536,7 +536,7 @@ export const generateAdminOrderNotification = (order: Order): string => {
                 order.discountAmount
                   ? `<tr>
                       <td><strong>Discount:</strong></td>
-                      <td style="text-align: right;">-₹${order.discountAmount.toFixed(
+                      <td style="text-align: right;">-${order.discountAmount.toFixed(
                         2
                       )}</td>
                     </tr>`
@@ -544,7 +544,7 @@ export const generateAdminOrderNotification = (order: Order): string => {
               }
               <tr style="font-size: 18px; font-weight: bold; border-top: 2px solid #e5e7eb;">
                 <td>TOTAL:</td>
-                <td style="text-align: right;">₹${order.total.toFixed(2)}</td>
+                <td style="text-align: right;">${order.total.toFixed(2)}</td>
               </tr>
             </table>
           </div>
