@@ -53,7 +53,7 @@ const WhatsAppButton = () => {
             isHovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
           }`}
         >
-          Chat with us!
+          Chat with us on WhatsApp!
           <div className="absolute top-full right-2 w-2 h-2 bg-gray-900 transform rotate-45"></div>
         </div>
       </button>
@@ -62,7 +62,7 @@ const WhatsAppButton = () => {
       {!isHovered && (
         <div className="fixed bottom-28 right-6 md:bottom-32 md:right-8 z-40 animate-bounce">
           <div className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-            Chat
+            Chat on WhatsApp
           </div>
         </div>
       )}

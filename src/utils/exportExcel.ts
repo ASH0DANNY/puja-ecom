@@ -248,30 +248,32 @@ export const formatProductSalesForExport = (orders: any[], products: any[]) => {
     }
   });
 
-  // Calculate sales from orders with size tracking
-  orders.forEach((order) => {
-    if (order.items) {
-      order.items.forEach((item: any) => {
-        const productId = item.product?.id;
-        if (productSales[productId]) {
-          // Track overall product sales
-          productSales[productId]["Units Sold"] += item.quantity || 0;
-          productSales[productId]["Total Revenue"] +=
-            (item.priceAtOrder || 0) * (item.quantity || 0);
+  // Calculate sales from orders with size tracking (exclude cancelled orders)
+  orders
+    .filter((order) => order.status !== "cancelled")
+    .forEach((order) => {
+      if (order.items) {
+        order.items.forEach((item: any) => {
+          const productId = item.product?.id;
+          if (productSales[productId]) {
+            // Track overall product sales
+            productSales[productId]["Units Sold"] += item.quantity || 0;
+            productSales[productId]["Total Revenue"] +=
+              (item.priceAtOrder || 0) * (item.quantity || 0);
 
-          // Track size-specific sales
-          if (item.selectedSize) {
-            const sizeKey = `${productId}_${item.selectedSize}`;
-            if (productSizesSales[sizeKey]) {
-              productSizesSales[sizeKey]["Units Sold"] += item.quantity || 0;
-              productSizesSales[sizeKey]["Total Revenue"] +=
-                (item.priceAtOrder || 0) * (item.quantity || 0);
+            // Track size-specific sales
+            if (item.selectedSize) {
+              const sizeKey = `${productId}_${item.selectedSize}`;
+              if (productSizesSales[sizeKey]) {
+                productSizesSales[sizeKey]["Units Sold"] += item.quantity || 0;
+                productSizesSales[sizeKey]["Total Revenue"] +=
+                  (item.priceAtOrder || 0) * (item.quantity || 0);
+              }
             }
           }
-        }
-      });
-    }
-  });
+        });
+      }
+    });
 
   // Format overall product sales
   const overallSales = Object.values(productSales).map((sale: any) => ({

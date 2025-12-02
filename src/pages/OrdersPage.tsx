@@ -162,13 +162,15 @@ const OrdersPage = () => {
   };
 
   const orderStats = {
-    total: orders.length,
+    total: orders.filter((o) => o.status?.toLowerCase() !== "cancelled").length,
     delivered: orders.filter((o) => o.status?.toLowerCase() === "delivered")
       .length,
     shipped: orders.filter((o) => o.status?.toLowerCase() === "shipped").length,
     processing: orders.filter((o) => o.status?.toLowerCase() === "processing")
       .length,
-    totalSpent: orders.reduce((sum, order) => sum + (order.total || 0), 0),
+    totalSpent: orders
+      .filter((o) => o.status?.toLowerCase() !== "cancelled")
+      .reduce((sum, order) => sum + (order.total || 0), 0),
   };
 
   if (loading) {

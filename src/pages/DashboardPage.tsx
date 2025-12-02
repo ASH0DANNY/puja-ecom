@@ -123,15 +123,15 @@ export const DashboardPage = () => {
       setSuggestions(suggestionsData);
 
       // Calculate stats
-      const totalRevenue = ordersData.reduce(
-        (sum, order) => sum + (order.total || 0),
-        0
-      );
+      const totalRevenue = ordersData
+        .filter((order) => order.status !== "cancelled")
+        .reduce((sum, order) => sum + (order.total || 0), 0);
+      const totalOrders = ordersData.filter((order) => order.status !== "cancelled").length;
       const usersSnapshot = await getDocs(collection(db, "users"));
 
       setStats({
         totalRevenue,
-        totalOrders: ordersData.length,
+        totalOrders,
         totalProducts: productsData.length,
         totalUsers: usersSnapshot.size,
       });

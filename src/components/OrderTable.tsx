@@ -97,6 +97,17 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             });
           }
         }
+        
+        // If cancelling a delivered order, decrement sales count
+        if (order.status === "delivered") {
+          for (const item of order.items) {
+            const productRef = doc(db, "products", item.product.id);
+            batch.update(productRef, {
+              sales: increment(-item.quantity),
+            });
+          }
+        }
+        
         // Mark items as stock updated
         batch.update(orderRef, {
           items: order.items.map((item) => ({
@@ -114,6 +125,17 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             });
           }
         }
+        
+        // If un-cancelling to delivered, increment sales count
+        if (newStatus === "delivered") {
+          for (const item of order.items) {
+            const productRef = doc(db, "products", item.product.id);
+            batch.update(productRef, {
+              sales: increment(item.quantity),
+            });
+          }
+        }
+        
         // Mark items as stock not updated
         batch.update(orderRef, {
           items: order.items.map((item) => ({
