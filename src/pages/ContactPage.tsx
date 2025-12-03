@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useScrollToTop } from "../utils/scrollToTop";
 import {
   Mail,
@@ -10,14 +10,136 @@ import {
   MessageSquare,
   Building2,
   Headphones,
+  CheckCircle,
+  AlertCircle,
 } from "lucide-react";
+import { sendContactUsEmail } from "../utils/emailService";
+
+interface ContactFormData {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}
+
+interface FormStatus {
+  type: "idle" | "loading" | "success" | "error";
+  message: string;
+}
 
 const ContactPage = () => {
   const scrollToTop = useScrollToTop();
+  const [formData, setFormData] = useState<ContactFormData>({
+    name: "",
+    email: "",
+    subject: "",
+    message: "",
+  });
+  const [status, setStatus] = useState<FormStatus>({
+    type: "idle",
+    message: "",
+  });
+  const [errors, setErrors] = useState<Partial<ContactFormData>>({});
 
   useEffect(() => {
     scrollToTop();
   }, []);
+
+  // Validate form data
+  const validateForm = (): boolean => {
+    const newErrors: Partial<ContactFormData> = {};
+
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.subject.trim()) {
+      newErrors.subject = "Subject is required";
+    }
+
+    if (!formData.message.trim()) {
+      newErrors.message = "Message is required";
+    } else if (formData.message.trim().length < 10) {
+      newErrors.message = "Message must be at least 10 characters";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Send contact form email using the email service
+  const sendContactEmail = async (): Promise<boolean> => {
+    try {
+      const adminEmail = import.meta.env.VITE_APP_EMAIL;
+
+      if (!adminEmail) {
+        console.error("Admin email not configured. Check your .env file.");
+        return false;
+      }
+
+      const emailSent = await sendContactUsEmail({
+        name: formData.name,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+        adminEmail: adminEmail,
+      });
+
+      return emailSent;
+    } catch (error) {
+      console.error("Error sending contact email:", error);
+      return false;
+    }
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      setStatus({
+        type: "error",
+        message: "Please fix the errors above and try again.",
+      });
+      return;
+    }
+
+    setStatus({ type: "loading", message: "Sending your message..." });
+
+    const emailSent = await sendContactEmail();
+
+    if (emailSent) {
+      setStatus({
+        type: "success",
+        message: "Message sent successfully! We'll get back to you soon.",
+      });
+      setFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+      });
+    } else {
+      setStatus({
+        type: "error",
+        message: "Failed to send message. Please try again later.",
+      });
+    }
+  };
+
+  // Handle input change
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { id, value } = e.target;
+    setFormData((prev) => ({ ...prev, [id]: value }));
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -50,7 +172,30 @@ const ContactPage = () => {
                 </h2>
               </div>
 
-              <form className="space-y-6">
+              {/* Status Messages */}
+              {status.type === "success" && (
+                <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-green-800 text-sm font-medium">
+                      {status.message}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {status.type === "error" && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-red-800 text-sm font-medium">
+                      {status.message}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label
                     htmlFor="name"
@@ -62,10 +207,16 @@ const ContactPage = () => {
                   <input
                     type="text"
                     id="name"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+                      errors.name ? "border-red-500" : "border-gray-300"
+                    }`}
                     placeholder="Your full name"
-                    required
                   />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                  )}
                 </div>
 
                 <div>
@@ -79,10 +230,16 @@ const ContactPage = () => {
                   <input
                     type="email"
                     id="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+                      errors.email ? "border-red-500" : "border-gray-300"
+                    }`}
                     placeholder="your@email.com"
-                    required
                   />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                  )}
                 </div>
 
                 <div>
@@ -96,10 +253,18 @@ const ContactPage = () => {
                   <input
                     type="text"
                     id="subject"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    value={formData.subject}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+                      errors.subject ? "border-red-500" : "border-gray-300"
+                    }`}
                     placeholder="What's this about?"
-                    required
                   />
+                  {errors.subject && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.subject}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -113,10 +278,18 @@ const ContactPage = () => {
                   <textarea
                     id="message"
                     rows={6}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                    value={formData.message}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors ${
+                      errors.message ? "border-red-500" : "border-gray-300"
+                    }`}
                     placeholder="Tell us how we can help you..."
-                    required
                   ></textarea>
+                  {errors.message && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.message}
+                    </p>
+                  )}
                 </div>
 
                 <button

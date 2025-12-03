@@ -704,14 +704,16 @@ const OrdersPage = () => {
                             View
                           </button>
 
-                          <button
-                            onClick={() => setInvoiceOrder(order)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-xs font-medium"
-                            title="Download invoice"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            Invoice
-                          </button>
+                          {order.status?.toLowerCase() === "delivered" && (
+                            <button
+                              onClick={() => setInvoiceOrder(order)}
+                              className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-xs font-medium"
+                              title="Download invoice"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Invoice
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

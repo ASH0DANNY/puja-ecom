@@ -10,6 +10,15 @@ interface OrderInvoiceProps {
 export const OrderInvoice = ({ order }: OrderInvoiceProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Enable invoice download ONLY for delivered status
+  const isInvoiceAvailable =
+    order.status?.toLowerCase() === "delivered";
+
+  // Hide invoice button for all non-delivered statuses
+  if (!isInvoiceAvailable) {
+    return null;
+  }
+
   return (
     <>
       <button

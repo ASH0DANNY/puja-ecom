@@ -768,6 +768,139 @@ export const sendOrderCancelledEmail = async (
 };
 
 /**
+ * Generate HTML email template for contact us form submission
+ */
+export const generateContactUsEmail = (config: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+}): string => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #6366f1; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+        .content { margin-top: 20px; }
+        .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; }
+        .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        .info-row { margin: 12px 0; padding: 10px; background-color: white; border-left: 4px solid #6366f1; border-radius: 3px; }
+        .info-label { font-weight: bold; color: #111; font-size: 14px; }
+        .info-value { color: #666; margin-top: 4px; font-size: 14px; }
+        .message-box { background-color: white; border-left: 4px solid #6366f1; padding: 15px; border-radius: 3px; margin-top: 15px; }
+        .message-content { color: #333; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; border-top: 1px solid #e5e7eb; padding-top: 15px; }
+        .alert-banner { background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin-top: 15px; border-radius: 3px; color: #92400e; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>📨 New Contact Form Submission</h1>
+        </div>
+
+        <div class="content">
+          <p>A new message has been submitted through the contact form.</p>
+
+          <div class="section">
+            <div class="section-title">Sender Information</div>
+            
+            <div class="info-row">
+              <div class="info-label">Name:</div>
+              <div class="info-value">${config.name}</div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">Email:</div>
+              <div class="info-value">
+                <a href="mailto:${config.email}" style="color: #6366f1; text-decoration: none;">
+                  ${config.email}
+                </a>
+              </div>
+            </div>
+
+            <div class="info-row">
+              <div class="info-label">Subject:</div>
+              <div class="info-value">${config.subject}</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Message</div>
+            <div class="message-box">
+              <div class="message-content">${config.message}</div>
+            </div>
+          </div>
+
+          <div class="alert-banner">
+            <strong>Action Required:</strong> Please review this message and respond to the sender at your earliest convenience.
+          </div>
+        </div>
+
+        <div class="footer">
+          <p>© 2025 Rachna Creation. All rights reserved.</p>
+          <p>This is an automated email from your contact form system.</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+/**
+ * Send contact us form email to admin
+ */
+export const sendContactUsEmail = async (config: {
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  adminEmail: string;
+}): Promise<boolean> => {
+  try {
+    const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+
+    if (!serviceId || !templateId) {
+      console.error("EmailJS configuration missing. Check your .env file.");
+      return false;
+    }
+
+    // Generate email HTML
+    const emailHtml = generateContactUsEmail({
+      name: config.name,
+      email: config.email,
+      subject: config.subject,
+      message: config.message,
+    });
+
+    console.log(`📧 Sending contact form email to admin: ${config.adminEmail}`);
+
+    // Send email using EmailJS
+    const response = await emailjs.send(serviceId, templateId, {
+      to_email: config.adminEmail,
+      subject: `📨 New Contact Form: ${config.subject}`,
+      html_content: emailHtml,
+    });
+
+    if (response.status === 200) {
+      console.log(`✅ Contact email sent successfully to: ${config.adminEmail}`);
+      return true;
+    } else {
+      console.error("Failed to send contact email:", response);
+      return false;
+    }
+  } catch (error) {
+    console.error("❌ Error sending contact email:", error);
+    return false;
+  }
+};
+
+/**
  * Generate HTML email template for promotional campaign
  */
 export const generatePromotionalEmail = (config: {
