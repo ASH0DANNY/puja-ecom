@@ -321,7 +321,7 @@ const OrdersPage = () => {
 
                 <div className="p-4 lg:p-6 space-y-6">
                   {/* Invoice Actions */}
-                  <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-lg p-6 shadow-md">
+                  {/* <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border-2 border-blue-300 rounded-lg p-6 shadow-md">
                     <div className="flex items-center justify-between flex-wrap gap-4">
                       <div>
                         <p className="font-bold text-lg text-gray-900">
@@ -334,7 +334,7 @@ const OrdersPage = () => {
                       </div>
                       <OrderInvoice order={selectedOrder} />
                     </div>
-                  </div>
+                  </div> */}
 
                   {/* Order Info */}
                   <div className="grid grid-cols-2 gap-6">
@@ -704,11 +704,21 @@ const OrdersPage = () => {
                             View
                           </button>
 
-                          {order.status?.toLowerCase() === "delivered" && (
+                          {(order.status?.toLowerCase() === "cancelled" ||
+                            order.status?.toLowerCase() === "delivered") ? (
                             <button
                               onClick={() => setInvoiceOrder(order)}
                               className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-xs font-medium"
                               title="Download invoice"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              Invoice
+                            </button>
+                          ) : (
+                            <button
+                              disabled
+                              className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded-md cursor-not-allowed text-xs font-medium opacity-50"
+                              title="Invoice available after delivery or cancellation"
                             >
                               <Download className="w-3.5 h-3.5" />
                               Invoice
