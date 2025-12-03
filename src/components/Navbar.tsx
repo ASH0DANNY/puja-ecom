@@ -55,15 +55,21 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
             </button>
 
             <div className="hidden lg:flex items-center space-x-8">
-              {menuItems.map((item) => (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  className="text-gray-600 hover:text-primary transition-colors duration-200 font-medium text-sm"
-                >
-                  {item.label}
-                </Link>
-              ))}
+              {menuItems.map((item) => {
+                // Hide Orders menu item for admin users
+                if (item.label === "Orders" && user?.role === "admin") {
+                  return null;
+                }
+                return (
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    className="text-gray-600 hover:text-primary transition-colors duration-200 font-medium text-sm"
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
 
@@ -99,18 +105,20 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
               <Search className="h-5 w-5" />
             </Link>
 
-            {/* Cart - Always visible */}
-            <Link
-              to="/cart"
-              className="p-2.5 rounded-xl hover:bg-gray-100/80 text-gray-600 hover:text-primary transition-colors relative"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium shadow-sm">
-                  {cartItemsCount}
-                </span>
-              )}
-            </Link>
+            {/* Cart - Hidden for admin users */}
+            {user?.role !== "admin" && (
+              <Link
+                to="/cart"
+                className="p-2.5 rounded-xl hover:bg-gray-100/80 text-gray-600 hover:text-primary transition-colors relative"
+              >
+                <ShoppingCart className="h-5 w-5" />
+                {cartItemsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium shadow-sm">
+                    {cartItemsCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Profile - Only visible on desktop */}
             {user ? (
@@ -133,6 +141,7 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                     </div>
                   )}
                 </button>
+
                 {isProfileOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-10 backdrop-blur-md">
                     <div className="px-4 py-3 border-b border-gray-100">
@@ -144,14 +153,16 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
                       </p>
                     </div>
                     <div className="py-2 space-y-1">
-                      <Link
-                        to="/orders"
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                        onClick={() => setIsProfileOpen(false)}
-                      >
-                        <ShoppingBag className="h-4 w-4" />
-                        My Orders
-                      </Link>
+                      {user.role === "user" && (
+                        <Link
+                          to="/orders"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                          onClick={() => setIsProfileOpen(false)}
+                        >
+                          <ShoppingBag className="h-4 w-4" />
+                          My Orders
+                        </Link>
+                      )}
                       {user.role === "admin" && (
                         <Link
                           to="/dashboard"

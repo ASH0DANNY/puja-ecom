@@ -83,9 +83,6 @@ const HomePage = () => {
       {/* Special Offers Section */}
       <SpecialOffers />
 
-      {/* Features Section */}
-      <FeaturesSection variant="homepage" />
-
       {/* Featured Products */}
       <section className="px-2 py-12 lg:py-14">
         <div className="container mx-auto px-0 lg:px-6">
@@ -106,6 +103,9 @@ const HomePage = () => {
           />
         </div>
       </section>
+
+      {/* Features Section */}
+      <FeaturesSection variant="homepage" />
 
       {/* Suggested Products */}
       <section className="px-2 py-12 lg:py-14">
