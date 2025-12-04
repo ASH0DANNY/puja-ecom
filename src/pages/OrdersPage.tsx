@@ -24,6 +24,7 @@ import {
   Search,
   Download,
   X,
+  CreditCard,
 } from "lucide-react";
 
 const OrdersPage = () => {
@@ -89,14 +90,12 @@ const OrdersPage = () => {
   useEffect(() => {
     let filtered = [...orders];
 
-    // Filter by status
     if (statusFilter !== "all") {
       filtered = filtered.filter(
         (order) => order.status?.toLowerCase() === statusFilter.toLowerCase()
       );
     }
 
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -110,7 +109,6 @@ const OrdersPage = () => {
       );
     }
 
-    // Sort the filtered results
     filtered.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
@@ -159,6 +157,11 @@ const OrdersPage = () => {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const formatPaymentMethod = (method: string) => {
+    if (!method) return "N/A";
+    return method.charAt(0).toUpperCase() + method.slice(1).replace(/_/g, " ");
   };
 
   const orderStats = {
@@ -266,7 +269,6 @@ const OrdersPage = () => {
                   {orderStats.totalSpent.toFixed(2)}
                 </p>
               </div>
-              {/* <DollarSign className="w-8 h-8 text-primary" /> */}
             </div>
           </div>
         </div>
@@ -366,6 +368,11 @@ const OrdersPage = () => {
                           >
                             {selectedOrder.status || "Pending"}
                           </span>
+                        </p>
+                        <p className="text-sm text-gray-900 flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-gray-500" />
+                          <span className="font-medium">Payment Method:</span>{" "}
+                          {formatPaymentMethod(selectedOrder.paymentMethod)}
                         </p>
                       </div>
                     </div>
@@ -617,6 +624,9 @@ const OrdersPage = () => {
                       Status
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Payment
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Items
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -672,6 +682,14 @@ const OrdersPage = () => {
                                 order.status.toLowerCase().slice(1)
                               : "Pending"}
                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-gray-400" />
+                          <div className="text-sm text-gray-900">
+                            {formatPaymentMethod(order.paymentMethod)}
+                          </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

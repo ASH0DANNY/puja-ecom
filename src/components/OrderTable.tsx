@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import { doc, writeBatch, increment } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Order } from "../types/order";
-import { Calendar, Eye, Search, Filter, Download } from "lucide-react";
+import {
+  Calendar,
+  Eye,
+  Search,
+  Filter,
+  Download,
+  CreditCard,
+} from "lucide-react";
 import { InvoiceModal } from "./InvoiceModal";
 import OrderEmailManager from "./OrderEmailManager";
 
@@ -25,14 +32,12 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   useEffect(() => {
     let filtered = [...orders];
 
-    // Filter by status
     if (statusFilter !== "all") {
       filtered = filtered.filter(
         (order) => order.status?.toLowerCase() === statusFilter.toLowerCase()
       );
     }
 
-    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -46,7 +51,6 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
       );
     }
 
-    // Sort the filtered results
     filtered.sort((a, b) => {
       const aValue = a[sortField];
       const bValue = b[sortField];
@@ -80,15 +84,12 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
       const batch = writeBatch(db);
       const orderRef = doc(db, "orders", orderId);
 
-      // Update order status
       batch.update(orderRef, {
         status: newStatus,
         updatedAt: new Date(),
       });
 
-      // Handle stock updates based on status changes
       if (newStatus === "cancelled" && order.status !== "cancelled") {
-        // Return items to stock if order is cancelled
         for (const item of order.items) {
           if (!item.stockUpdated) {
             const productRef = doc(db, "products", item.product.id);
@@ -97,8 +98,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             });
           }
         }
-        
-        // If cancelling a delivered order, decrement sales count
+
         if (order.status === "delivered") {
           for (const item of order.items) {
             const productRef = doc(db, "products", item.product.id);
@@ -107,8 +107,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             });
           }
         }
-        
-        // Mark items as stock updated
+
         batch.update(orderRef, {
           items: order.items.map((item) => ({
             ...item,
@@ -116,7 +115,6 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
           })),
         });
       } else if (order.status === "cancelled" && newStatus !== "cancelled") {
-        // Reduce stock if order is un-cancelled
         for (const item of order.items) {
           if (item.stockUpdated) {
             const productRef = doc(db, "products", item.product.id);
@@ -125,8 +123,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             });
           }
         }
-        
-        // If un-cancelling to delivered, increment sales count
+
         if (newStatus === "delivered") {
           for (const item of order.items) {
             const productRef = doc(db, "products", item.product.id);
@@ -135,8 +132,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             });
           }
         }
-        
-        // Mark items as stock not updated
+
         batch.update(orderRef, {
           items: order.items.map((item) => ({
             ...item,
@@ -145,7 +141,6 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
         });
       }
 
-      // If order is marked as delivered, update product sales count
       if (newStatus === "delivered" && order.status !== "delivered") {
         for (const item of order.items) {
           const productRef = doc(db, "products", item.product.id);
@@ -188,6 +183,11 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatPaymentMethod = (method: string) => {
+    if (!method) return "N/A";
+    return method.charAt(0).toUpperCase() + method.slice(1).replace(/_/g, " ");
   };
 
   return (
@@ -279,6 +279,9 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Payment
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Total
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -325,8 +328,16 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-gray-400" />
+                    <div className="text-sm text-gray-900">
+                      {formatPaymentMethod(order.paymentMethod)}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900">
-                  {order.total.toFixed(2)}
+                    {order.total.toFixed(2)}
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm font-medium">
@@ -418,6 +429,11 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                       >
                         {selectedOrder.status}
                       </span>
+                    </p>
+                    <p className="text-sm text-gray-900 flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-gray-500" />
+                      <span className="font-medium">Payment Method:</span>{" "}
+                      {formatPaymentMethod(selectedOrder.paymentMethod)}
                     </p>
                   </div>
                 </div>
@@ -530,27 +546,33 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                                     item.product.sizesWithPrices && (
                                       <>
                                         {item.product.sizesWithPrices.find(
-                                          (swp) => swp.size === item.selectedSize
+                                          (swp) =>
+                                            swp.size === item.selectedSize
                                         )?.weight && (
                                           <>
                                             <br />
                                             Weight:{" "}
-                                            {item.product.sizesWithPrices.find(
-                                              (swp) =>
-                                                swp.size === item.selectedSize
-                                            )?.weight}
+                                            {
+                                              item.product.sizesWithPrices.find(
+                                                (swp) =>
+                                                  swp.size === item.selectedSize
+                                              )?.weight
+                                            }
                                           </>
                                         )}
                                         {item.product.sizesWithPrices.find(
-                                          (swp) => swp.size === item.selectedSize
+                                          (swp) =>
+                                            swp.size === item.selectedSize
                                         )?.dimensions && (
                                           <>
                                             <br />
                                             Dimensions:{" "}
-                                            {item.product.sizesWithPrices.find(
-                                              (swp) =>
-                                                swp.size === item.selectedSize
-                                            )?.dimensions}
+                                            {
+                                              item.product.sizesWithPrices.find(
+                                                (swp) =>
+                                                  swp.size === item.selectedSize
+                                              )?.dimensions
+                                            }
                                           </>
                                         )}
                                       </>
@@ -561,16 +583,25 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                           </div>
                         </div>
                         <div className="w-1/5 text-center">
-                          ${(item.priceAtSelectedSize || item.priceAtOrder).toFixed(2)}
+                          $
+                          {(
+                            item.priceAtSelectedSize || item.priceAtOrder
+                          ).toFixed(2)}
                         </div>
                         <div className="w-1/5 text-center">{item.quantity}</div>
                         <div className="w-1/5 text-right">
-                          ${((item.priceAtSelectedSize || item.priceAtOrder) * item.quantity).toFixed(2)}
+                          $
+                          {(
+                            (item.priceAtSelectedSize || item.priceAtOrder) *
+                            item.quantity
+                          ).toFixed(2)}
                         </div>
                       </div>
                     ))}
                     <div className="flex items-center text-sm px-6 py-4 border-t-2 border-gray-300">
-                      <div className="w-4/5 text-right font-medium">Subtotal:</div>
+                      <div className="w-4/5 text-right font-medium">
+                        Subtotal:
+                      </div>
                       <div className="w-1/5 text-right">
                         ${selectedOrder.subtotal.toFixed(2)}
                       </div>
