@@ -116,42 +116,40 @@ const CategoriesPage = () => {
 
           {/* Products Grid */}
           <div className="flex-1">
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {selectedCategory.name}
-                </h2>
-                <div className="text-sm text-gray-600">
-                  {filteredProducts.length} items
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">
+                {selectedCategory.name}
+              </h2>
+              <div className="text-sm text-gray-600">
+                {filteredProducts.length} items
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="py-12">
+                <div className="flex justify-center">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
                 </div>
               </div>
-
-              {loading ? (
-                <div className="py-12">
-                  <div className="flex justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-                  </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
+                  {filteredProducts.map((product) => (
+                    <ProductCard key={product.id} product={product} />
+                  ))}
                 </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
-                    {filteredProducts.map((product) => (
-                      <ProductCard key={product.id} product={product} />
-                    ))}
-                  </div>
 
-                  {filteredProducts.length === 0 && (
-                    <div className="text-center py-12">
-                      <p className="text-gray-600">
-                        {searchQuery
-                          ? "No products found matching your search."
-                          : "No products found in this category."}
-                      </p>
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
+                {filteredProducts.length === 0 && (
+                  <div className="text-center py-12">
+                    <p className="text-gray-600">
+                      {searchQuery
+                        ? "No products found matching your search."
+                        : "No products found in this category."}
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
       </div>

@@ -89,6 +89,7 @@ export const generateInvoicePdf = (
     email: string;
     phone: string;
     address: string;
+    paymentMethod?: string;
     billingAddress?: {
       name: string;
       street: string;
@@ -157,6 +158,15 @@ export const generateInvoicePdf = (
     const pageWidth = doc.internal.pageSize.getWidth();
     const margin = 10;
 
+    // Helper function to format payment method
+    const formatPaymentMethod = (method: string | undefined) => {
+      if (!method) return "N/A";
+      return method
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+    };
+
     // ============ HEADER - Tax Invoice Title ============
     doc.setFont("helvetica", "bold");
     doc.setFontSize(16);
@@ -198,10 +208,59 @@ export const generateInvoicePdf = (
       );
     }
 
-    // ============ BILL TO & SHIP TO SECTION ============
-    let yPos = 25;
+    // ============ CUSTOMER DETAILS SECTION ============
+    let yPos = 28;
 
-    // Bill To
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text("CUSTOMER DETAILS", margin, yPos);
+
+    // Draw a separator line
+    doc.setLineWidth(0.3);
+    doc.line(margin, yPos + 1, pageWidth - margin, yPos + 1);
+
+    yPos += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+
+    // Customer Name
+    doc.setFont("helvetica", "bold");
+    doc.text("Name:", margin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(invoiceData.customerName, margin + 35, yPos);
+
+    yPos += 5;
+
+    // Email
+    doc.setFont("helvetica", "bold");
+    doc.text("Email:", margin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(invoiceData.email, margin + 35, yPos);
+
+    yPos += 5;
+
+    // Phone
+    doc.setFont("helvetica", "bold");
+    doc.text("Phone:", margin, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text(invoiceData.phone, margin + 35, yPos);
+
+    yPos += 5;
+
+    // Payment Method
+    doc.setFont("helvetica", "bold");
+    doc.text("Payment Method:", margin, yPos);
+    doc.setFont("helvetica", "normal");
+    const paymentMethodText = formatPaymentMethod(invoiceData.paymentMethod);
+    doc.text(paymentMethodText, margin + 35, yPos);
+
+    // ============ BILL TO & SHIP TO SECTION ============
+    yPos += 8;
+
+    // Store starting Y position for both columns
+    const addressStartY = yPos;
+
+    // Bill To (Left Column)
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
     doc.text("BILL TO:", margin, yPos);
@@ -209,6 +268,8 @@ export const generateInvoicePdf = (
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     yPos += 5;
+
+    let billToEndY = yPos;
 
     if (invoiceData.billingAddress) {
       doc.text(
@@ -225,71 +286,89 @@ export const generateInvoicePdf = (
         yPos
       );
       yPos += 4;
+      doc.text(invoiceData.billingAddress.country, margin, yPos);
+      billToEndY = yPos + 4;
     } else {
       doc.text(invoiceData.customerName, margin, yPos);
       yPos += 4;
       const addressLines = doc.splitTextToSize(invoiceData.address, 80);
       doc.text(addressLines, margin, yPos);
-      yPos += addressLines.length * 4;
+      billToEndY = yPos + addressLines.length * 4;
     }
 
     if (invoiceData.placeOfSupply) {
-      doc.text(`Place of Supply: ${invoiceData.placeOfSupply}`, margin, yPos);
-      yPos += 4;
+      doc.setFont("helvetica", "italic");
+      doc.text(
+        `Place of Supply: ${invoiceData.placeOfSupply}`,
+        margin,
+        billToEndY
+      );
+      doc.setFont("helvetica", "normal");
+      billToEndY += 4;
     }
 
-    // Ship To (below Bill To)
-    yPos += 5;
+    // Ship To (Right Column - starts at same Y as Bill To)
+    const shipToX = pageWidth / 2 + 10;
+    let shipToY = addressStartY;
+
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("SHIP TO:", margin, yPos);
+    doc.text("SHIP TO:", shipToX, shipToY);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    yPos += 5;
+    shipToY += 5;
+
+    let shipToEndY = shipToY;
 
     if (invoiceData.shippingAddress) {
       doc.text(
         invoiceData.shippingAddress.name || invoiceData.customerName,
-        margin,
-        yPos
+        shipToX,
+        shipToY
       );
-      yPos += 4;
-      doc.text(invoiceData.shippingAddress.street, margin, yPos);
-      yPos += 4;
+      shipToY += 4;
+      doc.text(invoiceData.shippingAddress.street, shipToX, shipToY);
+      shipToY += 4;
       doc.text(
         `${invoiceData.shippingAddress.city}, ${invoiceData.shippingAddress.state}, ${invoiceData.shippingAddress.postalCode}`,
-        margin,
-        yPos
+        shipToX,
+        shipToY
       );
-      yPos += 4;
+      shipToY += 4;
+      doc.text(invoiceData.shippingAddress.country, shipToX, shipToY);
+      shipToEndY = shipToY + 4;
     } else {
-      doc.text(invoiceData.customerName, margin, yPos);
-      yPos += 4;
+      doc.text(invoiceData.customerName, shipToX, shipToY);
+      shipToY += 4;
       const addressLines = doc.splitTextToSize(invoiceData.address, 80);
-      doc.text(addressLines, margin, yPos);
-      yPos += addressLines.length * 4;
+      doc.text(addressLines, shipToX, shipToY);
+      shipToEndY = shipToY + addressLines.length * 4;
     }
 
     // ============ ORDER & INVOICE DETAILS ============
-    yPos = 65;
+    yPos = Math.max(billToEndY, shipToEndY) + 8;
 
-    // Left side - Order Number
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("Order Number", margin, yPos);
+    // Draw separator line
+    doc.setLineWidth(0.3);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
 
     yPos += 5;
+
+    // Left side - Order Details
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Order Number:", margin, yPos);
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
-    doc.text(invoiceData.orderId, margin, yPos);
-
-    yPos += 7;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("Order Date", margin, yPos);
+    doc.text(invoiceData.orderId, margin + 30, yPos);
 
     yPos += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.text("Order Date:", margin, yPos);
+
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     const formattedDate = new Date(invoiceData.date)
@@ -302,46 +381,52 @@ export const generateInvoicePdf = (
     doc.text(
       formattedDate +
         " " +
-        new Date(invoiceData.date).toLocaleTimeString("en-GB"),
-      margin,
+        new Date(invoiceData.date).toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      margin + 30,
       yPos
     );
 
-    // Right side - Invoice Number
-    yPos = 65;
+    // Right side - Invoice Details
     const rightX = pageWidth - margin;
+    let rightY = yPos - 5;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("Invoice Number", rightX, yPos, { align: "right" });
+    doc.text("Invoice Number:", rightX - 60, rightY);
 
-    yPos += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(
       invoiceData.invoiceNumber || `INV-${invoiceData.orderId.slice(-8)}`,
       rightX,
-      yPos,
+      rightY,
       { align: "right" }
     );
 
-    yPos += 7;
+    rightY += 5;
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10);
-    doc.text("Invoice Date", rightX, yPos, { align: "right" });
+    doc.text("Invoice Date:", rightX - 60, rightY);
 
-    yPos += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(
-      formattedDate + " " + new Date().toLocaleTimeString("en-GB"),
+      formattedDate +
+        " " +
+        new Date().toLocaleTimeString("en-GB", {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
       rightX,
-      yPos,
+      rightY,
       { align: "right" }
     );
 
     // ============ ITEMS TABLE ============
-    const tableStartY = yPos + 10;
+    const tableStartY = yPos + 8;
 
     // Calculate discount per item if order-level discount exists
     const totalOrderDiscount = invoiceData.discount || 0;
@@ -413,14 +498,14 @@ export const generateInvoicePdf = (
         lineWidth: 0.1,
       },
       headStyles: {
-        fillColor: [255, 255, 255],
+        fillColor: [240, 240, 240],
         textColor: [0, 0, 0],
         fontStyle: "bold",
         halign: "center",
       },
       columnStyles: {
-        0: { halign: "center" },
-        1: { cellWidth: 120 },
+        0: { halign: "center", cellWidth: 15 },
+        1: { cellWidth: 115 },
         2: { cellWidth: 25, halign: "center" },
         3: { cellWidth: 20, halign: "center" },
         4: { cellWidth: 35, halign: "right" },
@@ -440,7 +525,7 @@ export const generateInvoicePdf = (
 
     totalsData.push([
       "",
-      "Total",
+      "Total Amount",
       "",
       "",
       "",
@@ -457,10 +542,11 @@ export const generateInvoicePdf = (
         fontStyle: "bold",
         lineColor: [0, 0, 0],
         lineWidth: 0.1,
+        fillColor: [245, 245, 245],
       },
       columnStyles: {
-        0: { halign: "center" },
-        1: { cellWidth: 120 },
+        0: { halign: "center", cellWidth: 15 },
+        1: { cellWidth: 115 },
         2: { cellWidth: 25 },
         3: { cellWidth: 20 },
         4: { cellWidth: 35 },
@@ -474,6 +560,15 @@ export const generateInvoicePdf = (
 
     // ============ TERMS & CONDITIONS ============
     yPos = (doc as any).lastAutoTable.finalY + 10;
+
+    // Draw separator line
+    doc.setLineWidth(0.3);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+
+    yPos += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("TERMS & CONDITIONS", margin, yPos);
 
     yPos += 5;
     doc.setFont("helvetica", "normal");
@@ -515,6 +610,17 @@ export const generateInvoicePdf = (
       "Includes discounts for your city, limited returns and/or for online payments (as applicable)",
       margin,
       yPos
+    );
+
+    // ============ FOOTER ============
+    const pageHeight = doc.internal.pageSize.getHeight();
+    doc.setFontSize(7);
+    doc.setTextColor(100, 100, 100);
+    doc.text(
+      `Generated on ${new Date().toLocaleString("en-GB")}`,
+      pageWidth / 2,
+      pageHeight - 5,
+      { align: "center" }
     );
 
     return doc;

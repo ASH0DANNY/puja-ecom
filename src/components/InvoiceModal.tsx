@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Download, Eye, X, Loader } from "lucide-react";
 import type { Order } from "../types/order";
-import { generateInvoicePdf, downloadPdf, previewPdf } from "../utils/exportPdf";
+import {
+  generateInvoicePdf,
+  downloadPdf,
+  previewPdf,
+} from "../utils/exportPdf";
 
 interface InvoiceModalProps {
   order: Order;
@@ -9,11 +13,7 @@ interface InvoiceModalProps {
   onClose: () => void;
 }
 
-export const InvoiceModal = ({
-  order,
-  isOpen,
-  onClose,
-}: InvoiceModalProps) => {
+export const InvoiceModal = ({ order, isOpen, onClose }: InvoiceModalProps) => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,6 +34,7 @@ export const InvoiceModal = ({
         customerName: order.userName || order.customerName || "Customer",
         email: order.userEmail,
         phone: order.customerPhone || "N/A",
+        paymentMethod: order.paymentMethod || "N/A",
         address: `${order.shippingAddress?.street || ""}, ${
           order.shippingAddress?.city || ""
         }, ${order.shippingAddress?.state || ""} ${
@@ -43,16 +44,22 @@ export const InvoiceModal = ({
           name: item.product?.name || "Product",
           quantity: item.quantity,
           price: item.priceAtSelectedSize || item.priceAtOrder || 0,
-          total: (item.priceAtSelectedSize || item.priceAtOrder || 0) * item.quantity,
+          total:
+            (item.priceAtSelectedSize || item.priceAtOrder || 0) *
+            item.quantity,
           size: item.selectedSize,
           weight: item.product?.sizesWithPrices?.find(
             (swp) => swp.size === item.selectedSize
           )?.weight,
-          dimensions: item.selectedSize && item.product?.sizesWithPrices?.find(
-            (swp) => swp.size === item.selectedSize
-          )?.dimensions,
+          dimensions:
+            item.selectedSize &&
+            item.product?.sizesWithPrices?.find(
+              (swp) => swp.size === item.selectedSize
+            )?.dimensions,
           customDimensions: item.customDimensions
-            ? `${item.customDimensions.width} × ${item.customDimensions.height}${
+            ? `${item.customDimensions.width} × ${
+                item.customDimensions.height
+              }${
                 item.customDimensions.depth
                   ? ` × ${item.customDimensions.depth}`
                   : ""
@@ -91,6 +98,7 @@ export const InvoiceModal = ({
         customerName: order.userName || order.customerName || "Customer",
         email: order.userEmail,
         phone: order.customerPhone || "N/A",
+        paymentMethod: order.paymentMethod || "N/A",
         address: `${order.shippingAddress?.street || ""}, ${
           order.shippingAddress?.city || ""
         }, ${order.shippingAddress?.state || ""} ${
@@ -100,16 +108,22 @@ export const InvoiceModal = ({
           name: item.product?.name || "Product",
           quantity: item.quantity,
           price: item.priceAtSelectedSize || item.priceAtOrder || 0,
-          total: (item.priceAtSelectedSize || item.priceAtOrder || 0) * item.quantity,
+          total:
+            (item.priceAtSelectedSize || item.priceAtOrder || 0) *
+            item.quantity,
           size: item.selectedSize,
           weight: item.product?.sizesWithPrices?.find(
             (swp) => swp.size === item.selectedSize
           )?.weight,
-          dimensions: item.selectedSize && item.product?.sizesWithPrices?.find(
-            (swp) => swp.size === item.selectedSize
-          )?.dimensions,
+          dimensions:
+            item.selectedSize &&
+            item.product?.sizesWithPrices?.find(
+              (swp) => swp.size === item.selectedSize
+            )?.dimensions,
           customDimensions: item.customDimensions
-            ? `${item.customDimensions.width} × ${item.customDimensions.height}${
+            ? `${item.customDimensions.width} × ${
+                item.customDimensions.height
+              }${
                 item.customDimensions.depth
                   ? ` × ${item.customDimensions.depth}`
                   : ""
@@ -122,10 +136,7 @@ export const InvoiceModal = ({
         total: order.total || 0,
       };
 
-      const pdf = generateInvoicePdf(
-        invoiceData,
-        `Invoice-${order.id}.pdf`
-      );
+      const pdf = generateInvoicePdf(invoiceData, `Invoice-${order.id}.pdf`);
       downloadPdf(pdf, `Invoice-${order.id}.pdf`);
       // Optionally close the modal after download
       onClose();

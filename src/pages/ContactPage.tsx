@@ -384,7 +384,7 @@ const ContactPage = () => {
               </div>
             </div>
 
-            {/* Quick Links */}
+            {/* Quick Links
             <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6">
               <h2 className="text-xl font-semibold text-gray-800 mb-4">
                 Need Quick Help?
@@ -418,7 +418,7 @@ const ContactPage = () => {
                   </p>
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

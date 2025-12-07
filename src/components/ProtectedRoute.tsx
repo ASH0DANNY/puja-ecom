@@ -33,6 +33,14 @@ const ProtectedRoute = ({
     return <Navigate to="/" />;
   }
 
+  // Disable cart, payment, and orders pages for admin users
+  if (user.role === "admin") {
+    const pathname = window.location.pathname;
+    if (pathname === "/cart" || pathname === "/payment" || pathname === "/orders") {
+      return <Navigate to="/" />;
+    }
+  }
+
   return <>{children}</>;
 };
 

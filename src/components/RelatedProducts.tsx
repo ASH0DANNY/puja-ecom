@@ -67,10 +67,13 @@ const RelatedProducts = ({
       </h2>
 
       {/* Horizontal Scrollable Container */}
-      <div className="overflow-x-auto pb-4 scrollbar-hide flex h-screen">
-        <div className="flex gap-2 min-w-min">
+      <div className="overflow-x-auto pb-4 scrollbar-hide">
+        <div className="flex gap-4 min-w-min">
           {relatedProducts.map((product) => (
-            <div key={product.id} className="flex-shrink-0 w-[160px]">
+            <div
+              key={product.id}
+              className="flex-shrink-0 w-[170px] sm:w-[220px] md:w-[240px]"
+            >
               <ProductCard product={product} />
             </div>
           ))}
