@@ -11,7 +11,6 @@ import { useReduxAuth } from "../redux/useReduxAuth";
 import type { Order } from "../types/order";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { InvoiceModal } from "../components/InvoiceModal";
-import { OrderInvoice } from "../components/OrderInvoice";
 import {
   ShoppingBag,
   Eye,
@@ -20,12 +19,25 @@ import {
   CheckCircle,
   Clock,
   Calendar,
-  Filter,
   Search,
   Download,
   X,
   CreditCard,
 } from "lucide-react";
+import {
+  Tabs,
+  Tab,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
+  Chip,
+} from "@mui/material";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -35,8 +47,8 @@ const OrdersPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [invoiceOrder, setInvoiceOrder] = useState<Order | null>(null);
-  const [sortField, setSortField] = useState<keyof Order>("createdAt");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const { user } = useReduxAuth();
   const scrollToTop = useScrollToTop();
 
@@ -109,29 +121,9 @@ const OrdersPage = () => {
       );
     }
 
-    filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (aValue === bValue) return 0;
-
-      const direction = sortDirection === "asc" ? 1 : -1;
-
-      if (sortField === "createdAt") {
-        const dateA = aValue instanceof Date ? aValue : new Date(aValue as any);
-        const dateB = bValue instanceof Date ? bValue : new Date(bValue as any);
-        return direction * (dateA.getTime() - dateB.getTime());
-      }
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return direction * aValue.localeCompare(bValue);
-      }
-
-      return direction * ((aValue as any) > (bValue as any) ? 1 : -1);
-    });
-
     setFilteredOrders(filtered);
-  }, [orders, statusFilter, searchQuery, sortField, sortDirection]);
+    setPage(0); // Reset to first page when filters change
+  }, [orders, statusFilter, searchQuery]);
 
   const getStatusIcon = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -273,6 +265,49 @@ const OrdersPage = () => {
           </div>
         </div>
 
+        {/* Tabs for Status Filter */}
+        <Paper sx={{ mb: 4, borderRadius: 2 }}>
+          <Tabs
+            value={statusFilter}
+            onChange={(_, newValue) => {
+              setStatusFilter(newValue);
+              setPage(0);
+            }}
+            variant="fullWidth"
+            sx={{
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#3b82f6",
+              },
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontSize: "0.95rem",
+                fontWeight: 500,
+                transition: "all 0.2s",
+                "&:hover": {
+                  backgroundColor: "rgba(59, 130, 246, 0.05)",
+                },
+                "&.Mui-selected": {
+                  color: "#3b82f6",
+                },
+              },
+            }}
+          >
+            <Tab label={`All Orders (${orders.length})`} value="all" />
+            <Tab
+              label={`Processing (${orders.filter((o) => o.status?.toLowerCase() === "processing").length})`}
+              value="processing"
+            />
+            <Tab
+              label={`Shipped (${orders.filter((o) => o.status?.toLowerCase() === "shipped").length})`}
+              value="shipped"
+            />
+            <Tab
+              label={`Delivered (${orders.filter((o) => o.status?.toLowerCase() === "delivered").length})`}
+              value="delivered"
+            />
+          </Tabs>
+        </Paper>
+
         {/* Filters and Search */}
         <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -285,19 +320,6 @@ const OrdersPage = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
               />
-            </div>
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-              >
-                <option value="all">All Status</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-              </select>
             </div>
           </div>
         </div>
@@ -577,10 +599,10 @@ const OrdersPage = () => {
           onClose={() => setInvoiceOrder(null)}
         />
 
-        {/* Orders List */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+        {/* Orders Table with Pagination */}
+        <Paper sx={{ borderRadius: 2, overflow: "hidden", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)" }}>
           {filteredOrders.length === 0 ? (
-            <div className="p-12 text-center">
+            <Box sx={{ p: 6, textAlign: "center" }}>
               <ShoppingBag className="w-16 h-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 {orders.length === 0 ? "No orders yet" : "No orders found"}
@@ -590,167 +612,198 @@ const OrdersPage = () => {
                   ? "When you place your first order, it will appear here."
                   : "Try adjusting your search or filter criteria."}
               </p>
-            </div>
+            </Box>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order Details
-                    </th>
+            <>
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Order Details
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Date
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Status
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Payment
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Items
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Total
+                      </TableCell>
+                      <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                        Actions
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filteredOrders
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((order) => (
+                        <TableRow
+                          key={order.id}
+                          hover
+                          sx={{
+                            "&:hover": {
+                              backgroundColor: "#f3f4f6",
+                            },
+                          }}
+                        >
+                          <TableCell>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                #{order.id.slice(-8).toUpperCase()}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                Order ID: {order.id}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Calendar className="w-4 h-4 text-gray-400" />
+                              <div className="text-sm text-gray-900">
+                                {(() => {
+                                  try {
+                                    if (!order.createdAt) return "N/A";
+                                    const date =
+                                      order.createdAt instanceof Timestamp
+                                        ? order.createdAt.toDate()
+                                        : new Date(order.createdAt);
+                                    return date.toLocaleDateString();
+                                  } catch (e) {
+                                    return "N/A";
+                                  }
+                                })()}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(order.status || "pending")}
+                              <Chip
+                                label={
+                                  order.status
+                                    ? order.status.charAt(0).toUpperCase() +
+                                      order.status.toLowerCase().slice(1)
+                                    : "Pending"
+                                }
+                                size="small"
+                                variant="outlined"
+                                sx={{
+                                  backgroundColor:
+                                    order.status?.toLowerCase() === "delivered"
+                                      ? "#dcfce7"
+                                      : order.status?.toLowerCase() === "shipped"
+                                        ? "#dbeafe"
+                                        : order.status?.toLowerCase() === "processing"
+                                          ? "#fef3c7"
+                                          : "#f3f4f6",
+                                  color:
+                                    order.status?.toLowerCase() === "delivered"
+                                      ? "#166534"
+                                      : order.status?.toLowerCase() === "shipped"
+                                        ? "#1e40af"
+                                        : order.status?.toLowerCase() === "processing"
+                                          ? "#92400e"
+                                          : "#374151",
+                                  border: "none",
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <CreditCard className="w-4 h-4 text-gray-400" />
+                              <div className="text-sm text-gray-900">
+                                {formatPaymentMethod(order.paymentMethod)}
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm text-gray-900">
+                              {order.items?.length || 0}{" "}
+                              {order.items?.length === 1 ? "item" : "items"}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {order.items?.[0]?.product?.name &&
+                                `${order.items[0].product.name}${
+                                  order.items.length > 1
+                                    ? ` +${order.items.length - 1} more`
+                                    : ""
+                                }`}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm font-medium text-gray-900">
+                              {(order.total || 0).toFixed(2)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => setSelectedOrder(order)}
+                                className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium"
+                                title="View order details"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                View
+                              </button>
 
-                    <th
-                      className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        if (sortField === "createdAt") {
-                          setSortDirection((prev) =>
-                            prev === "asc" ? "desc" : "asc"
-                          );
-                        } else {
-                          setSortField("createdAt");
-                          setSortDirection("asc");
-                        }
-                      }}
-                    >
-                      Date
-                      {sortField === "createdAt" && (
-                        <span className="ml-1">
-                          {sortDirection === "asc" ? "↑" : "↓"}
-                        </span>
-                      )}
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Payment
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredOrders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            #{order.id.slice(-8).toUpperCase()}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            Order ID: {order.id}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <div className="text-sm text-gray-900">
-                            {(() => {
-                              try {
-                                if (!order.createdAt) return "N/A";
-                                const date =
-                                  order.createdAt instanceof Timestamp
-                                    ? order.createdAt.toDate()
-                                    : new Date(order.createdAt);
-                                return date.toLocaleDateString();
-                              } catch (e) {
-                                return "N/A";
-                              }
-                            })()}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(order.status || "pending")}
-                          <span
-                            className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                              order.status || "pending"
-                            )}`}
-                          >
-                            {order.status
-                              ? order.status.charAt(0).toUpperCase() +
-                                order.status.toLowerCase().slice(1)
-                              : "Pending"}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="w-4 h-4 text-gray-400" />
-                          <div className="text-sm text-gray-900">
-                            {formatPaymentMethod(order.paymentMethod)}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                          {order.items?.length || 0}{" "}
-                          {order.items?.length === 1 ? "item" : "items"}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {order.items?.[0]?.name &&
-                            `${order.items[0].name}${
-                              order.items.length > 1
-                                ? ` +${order.items.length - 1} more`
-                                : ""
-                            }`}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {(order.total || 0).toFixed(2)}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setSelectedOrder(order)}
-                            className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 transition-colors text-xs font-medium"
-                            title="View order details"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            View
-                          </button>
-
-                          {(order.status?.toLowerCase() === "cancelled" ||
-                            order.status?.toLowerCase() === "delivered") ? (
-                            <button
-                              onClick={() => setInvoiceOrder(order)}
-                              className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-xs font-medium"
-                              title="Download invoice"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              Invoice
-                            </button>
-                          ) : (
-                            <button
-                              disabled
-                              className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded-md cursor-not-allowed text-xs font-medium opacity-50"
-                              title="Invoice available after delivery or cancellation"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              Invoice
-                            </button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                              {(order.status?.toLowerCase() === "cancelled" ||
+                                order.status?.toLowerCase() === "delivered") ? (
+                                <button
+                                  onClick={() => setInvoiceOrder(order)}
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-green-50 text-green-700 rounded-md hover:bg-green-100 transition-colors text-xs font-medium"
+                                  title="Download invoice"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  Invoice
+                                </button>
+                              ) : (
+                                <button
+                                  disabled
+                                  className="flex items-center gap-1 px-3 py-1.5 bg-gray-100 text-gray-400 rounded-md cursor-not-allowed text-xs font-medium opacity-50"
+                                  title="Invoice available after delivery or cancellation"
+                                >
+                                  <Download className="w-3.5 h-3.5" />
+                                  Invoice
+                                </button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+              <TablePagination
+                rowsPerPageOptions={[5, 10, 25, 50]}
+                component="div"
+                count={filteredOrders.length}
+                rowsPerPage={rowsPerPage}
+                page={page}
+                onPageChange={(_, newPage) => setPage(newPage)}
+                onRowsPerPageChange={(e) => {
+                  setRowsPerPage(parseInt(e.target.value, 10));
+                  setPage(0);
+                }}
+                sx={{
+                  borderTop: "1px solid #e5e7eb",
+                  "& .MuiTablePagination-toolbar": {
+                    padding: "12px 24px",
+                  },
+                }}
+              />
+            </>
           )}
-        </div>
+        </Paper>
       </div>
     </div>
   );

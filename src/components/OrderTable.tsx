@@ -12,6 +12,17 @@ import {
 } from "lucide-react";
 import { InvoiceModal } from "./InvoiceModal";
 import OrderEmailManager from "./OrderEmailManager";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
+  Chip,
+} from "@mui/material";
 
 interface OrderTableProps {
   orders: Order[];
@@ -23,11 +34,11 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   const [invoiceModalOrder, setInvoiceModalOrder] = useState<Order | null>(
     null
   );
-  const [sortField, setSortField] = useState<keyof Order>("createdAt");
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredOrders, setFilteredOrders] = useState<Order[]>(orders);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   useEffect(() => {
     let filtered = [...orders];
@@ -51,29 +62,8 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
       );
     }
 
-    filtered.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
-
-      if (aValue === bValue) return 0;
-
-      const direction = sortDirection === "asc" ? 1 : -1;
-
-      if (sortField === "createdAt") {
-        const dateA = aValue instanceof Date ? aValue : new Date(aValue as any);
-        const dateB = bValue instanceof Date ? bValue : new Date(bValue as any);
-        return direction * (dateA.getTime() - dateB.getTime());
-      }
-
-      if (typeof aValue === "string" && typeof bValue === "string") {
-        return direction * aValue.localeCompare(bValue);
-      }
-
-      return direction * ((aValue as any) > (bValue as any) ? 1 : -1);
-    });
-
     setFilteredOrders(filtered);
-  }, [orders, statusFilter, searchQuery, sortField, sortDirection]);
+  }, [orders, statusFilter, searchQuery]);
 
   const handleStatusUpdate = async (
     orderId: string,
@@ -159,19 +149,36 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "processing":
-        return "bg-blue-100 text-blue-800";
-      case "shipped":
-        return "bg-purple-100 text-purple-800";
+    switch (status?.toLowerCase()) {
       case "delivered":
-        return "bg-green-100 text-green-800";
+        return "#dcfce7";
+      case "shipped":
+        return "#dbeafe";
+      case "processing":
+        return "#fef3c7";
+      case "pending":
+        return "#f0f0f0";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "#fee2e2";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "#f3f4f6";
+    }
+  };
+
+  const getStatusTextColor = (status: string) => {
+    switch (status?.toLowerCase()) {
+      case "delivered":
+        return "#166534";
+      case "shipped":
+        return "#1e40af";
+      case "processing":
+        return "#92400e";
+      case "pending":
+        return "#374151";
+      case "cancelled":
+        return "#991b1b";
+      default:
+        return "#374151";
     }
   };
 
@@ -209,7 +216,10 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
             <Filter className="w-5 h-5 text-gray-400" />
             <select
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => {
+                setStatusFilter(e.target.value);
+                setPage(0);
+              }}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
             >
               <option value="all">All Status</option>
@@ -223,172 +233,167 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
         </div>
       </div>
 
-      {/* Orders Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Order ID
-              </th>
-              <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => {
-                  if (sortField === "userName") {
-                    setSortDirection((prev) =>
-                      prev === "asc" ? "desc" : "asc"
-                    );
-                  } else {
-                    setSortField("userName");
-                    setSortDirection("asc");
-                  }
-                }}
-              >
-                <div className="flex items-center">
+      {/* Orders Table with Pagination */}
+      <Paper sx={{ borderRadius: 2, overflow: "hidden", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Order ID
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
                   Customer Info
-                  {sortField === "userName" && (
-                    <span className="ml-1">
-                      {sortDirection === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </div>
-              </th>
-              <th
-                className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                onClick={() => {
-                  if (sortField === "createdAt") {
-                    setSortDirection((prev) =>
-                      prev === "asc" ? "desc" : "asc"
-                    );
-                  } else {
-                    setSortField("createdAt");
-                    setSortDirection("asc");
-                  }
-                }}
-              >
-                <div className="flex items-center">
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
                   Date
-                  {sortField === "createdAt" && (
-                    <span className="ml-1">
-                      {sortDirection === "asc" ? "↑" : "↓"}
-                    </span>
-                  )}
-                </div>
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Payment
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Total
-              </th>
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Status
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Payment
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Total
+                </TableCell>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Emails
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {filteredOrders.map((order) => (
-              <tr key={order.id} className="hover:bg-gray-50">
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div>
-                    <div className="text-sm font-medium text-gray-900">
-                      #{order.id.slice(-8).toUpperCase()}
-                    </div>
-                    <div className="text-xs text-gray-500">{order.id}</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {order.userName || "Customer"}
-                  </div>
-                  <div className="text-sm text-gray-500">{order.userEmail}</div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <div className="text-sm text-gray-900">
-                      {formatDate(order.createdAt)}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <span
-                    className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
-                      order.status
-                    )}`}
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Emails
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredOrders
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((order) => (
+                  <TableRow
+                    key={order.id}
+                    hover
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#f3f4f6",
+                      },
+                    }}
                   >
-                    {order.status.charAt(0).toUpperCase() +
-                      order.status.slice(1)}
-                  </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4 text-gray-400" />
-                    <div className="text-sm text-gray-900">
-                      {formatPaymentMethod(order.paymentMethod)}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-gray-900">
-                    {order.total.toFixed(2)}
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-sm font-medium">
-                  <div className="space-y-2">
-                    <div className="flex gap-2 flex-wrap">
-                      <button
-                        onClick={() => setSelectedOrder(order)}
-                        className="text-primary hover:text-primary/80 inline-flex items-center gap-1"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span className="hidden xl:inline">View Details</span>
-                        <span className="xl:hidden">View</span>
-                      </button>
-                      <button
-                        onClick={() => setInvoiceModalOrder(order)}
-                        className="text-green-600 hover:text-green-700 inline-flex items-center gap-1"
-                        title="Download invoice"
-                      >
-                        <Download className="w-4 h-4" />
-                        <span className="hidden xl:inline">Invoice</span>
-                      </button>
-                    </div>
-                    <div className="flex gap-2 flex-wrap items-center">
-                      <select
-                        value={order.status}
-                        onChange={(e) =>
-                          handleStatusUpdate(
-                            order.id,
-                            e.target.value as Order["status"],
-                            order
-                          )
+                    <TableCell>
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          #{order.id.slice(-8).toUpperCase()}
+                        </div>
+                        <div className="text-xs text-gray-500">{order.id}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium text-gray-900">
+                        {order.userName || "Customer"}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {order.userEmail}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-gray-400" />
+                        <div className="text-sm text-gray-900">
+                          {formatDate(order.createdAt)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={
+                          order.status.charAt(0).toUpperCase() +
+                          order.status.slice(1)
                         }
-                        className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-sm"
-                      >
-                        <option value="pending">Pending</option>
-                        <option value="processing">Processing</option>
-                        <option value="shipped">Shipped</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <OrderEmailManager order={order} onEmailSent={onUpdate} />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          backgroundColor: getStatusColor(order.status),
+                          color: getStatusTextColor(order.status),
+                          border: "none",
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-gray-400" />
+                        <div className="text-sm text-gray-900">
+                          {formatPaymentMethod(order.paymentMethod)}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium text-gray-900">
+                        {order.total.toFixed(2)}
+                      </div>
+                    </TableCell>
+                    <TableCell sx={{ textAlign: "right" }}>
+                      <div className="flex gap-2 flex-wrap justify-end">
+                        <button
+                          onClick={() => setSelectedOrder(order)}
+                          className="text-primary hover:text-primary/80 inline-flex items-center gap-1"
+                        >
+                          <Eye className="w-4 h-4" />
+                          <span className="hidden xl:inline">View Details</span>
+                          <span className="xl:hidden">View</span>
+                        </button>
+                        <button
+                          onClick={() => setInvoiceModalOrder(order)}
+                          className="text-green-600 hover:text-green-700 inline-flex items-center gap-1"
+                          title="Download invoice"
+                        >
+                          <Download className="w-4 h-4" />
+                          <span className="hidden xl:inline">Invoice</span>
+                        </button>
+                        <select
+                          value={order.status}
+                          onChange={(e) =>
+                            handleStatusUpdate(
+                              order.id,
+                              e.target.value as Order["status"],
+                              order
+                            )
+                          }
+                          className="rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary text-sm"
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="processing">Processing</option>
+                          <option value="shipped">Shipped</option>
+                          <option value="delivered">Delivered</option>
+                          <option value="cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <OrderEmailManager order={order} onEmailSent={onUpdate} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={filteredOrders.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+          sx={{
+            borderTop: "1px solid #e5e7eb",
+            "& .MuiTablePagination-toolbar": {
+              padding: "12px 24px",
+            },
+          }}
+        />
+      </Paper>
 
       {/* Order Details Modal */}
       {selectedOrder && (

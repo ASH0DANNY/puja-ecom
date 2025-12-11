@@ -4,6 +4,16 @@ import { db } from "../config/firebase";
 import type { Product } from "../types/product";
 import { uploadImage } from "../utils/cloudinary";
 import { categories } from "../data/categories";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TablePagination,
+  Paper,
+} from "@mui/material";
 
 interface ProductTableProps {
   products: Product[];
@@ -13,6 +23,8 @@ interface ProductTableProps {
 export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleDelete = async (productId: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
@@ -74,88 +86,120 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
 
   return (
     <>
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Image
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Name
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Category
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Price
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Stock
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Suggested
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {products.map((product) => (
-              <tr key={product.id}>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-10 w-10 object-cover rounded"
-                  />
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{product.name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {categories.find(c => c.id === product.category)?.name || product.category}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  {product.sizesWithPrices && product.sizesWithPrices.length > 0
-                    ? product.sizesWithPrices
-                        .map((size) => `${size.price.toFixed(2)}`)
-                        .join(" / ")
-                    : `${product.price.toFixed(2)}`}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap">{product.stock}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => toggleSuggestion(product)}
-                    className={`px-3 py-1 rounded-full text-sm font-semibold
-                      ${
-                        product.isSuggested
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
+      <Paper sx={{ borderRadius: 2, overflow: "hidden", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)" }}>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow sx={{ backgroundColor: "#f9fafb" }}>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Image
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Name
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Category
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Price
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Stock
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Suggested
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
+                  Actions
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {products
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((product) => (
+                  <TableRow
+                    key={product.id}
+                    hover
+                    sx={{
+                      "&:hover": {
+                        backgroundColor: "#f3f4f6",
+                      },
+                    }}
                   >
-                    {product.isSuggested ? "Yes" : "No"}
-                  </button>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                  <button
-                    onClick={() => setEditingProduct(product)}
-                    className="text-indigo-600 hover:text-indigo-900"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(product.id)}
-                    disabled={loading}
-                    className="text-red-600 hover:text-red-900"
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                    <TableCell>
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="h-10 w-10 object-cover rounded"
+                      />
+                    </TableCell>
+                    <TableCell>{product.name}</TableCell>
+                    <TableCell>
+                      {categories.find(c => c.id === product.category)?.name || product.category}
+                    </TableCell>
+                    <TableCell>
+                      {product.sizesWithPrices && product.sizesWithPrices.length > 0
+                        ? product.sizesWithPrices
+                            .map((size) => `${size.price.toFixed(2)}`)
+                            .join(" / ")
+                        : `${product.price.toFixed(2)}`}
+                    </TableCell>
+                    <TableCell>{product.stock}</TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => toggleSuggestion(product)}
+                        className={`px-3 py-1 rounded-full text-sm font-semibold
+                          ${
+                            product.isSuggested
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                      >
+                        {product.isSuggested ? "Yes" : "No"}
+                      </button>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm font-medium space-x-2">
+                        <button
+                          onClick={() => setEditingProduct(product)}
+                          className="text-indigo-600 hover:text-indigo-900"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          disabled={loading}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25, 50]}
+          component="div"
+          count={products.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(parseInt(e.target.value, 10));
+            setPage(0);
+          }}
+          sx={{
+            borderTop: "1px solid #e5e7eb",
+            "& .MuiTablePagination-toolbar": {
+              padding: "12px 24px",
+            },
+          }}
+        />
+      </Paper>
 
       {/* Edit Modal */}
       {editingProduct && (

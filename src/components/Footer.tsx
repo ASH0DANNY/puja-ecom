@@ -13,7 +13,7 @@ const Footer = () => {
     <footer className="bg-gradient-to-r from-gray-900 to-gray-800">
       {/* Main Footer */}
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8">
           {/* About Section */}
           <div className="space-y-4">
             <div className="flex items-center">
@@ -119,15 +119,15 @@ const Footer = () => {
                   to="/orders"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Returns & Exchanges
+                  Track Orders
                 </Link>
               </li>
               <li>
                 <Link
-                  to="/orders"
+                  to="/contact"
                   className="text-gray-400 hover:text-white transition-colors"
                 >
-                  Track Orders
+                  Contact Support
                 </Link>
               </li>
             </ul>

@@ -28,6 +28,7 @@ import {
   LayoutGrid,
   Megaphone,
 } from "lucide-react";
+import { Tabs, Tab, Paper } from "@mui/material";
 
 type TabType =
   | "overview"
@@ -267,31 +268,47 @@ export const DashboardPage = () => {
           </div>
         )}
 
-        {/* Desktop Tabs */}
-        <div className="hidden lg:block bg-white rounded-xl shadow-sm mb-6">
-          <nav className="flex flex-wrap">
-            {tabConfig.map((tab, index) => (
-              <button
+        {/* Desktop Tabs with MUI */}
+        <Paper sx={{ mb: 4, borderRadius: 2, display: { xs: "none", lg: "block" } }}>
+          <Tabs
+            value={activeTab}
+            onChange={(_, newValue) => setActiveTab(newValue as TabType)}
+            variant="fullWidth"
+            sx={{
+              "& .MuiTabs-indicator": {
+                backgroundColor: "#3b82f6",
+              },
+              "& .MuiTab-root": {
+                textTransform: "none",
+                fontSize: "0.95rem",
+                fontWeight: 500,
+                transition: "all 0.2s",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                "&:hover": {
+                  backgroundColor: "rgba(59, 130, 246, 0.05)",
+                },
+                "&.Mui-selected": {
+                  color: "#3b82f6",
+                },
+              },
+            }}
+          >
+            {tabConfig.map((tab) => (
+              <Tab
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id as TabType)}
-                className={`
-                  flex-1 min-w-[120px] py-4 px-6 font-medium text-sm transition-all duration-200
-                  flex items-center justify-center gap-2
-                  ${
-                    activeTab === tab.id
-                      ? "bg-primary text-white shadow-md"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }
-                  ${index === 0 ? "rounded-l-xl" : ""}
-                  ${index === tabConfig.length - 1 ? "rounded-r-xl" : ""}
-                `}
-              >
-                <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
+                label={
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <tab.icon size={18} />
+                    <span>{tab.label}</span>
+                  </div>
+                }
+                value={tab.id as TabType}
+              />
             ))}
-          </nav>
-        </div>
+          </Tabs>
+        </Paper>
 
         {/* Mobile Add Product Button */}
         {activeTab === "products" && (
@@ -317,7 +334,7 @@ export const DashboardPage = () => {
                     className={`${stat.bgColor} rounded-xl p-5 border border-gray-100 hover:shadow-md transition-shadow`}
                   >
                     <div className="flex items-center justify-between mb-3">
-                      <div className={`${stat.color} bg-white p-2 rounded-lg`}>
+                      <div className={`${stat.color} p-2 rounded-lg`}>
                         <stat.icon className="w-5 h-5 text-white" />
                       </div>
                       <TrendingUp className="w-4 h-4 text-gray-400" />
