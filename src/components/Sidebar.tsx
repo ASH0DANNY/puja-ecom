@@ -88,20 +88,24 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <p className="text-sm font-semibold text-gray-900 truncate">
                       {user.displayName || user.email?.split("@")[0]}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <p className="text-xs text-gray-500 truncate">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
 
                 {/* Profile Actions */}
                 <div className="space-y-2">
-                  <Link
-                    to="/orders"
-                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-white hover:text-primary rounded-xl transition-all duration-200 font-medium"
-                    onClick={onClose}
-                  >
-                    <ShoppingBag className="w-5 h-5" />
-                    <span>My Orders</span>
-                  </Link>
+                  {user.role === "user" && (
+                    <Link
+                      to="/orders"
+                      className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-white hover:text-primary rounded-xl transition-all duration-200 font-medium"
+                      onClick={onClose}
+                    >
+                      <ShoppingBag className="w-5 h-5" />
+                      <span>My Orders</span>
+                    </Link>
+                  )}
 
                   {user.role === "admin" && (
                     <Link
