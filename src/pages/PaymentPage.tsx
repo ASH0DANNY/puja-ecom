@@ -50,7 +50,6 @@ const PaymentPage = () => {
   const [orderNumber, setOrderNumber] = useState("");
   const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(true);
   const [codEnabled, setCodEnabled] = useState(true);
-  const [paymentSettingsLoading, setPaymentSettingsLoading] = useState(true);
   const [customerForm, setCustomerForm] = useState<CustomerForm>({
     name: "",
     phone: "",
@@ -85,8 +84,6 @@ const PaymentPage = () => {
       }
     } catch (error) {
       console.error("Error fetching payment settings:", error);
-    } finally {
-      setPaymentSettingsLoading(false);
     }
   };
 
