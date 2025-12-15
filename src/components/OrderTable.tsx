@@ -234,7 +234,13 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
       </div>
 
       {/* Orders Table with Pagination */}
-      <Paper sx={{ borderRadius: 2, overflow: "hidden", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)" }}>
+      <Paper
+        sx={{
+          borderRadius: 2,
+          overflow: "hidden",
+          boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+        }}
+      >
         <TableContainer>
           <Table>
             <TableHead>
@@ -257,9 +263,9 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
                   Total
                 </TableCell>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Actions
-              </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
                   Emails
                 </TableCell>

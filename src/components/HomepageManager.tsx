@@ -7,6 +7,7 @@ import {
   addDoc,
   deleteDoc,
   Timestamp,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
@@ -22,10 +23,28 @@ const HomepageManager = () => {
   const [showNewSectionForm, setShowNewSectionForm] = useState(false);
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
   const [sectionForm, setSectionForm] = useState({ name: "", description: "" });
+  const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(true);
+  const [codEnabled, setCodEnabled] = useState(true);
 
   useEffect(() => {
     fetchData();
+    fetchPaymentSettings();
   }, []);
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const settingsSnapshot = await getDocs(
+        collection(db, "applicationSettings")
+      );
+      if (!settingsSnapshot.empty) {
+        const settingsData = settingsSnapshot.docs[0].data();
+        setOnlinePaymentEnabled(settingsData.onlinePaymentEnabled ?? true);
+        setCodEnabled(settingsData.codEnabled ?? true);
+      }
+    } catch (error) {
+      console.error("Error fetching payment settings:", error);
+    }
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -170,6 +189,33 @@ const HomepageManager = () => {
     }
   };
 
+  const updatePaymentSetting = async (
+    setting: "onlinePaymentEnabled" | "codEnabled",
+    value: boolean
+  ) => {
+    try {
+      const settingsDocRef = doc(db, "applicationSettings", "paymentSettings");
+
+      // Use merge to create if not exists, update if exists
+      await setDoc(
+        settingsDocRef,
+        {
+          [setting]: value,
+          updatedAt: Timestamp.now(),
+        },
+        { merge: true }
+      );
+
+      if (setting === "onlinePaymentEnabled") {
+        setOnlinePaymentEnabled(value);
+      } else {
+        setCodEnabled(value);
+      }
+    } catch (error) {
+      console.error("Error updating payment settings:", error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="w-full h-48 flex items-center justify-center">
@@ -180,6 +226,70 @@ const HomepageManager = () => {
 
   return (
     <div className="space-y-8">
+      {/* Payment Settings Section */}
+      <div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Payment Settings
+        </h2>
+        <div className="bg-gray-50 rounded-xl p-6 space-y-6">
+          {/* Online Payment Toggle */}
+          <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Online Payment
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Enable or disable online payment facility
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={onlinePaymentEnabled}
+                onChange={(e) =>
+                  updatePaymentSetting("onlinePaymentEnabled", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            </label>
+          </div>
+
+          {/* COD Toggle */}
+          <div className="flex items-center justify-between bg-white rounded-lg p-4 border border-gray-200">
+            <div>
+              <h3 className="text-lg font-medium text-gray-900">
+                Cash on Delivery (COD)
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                Enable or disable cash on delivery payment facility
+              </p>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                checked={codEnabled}
+                onChange={(e) =>
+                  updatePaymentSetting("codEnabled", e.target.checked)
+                }
+                className="sr-only peer"
+              />
+              <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+            </label>
+          </div>
+
+          {/* Warning Message */}
+          {!onlinePaymentEnabled && !codEnabled && (
+            <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-4">
+              <p className="text-red-800 font-medium">
+                ⚠️ Warning: Both payment methods are disabled. Customers will
+                not be able to make purchases.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Featured Products Section */}
       <div>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">

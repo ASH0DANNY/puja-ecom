@@ -8,6 +8,7 @@ import {
   serverTimestamp,
   updateDoc,
   increment,
+  getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useReduxAuth } from "../redux/useReduxAuth";
@@ -25,6 +26,7 @@ import {
   CreditCard,
   ShoppingBag,
   Loader2,
+  Clock,
 } from "lucide-react";
 
 // Form interfaces
@@ -46,6 +48,9 @@ const PaymentPage = () => {
   const [loading, setLoading] = useState(false);
   const [showOrderSuccess, setShowOrderSuccess] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [onlinePaymentEnabled, setOnlinePaymentEnabled] = useState(true);
+  const [codEnabled, setCodEnabled] = useState(true);
+  const [paymentSettingsLoading, setPaymentSettingsLoading] = useState(true);
   const [customerForm, setCustomerForm] = useState<CustomerForm>({
     name: "",
     phone: "",
@@ -65,7 +70,25 @@ const PaymentPage = () => {
 
   useEffect(() => {
     scrollToTop();
+    fetchPaymentSettings();
   }, []);
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const settingsSnapshot = await getDocs(
+        collection(db, "applicationSettings")
+      );
+      if (!settingsSnapshot.empty) {
+        const settingsData = settingsSnapshot.docs[0].data();
+        setOnlinePaymentEnabled(settingsData.onlinePaymentEnabled ?? true);
+        setCodEnabled(settingsData.codEnabled ?? true);
+      }
+    } catch (error) {
+      console.error("Error fetching payment settings:", error);
+    } finally {
+      setPaymentSettingsLoading(false);
+    }
+  };
 
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,22 +139,23 @@ const PaymentPage = () => {
 
       // Create order record in Firebase
       const orderRef = doc(collection(db, "orders"));
-      const calculatedSubtotal = items.reduce(
-        (sum, item) => {
-          // Get the correct price: either from selected size or from base price
-          let itemPrice = item.price || 0;
-          if (item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0) {
-            const sizePrice = item.sizesWithPrices.find(
-              (s) => s.size === item.selectedSize
-            );
-            if (sizePrice) {
-              itemPrice = sizePrice.price;
-            }
+      const calculatedSubtotal = items.reduce((sum, item) => {
+        // Get the correct price: either from selected size or from base price
+        let itemPrice = item.price || 0;
+        if (
+          item.selectedSize &&
+          item.sizesWithPrices &&
+          item.sizesWithPrices.length > 0
+        ) {
+          const sizePrice = item.sizesWithPrices.find(
+            (s) => s.size === item.selectedSize
+          );
+          if (sizePrice) {
+            itemPrice = sizePrice.price;
           }
-          return sum + itemPrice * item.quantity;
-        },
-        0
-      );
+        }
+        return sum + itemPrice * item.quantity;
+      }, 0);
       const calculatedDiscountAmount = discountCode
         ? calculatedSubtotal - total
         : 0;
@@ -147,7 +171,11 @@ const PaymentPage = () => {
         items: items.map((item) => {
           // Calculate price at selected size
           let priceAtSelectedSize = item.price || 0;
-          if (item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0) {
+          if (
+            item.selectedSize &&
+            item.sizesWithPrices &&
+            item.sizesWithPrices.length > 0
+          ) {
             const sizePrice = item.sizesWithPrices.find(
               (s) => s.size === item.selectedSize
             );
@@ -298,10 +326,13 @@ const PaymentPage = () => {
                       </span>
                     </div>
                     <span className="font-semibold text-gray-900">
-                      {(
-                        item.selectedSize && item.sizesWithPrices && item.sizesWithPrices.length > 0
-                          ? (item.sizesWithPrices.find(s => s.size === item.selectedSize)?.price || item.price)
-                          : (item.discountPrice || item.price)
+                      {(item.selectedSize &&
+                      item.sizesWithPrices &&
+                      item.sizesWithPrices.length > 0
+                        ? item.sizesWithPrices.find(
+                            (s) => s.size === item.selectedSize
+                          )?.price || item.price
+                        : item.discountPrice || item.price
                       ).toFixed(2)}
                     </span>
                   </div>
@@ -523,45 +554,73 @@ const PaymentPage = () => {
                   Payment Method
                 </h2>
                 <div className="space-y-3">
-                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="upi"
-                      checked={paymentMethod === "upi"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
-                    />
-                    <span className="ml-3 text-gray-700 font-medium">UPI</span>
-                  </label>
+                  {/* Online Payment Methods */}
+                  {onlinePaymentEnabled ? (
+                    <>
+                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="upi"
+                          checked={paymentMethod === "upi"}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                        />
+                        <span className="ml-3 text-gray-700 font-medium">
+                          UPI
+                        </span>
+                      </label>
 
-                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="card"
-                      checked={paymentMethod === "card"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
-                    />
-                    <span className="ml-3 text-gray-700 font-medium">
-                      Credit/Debit Card
-                    </span>
-                  </label>
+                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          value="card"
+                          checked={paymentMethod === "card"}
+                          onChange={(e) => setPaymentMethod(e.target.value)}
+                          className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                        />
+                        <span className="ml-3 text-gray-700 font-medium">
+                          Credit/Debit Card
+                        </span>
+                      </label>
+                    </>
+                  ) : (
+                    <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Clock className="w-5 h-5" />
+                        <span className="font-medium">
+                          Online Payment - Coming Soon
+                        </span>
+                      </div>
+                    </div>
+                  )}
 
-                  <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                    <input
-                      type="radio"
-                      name="paymentMethod"
-                      value="cod"
-                      checked={paymentMethod === "cod"}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
-                    />
-                    <span className="ml-3 text-gray-700 font-medium">
-                      Cash on Delivery
-                    </span>
-                  </label>
+                  {/* COD */}
+                  {codEnabled ? (
+                    <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cod"
+                        checked={paymentMethod === "cod"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                      />
+                      <span className="ml-3 text-gray-700 font-medium">
+                        Cash on Delivery
+                      </span>
+                    </label>
+                  ) : (
+                    <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Clock className="w-5 h-5" />
+                        <span className="font-medium">
+                          Cash on Delivery - Coming Soon
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

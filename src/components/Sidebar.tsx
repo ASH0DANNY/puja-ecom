@@ -54,15 +54,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           <div className="flex-1 overflow-y-auto py-6">
             <nav className="px-6 space-y-2">
               {menuItems.map((item) => (
-                <Link
-                  key={item.id}
-                  to={item.path}
-                  className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 font-medium"
-                  onClick={onClose}
-                >
-                  {/* You can add icons here if menuItems has icon property */}
-                  <span>{item.label}</span>
-                </Link>
+                <>
+                  {/* {user && user.role === "user" && item.label !== "Orders" && ( */}
+                  <Link
+                    key={item.id}
+                    to={item.path}
+                    className="flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-primary/10 hover:text-primary rounded-xl transition-all duration-200 font-medium"
+                    onClick={onClose}
+                  >
+                    {/* You can add icons here if menuItems has icon property */}
+                    <span>{item.label}</span>
+                  </Link>
+                  {/* )} */}
+                </>
               ))}
             </nav>
           </div>

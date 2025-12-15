@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import type { FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { addDoc, collection, Timestamp } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { useReduxAuth } from "../redux/useReduxAuth";
 import { useScrollToTop } from "../utils/scrollToTop";
+import toast from "react-hot-toast";
 import {
   MessageSquare,
   CheckCircle,
@@ -27,6 +29,7 @@ const SuggestionsPage = () => {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
   const scrollToTop = useScrollToTop();
+  const navigate = useNavigate();
 
   useEffect(() => {
     scrollToTop();
@@ -34,8 +37,11 @@ const SuggestionsPage = () => {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    // Check if user is logged in when submit button is clicked
     if (!user) {
-      alert("Please login to submit suggestions");
+      toast.error("Please login to submit suggestions");
+      navigate("/login", { state: { from: "/suggestions" } });
       return;
     }
 
@@ -50,6 +56,7 @@ const SuggestionsPage = () => {
       });
 
       setSubmitted(true);
+      toast.success("Suggestion submitted successfully!");
       // Reset form after 3 seconds
       setTimeout(() => {
         setFormData({
@@ -63,7 +70,7 @@ const SuggestionsPage = () => {
       }, 3000);
     } catch (error) {
       console.error("Error submitting suggestion:", error);
-      alert("Failed to submit suggestion. Please try again.");
+      toast.error("Failed to submit suggestion. Please try again.");
     } finally {
       setLoading(false);
     }

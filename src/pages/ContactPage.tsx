@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useScrollToTop } from "../utils/scrollToTop";
+import { useReduxAuth } from "../redux/useReduxAuth";
+import toast from "react-hot-toast";
 import {
   Mail,
   Phone,
@@ -29,6 +32,8 @@ interface FormStatus {
 
 const ContactPage = () => {
   const scrollToTop = useScrollToTop();
+  const navigate = useNavigate();
+  const { user } = useReduxAuth();
   const [formData, setFormData] = useState<ContactFormData>({
     name: "",
     email: "",
@@ -102,6 +107,13 @@ const ContactPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Check if user is logged in when submit button is clicked
+    if (!user) {
+      toast.error("Please login to send a message");
+      navigate("/login", { state: { from: "/contact" } });
+      return;
+    }
+
     if (!validateForm()) {
       setStatus({
         type: "error",
@@ -119,6 +131,7 @@ const ContactPage = () => {
         type: "success",
         message: "Message sent successfully! We'll get back to you soon.",
       });
+      toast.success("Message sent successfully!");
       setFormData({
         name: "",
         email: "",
@@ -130,6 +143,7 @@ const ContactPage = () => {
         type: "error",
         message: "Failed to send message. Please try again later.",
       });
+      toast.error("Failed to send message. Please try again later.");
     }
   };
 

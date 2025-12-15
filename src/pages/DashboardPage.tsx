@@ -36,7 +36,7 @@ type TabType =
   | "orders"
   | "suggestions"
   | "discounts"
-  | "homepage"
+  | "settings"
   | "promotional";
 
 interface DashboardStats {
@@ -52,7 +52,7 @@ const tabConfig = [
   { id: "orders", label: "Orders", icon: ShoppingCart },
   { id: "suggestions", label: "Suggestions", icon: MessageSquare },
   { id: "discounts", label: "Discounts", icon: Tag },
-  { id: "homepage", label: "Homepage Sections", icon: LayoutGrid },
+  { id: "settings", label: "Application Settings", icon: LayoutGrid },
   { id: "promotional", label: "Promotional", icon: Megaphone },
 ];
 
@@ -127,7 +127,9 @@ export const DashboardPage = () => {
       const totalRevenue = ordersData
         .filter((order) => order.status !== "cancelled")
         .reduce((sum, order) => sum + (order.total || 0), 0);
-      const totalOrders = ordersData.filter((order) => order.status !== "cancelled").length;
+      const totalOrders = ordersData.filter(
+        (order) => order.status !== "cancelled"
+      ).length;
       const usersSnapshot = await getDocs(collection(db, "users"));
 
       setStats({
@@ -269,7 +271,9 @@ export const DashboardPage = () => {
         )}
 
         {/* Desktop Tabs with MUI */}
-        <Paper sx={{ mb: 4, borderRadius: 2, display: { xs: "none", lg: "block" } }}>
+        <Paper
+          sx={{ mb: 4, borderRadius: 2, display: { xs: "none", lg: "block" } }}
+        >
           <Tabs
             value={activeTab}
             onChange={(_, newValue) => setActiveTab(newValue as TabType)}
@@ -299,7 +303,9 @@ export const DashboardPage = () => {
               <Tab
                 key={tab.id}
                 label={
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 8 }}
+                  >
                     <tab.icon size={18} />
                     <span>{tab.label}</span>
                   </div>
@@ -425,7 +431,7 @@ export const DashboardPage = () => {
             </div>
           )}
 
-          {activeTab === "homepage" && (
+          {activeTab === "settings" && (
             <div>
               <HomepageManager />
             </div>
