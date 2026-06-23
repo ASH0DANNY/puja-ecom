@@ -6,7 +6,8 @@
  * It uses NodeMailer with Gmail SMTP for sending emails.
  */
 
-const functions = require("firebase-functions");
+const { onCall, onRequest } = require("firebase-functions/v2/https");
+const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const nodemailer = require("nodemailer");
 
 // Configure email transporter using Gmail SMTP
@@ -33,20 +34,19 @@ const transporter = nodemailer.createTransport({
  *   orderId: "order-id"
  * }
  */
-exports.sendEmail = functions.https.onCall(async (data, context) => {
+exports.sendEmail = onCall(async (request) => {
   try {
     // Verify the request is authenticated (optional, but recommended for security)
     // Uncomment to require authentication:
-    // if (!context.auth) {
-    //   throw new functions.https.HttpsError('unauthenticated', 'Request must be authenticated');
+    // if (!request.auth) {
+    //   throw new Error('Request must be authenticated');
     // }
 
-    const { to, subject, html, type, orderId } = data;
+    const { to, subject, html, type, orderId } = request.data;
 
     // Validation
     if (!to || !subject || !html) {
-      throw new functions.https.HttpsError(
-        "invalid-argument",
+      throw new Error(
         "Missing required fields: to, subject, html"
       );
     }
@@ -76,10 +76,7 @@ exports.sendEmail = functions.https.onCall(async (data, context) => {
     };
   } catch (error) {
     console.error("Error sending email:", error);
-    throw new functions.https.HttpsError(
-      "internal",
-      `Failed to send email: ${error.message}`
-    );
+    throw error;
   }
 });
 
@@ -88,7 +85,7 @@ exports.sendEmail = functions.https.onCall(async (data, context) => {
  * Call with: POST /api/send-email
  * Body: { to, subject, html, type, orderId }
  */
-exports.sendEmailHttp = functions.https.onRequest(async (req, res) => {
+exports.sendEmailHttp = onRequest(async (req, res) => {
   // Only allow POST requests
   if (req.method !== "POST") {
     return res.status(405).send("Method Not Allowed");
@@ -143,38 +140,36 @@ exports.sendEmailHttp = functions.https.onRequest(async (req, res) => {
  * Firestore Trigger - Automatically send email when order status changes
  * This is an optional trigger if you want automatic emails on status updates
  */
-exports.onOrderStatusChange = functions.firestore
-  .document("orders/{orderId}")
-  .onUpdate(async (change, context) => {
-    const previousOrder = change.before.data();
-    const currentOrder = change.after.data();
+exports.onOrderStatusChange = onDocumentUpdated("orders/{orderId}", async (event) => {
+  const previousOrder = event.data.before.data();
+  const currentOrder = event.data.after.data();
 
-    // Check if status changed to "delivered"
-    if (
-      previousOrder.status !== "delivered" &&
-      currentOrder.status === "delivered"
-    ) {
-      try {
-        const mailOptions = {
-          from: process.env.GMAIL_USER,
-          to: currentOrder.userEmail,
-          subject: `Your Order Has Been Delivered - ${
-            process.env.APP_NAME || "Our Store"
-          }`,
-          html: generateDeliveryEmailHTML(currentOrder),
-          replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
-        };
+  // Check if status changed to "delivered"
+  if (
+    previousOrder.status !== "delivered" &&
+    currentOrder.status === "delivered"
+  ) {
+    try {
+      const mailOptions = {
+        from: process.env.GMAIL_USER,
+        to: currentOrder.userEmail,
+        subject: `Your Order Has Been Delivered - ${
+          process.env.APP_NAME || "Our Store"
+        }`,
+        html: generateDeliveryEmailHTML(currentOrder),
+        replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
+      };
 
-        await transporter.sendMail(mailOptions);
-        console.log(`Delivery email sent for order ${context.params.orderId}`);
-      } catch (error) {
-        console.error(
-          `Error sending delivery email for order ${context.params.orderId}:`,
-          error
-        );
-      }
+      await transporter.sendMail(mailOptions);
+      console.log(`Delivery email sent for order ${event.params.orderId}`);
+    } catch (error) {
+      console.error(
+        `Error sending delivery email for order ${event.params.orderId}:`,
+        error
+      );
     }
-  });
+  }
+});
 
 /**
  * Helper function to generate delivery email HTML

@@ -1,30 +1,33 @@
-const functions = require("firebase-functions");
 const admin = require("firebase-admin");
+const { onCall } = require("firebase-functions/v2/https");
+const { HttpsError } = require("firebase-functions/v2/https");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const { defineSecret } = require("firebase-functions/params");
-const Razorpay = require("razorpay");
 const { defineSecret } = require("firebase-functions/params");
 
 // Define Firebase Secrets
 const razorpayKeyId = defineSecret("RAZORPAY_KEY_ID");
 const razorpayKeySecret = defineSecret("RAZORPAY_KEY_SECRET");
 
-exports.createRazorpayOrder = functions
-  .runWith({ secrets: [razorpayKeyId, razorpayKeySecret] })
-  .https.onCall(async (data, context) => {
+exports.createRazorpayOrder = onCall(
+  { secrets: [razorpayKeyId, razorpayKeySecret] },
+  async (request) => {
+    console.log("Function invoked, checking secrets...");
+    console.log("KEY_ID present:", !!razorpayKeyId.value());
+    console.log("KEY_SECRET present:", !!razorpayKeySecret.value());
+    
     // Validate authentication
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
+    if (!request.auth) {
+      throw new HttpsError(
         "unauthenticated",
         "User must be authenticated to create an order."
       );
     }
 
-    const { items, shippingAddress, discountCode, customerName, customerPhone } = data;
+    const { items, shippingAddress, discountCode, customerName, customerPhone } = request.data;
 
     if (!items || !items.length || !shippingAddress) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Missing required fields: items or shippingAddress."
       );
@@ -38,7 +41,7 @@ exports.createRazorpayOrder = functions
     for (const item of items) {
       const productDoc = await db.collection("products").doc(item.productId).get();
       if (!productDoc.exists) {
-        throw new functions.https.HttpsError("not-found", `Product ${item.productId} not found.`);
+        throw new HttpsError("not-found", `Product ${item.productId} not found.`);
       }
 
       const productData = productDoc.data();
@@ -134,9 +137,9 @@ exports.createRazorpayOrder = functions
       const orderData = {
         id: orderRef.id,
         orderNumber: orderNumber,
-        userId: context.auth.uid,
-        userEmail: context.auth.token.email || "",
-        customerName: customerName || context.auth.token.name || "Customer",
+        userId: request.auth.uid,
+        userEmail: request.auth.token.email || "",
+        customerName: customerName || request.auth.token.name || "Customer",
         customerPhone: customerPhone || "",
         items: orderItems,
         total: total,
@@ -162,19 +165,24 @@ exports.createRazorpayOrder = functions
       };
     } catch (error) {
       console.error("Error creating Razorpay order:", error);
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "internal",
         "Failed to initialize payment gateway."
       );
     }
-});
+  }
+);
 
-exports.verifyRazorpayPayment = functions
-  .runWith({ secrets: [razorpayKeyId, razorpayKeySecret] })
-  .https.onCall(async (data, context) => {
+exports.verifyRazorpayPayment = onCall(
+  { secrets: [razorpayKeyId, razorpayKeySecret] },
+  async (request) => {
+    console.log("Function invoked, checking secrets...");
+    console.log("KEY_ID present:", !!razorpayKeyId.value());
+    console.log("KEY_SECRET present:", !!razorpayKeySecret.value());
+    
     // Validate authentication
-    if (!context.auth) {
-      throw new functions.https.HttpsError(
+    if (!request.auth) {
+      throw new HttpsError(
         "unauthenticated",
         "User must be authenticated to verify payment."
       );
@@ -185,10 +193,17 @@ exports.verifyRazorpayPayment = functions
       razorpay_order_id,
       razorpay_payment_id,
       razorpay_signature,
-    } = data;
+    } = request.data;
+
+    console.log("Verification request data received:", {
+      firestoreOrderId,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature: razorpay_signature ? "present" : "missing"
+    });
 
     if (!firestoreOrderId || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "invalid-argument",
         "Missing required payment verification fields."
       );
@@ -204,20 +219,28 @@ exports.verifyRazorpayPayment = functions
       .update(razorpay_order_id + "|" + razorpay_payment_id)
       .digest("hex");
 
+    console.log("Signature verification:", {
+      generated: generated_signature.substring(0, 10) + "...",
+      received: razorpay_signature.substring(0, 10) + "...",
+      match: generated_signature === razorpay_signature
+    });
+
     if (generated_signature !== razorpay_signature) {
+      console.error("SIGNATURE MISMATCH - Payment verification failed");
       // Invalid signature: Mark order as failed
       await orderRef.update({
         status: "payment_failed",
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
-      throw new functions.https.HttpsError(
+      throw new HttpsError(
         "permission-denied",
         "Payment signature verification failed."
       );
     }
 
     // 2. Fetch Payment Details from Razorpay
+    console.log("Fetching payment details from Razorpay for payment:", razorpay_payment_id);
     const razorpay = new Razorpay({
       key_id: razorpayKeyId.value(),
       key_secret: secret,
@@ -226,6 +249,11 @@ exports.verifyRazorpayPayment = functions
     let paymentDetails;
     try {
       paymentDetails = await razorpay.payments.fetch(razorpay_payment_id);
+      console.log("Payment details fetched successfully:", {
+        id: paymentDetails.id,
+        method: paymentDetails.method,
+        status: paymentDetails.status
+      });
     } catch (error) {
       console.error("Failed to fetch Razorpay payment details:", error);
       // We don't fail the verification if this fails, we just won't have the rich details
@@ -254,8 +282,10 @@ exports.verifyRazorpayPayment = functions
     }
 
     // 3. Process Transaction (Stock decrement + Order status update)
+    console.log("Starting transaction for order:", firestoreOrderId);
     try {
       const updatedOrder = await db.runTransaction(async (transaction) => {
+        console.log("Transaction started, fetching order document");
         const orderDoc = await transaction.get(orderRef);
 
         if (!orderDoc.exists) {
@@ -263,9 +293,11 @@ exports.verifyRazorpayPayment = functions
         }
 
         const orderData = orderDoc.data();
+        console.log("Order found with status:", orderData.status);
 
         // Prevent double processing
         if (orderData.status === "paid" || orderData.status === "processing") {
+          console.log("Order already processed, skipping");
           return orderData; // Already processed
         }
 
@@ -276,6 +308,7 @@ exports.verifyRazorpayPayment = functions
         const productDocs = await Promise.all(
           productRefs.map(ref => transaction.get(ref))
         );
+        console.log("Product documents fetched, count:", productDocs.length);
 
         // Check stock
         for (let i = 0; i < items.length; i++) {
@@ -290,9 +323,6 @@ exports.verifyRazorpayPayment = functions
           const currentStock = productDoc.data().stock || 0;
           if (currentStock < item.quantity) {
             console.warn(`Insufficient stock for ${item.product.id}. Ordered: ${item.quantity}, Available: ${currentStock}`);
-            // In a real strict system we might throw and fail here, 
-            // but since payment already happened, we allow it to proceed and just drop stock negative 
-            // so admin can handle backorders.
           }
 
           // Decrement stock
@@ -300,6 +330,7 @@ exports.verifyRazorpayPayment = functions
             stock: admin.firestore.FieldValue.increment(-item.quantity)
           });
         }
+        console.log("Stock updates queued");
 
         // Update Order
         transaction.update(orderRef, {
@@ -310,6 +341,7 @@ exports.verifyRazorpayPayment = functions
           paidAt: admin.firestore.FieldValue.serverTimestamp(),
           updatedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
+        console.log("Order status updated to paid");
 
         // Return merged data for the email
         return {
@@ -321,13 +353,19 @@ exports.verifyRazorpayPayment = functions
         };
       });
 
+      console.log("Transaction completed successfully for order:", firestoreOrderId);
+
       // 4. Send Confirmation Email (Server-side)
       // Only send if it was just newly marked as paid
       if (updatedOrder && updatedOrder.status === "paid") {
         try {
+          console.log("Sending confirmation email for order:", firestoreOrderId);
           const emailService = require("./sendEmail.js");
           if (emailService.sendInternalOrderEmail) {
             await emailService.sendInternalOrderEmail(updatedOrder);
+            console.log("Confirmation email sent successfully");
+          } else {
+            console.warn("sendInternalOrderEmail not available in email service");
           }
         } catch (emailError) {
           console.error("Failed to send internal confirmation email:", emailError);
@@ -335,13 +373,16 @@ exports.verifyRazorpayPayment = functions
         }
       }
 
+      console.log("Payment verification completed successfully for order:", firestoreOrderId);
       return { success: true, orderId: firestoreOrderId, status: "paid" };
 
     } catch (error) {
       console.error("Transaction failed during payment verification:", error);
-      throw new functions.https.HttpsError(
+      console.error("Error stack:", error.stack);
+      throw new HttpsError(
         "internal",
         "Failed to update order and stock."
       );
     }
-});
+  }
+);

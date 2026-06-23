@@ -292,7 +292,7 @@ const PaymentPage = () => {
       } finally {
         setLoading(false);
       }
-    } else {
+    } else if (paymentMethod === "online") {
       // --- NEW RAZORPAY LOGIC ---
       try {
         // 1. Load Script
@@ -654,37 +654,21 @@ const PaymentPage = () => {
                   Payment Method
                 </h2>
                 <div className="space-y-3">
-                  {/* Online Payment Methods */}
+                  {/* Online Payment Method */}
                   {onlinePaymentEnabled ? (
-                    <>
-                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="upi"
-                          checked={paymentMethod === "upi"}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
-                          className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
-                        />
-                        <span className="ml-3 text-gray-700 font-medium">
-                          UPI
-                        </span>
-                      </label>
-
-                      <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          value="card"
-                          checked={paymentMethod === "card"}
-                          onChange={(e) => setPaymentMethod(e.target.value)}
-                          className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
-                        />
-                        <span className="ml-3 text-gray-700 font-medium">
-                          Credit/Debit Card
-                        </span>
-                      </label>
-                    </>
+                    <label className="flex items-center p-4 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="online"
+                        checked={paymentMethod === "online"}
+                        onChange={(e) => setPaymentMethod(e.target.value)}
+                        className="h-4 w-4 text-primary focus:ring-2 focus:ring-primary"
+                      />
+                      <span className="ml-3 text-gray-700 font-medium">
+                        Pay Online (Cards, UPI, Netbanking, Wallets)
+                      </span>
+                    </label>
                   ) : (
                     <div className="p-4 border border-gray-300 rounded-lg bg-gray-50">
                       <div className="flex items-center gap-2 text-gray-500">
