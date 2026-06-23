@@ -159,7 +159,30 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceProps>(
         {type === "detailed" && (
           <div className="border-t border-gray-300 pt-4 text-gray-600">
             <h4 className="font-semibold mb-2">Payment Information:</h4>
-            <p>Method: {invoice.paymentMethod}</p>
+            {invoice.paymentMethod === 'cod' ? (
+                <p>Method: Cash on Delivery</p>
+            ) : (
+                <div className="space-y-1">
+                    <p><span className="font-medium">Status:</span> Paid {invoice.paidAt && `(on ${new Date(invoice.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })})`}</p>
+                    <p><span className="font-medium">Method:</span> {
+                      (() => {
+                        const method = invoice.paymentMethodDetails?.method || invoice.paymentMethod;
+                        let text = method ? method.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'N/A';
+                        if (invoice.paymentMethodDetails) {
+                          const d = invoice.paymentMethodDetails;
+                          if (d.network && d.last4) text += ` (${d.network} ending in ${d.last4})`;
+                          else if (d.vpa) text += ` (VPA: ${d.vpa})`;
+                          else if (d.bank) text += ` (${d.bank})`;
+                          else if (d.wallet) text += ` (${d.wallet})`;
+                        }
+                        return text;
+                      })()
+                    }</p>
+                    {invoice.razorpayPaymentId && (
+                        <p><span className="font-medium">Payment ID:</span> {invoice.razorpayPaymentId}</p>
+                    )}
+                </div>
+            )}
             <p className="mt-4">Thank you for your business!</p>
           </div>
         )}

@@ -1,0 +1,12 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Basic rules for authenticated users
+    match /{document=**} {
+      // Allow read/write if the user is authenticated
+      // NOTE: These rules are very basic and should be tightened in the future.
+      allow read, write: if request.auth != null;
+    }
+  }
+}

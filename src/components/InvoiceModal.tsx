@@ -35,6 +35,10 @@ export const InvoiceModal = ({ order, isOpen, onClose }: InvoiceModalProps) => {
         email: order.userEmail,
         phone: order.customerPhone || "N/A",
         paymentMethod: order.paymentMethod || "N/A",
+        razorpayPaymentId: order.razorpayPaymentId,
+        paymentMethodDetails: order.paymentMethodDetails,
+        paidAt: order.paidAt?.toDate ? order.paidAt.toDate() : (order.paidAt ? new Date(order.paidAt) : undefined),
+        status: order.status,
         address: `${order.shippingAddress?.street || ""}, ${
           order.shippingAddress?.city || ""
         }, ${order.shippingAddress?.state || ""} ${
@@ -99,6 +103,10 @@ export const InvoiceModal = ({ order, isOpen, onClose }: InvoiceModalProps) => {
         email: order.userEmail,
         phone: order.customerPhone || "N/A",
         paymentMethod: order.paymentMethod || "N/A",
+        razorpayPaymentId: order.razorpayPaymentId,
+        paymentMethodDetails: order.paymentMethodDetails,
+        paidAt: order.paidAt?.toDate ? order.paidAt.toDate() : (order.paidAt ? new Date(order.paidAt) : undefined),
+        status: order.status,
         address: `${order.shippingAddress?.street || ""}, ${
           order.shippingAddress?.city || ""
         }, ${order.shippingAddress?.state || ""} ${

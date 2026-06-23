@@ -44,6 +44,17 @@ export interface Order {
     country: string;
   };
   paymentMethod: string;
+  razorpayPaymentId?: string;
+  paymentMethodDetails?: {
+    network?: string;
+    last4?: string;
+    issuer?: string;
+    vpa?: string;
+    bank?: string;
+    wallet?: string;
+    method?: string;
+  };
+  paidAt?: any;
   createdAt: Date;
   updatedAt: Date;
   subtotal: number;

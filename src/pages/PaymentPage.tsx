@@ -10,7 +10,8 @@ import {
   increment,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../config/firebase";
+import app, { db } from "../config/firebase";
+import { getFunctions, httpsCallable } from "firebase/functions";
 import { useReduxAuth } from "../redux/useReduxAuth";
 import { useReduxDiscount } from "../redux/useReduxDiscount";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
@@ -28,6 +29,21 @@ import {
   Loader2,
   Clock,
 } from "lucide-react";
+
+// Helper function to load Razorpay script
+const loadRazorpayScript = () => {
+  return new Promise((resolve) => {
+    if ((window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
 
 // Form interfaces
 interface ShippingForm {
@@ -129,7 +145,8 @@ const PaymentPage = () => {
     }
 
     setLoading(true);
-    try {
+    if (paymentMethod === "cod") {
+      try {
       // Generate order number
       const orderNum = `ORD${Date.now().toString().slice(-6)}`;
       setOrderNumber(orderNum);
@@ -263,17 +280,103 @@ const PaymentPage = () => {
         setShowOrderSuccess(false);
         navigate("/orders");
       }, 3000);
-    } catch (error) {
-      console.error("Payment failed:", error);
-      if (error instanceof Error) {
-        toast.error(`Error: ${error.message}`);
-      } else {
-        toast.error(
-          "There was an error processing your payment. Please try again."
-        );
+      } catch (error) {
+        console.error("Payment failed:", error);
+        if (error instanceof Error) {
+          toast.error(`Error: ${error.message}`);
+        } else {
+          toast.error(
+            "There was an error processing your payment. Please try again."
+          );
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
+    } else {
+      // --- NEW RAZORPAY LOGIC ---
+      try {
+        // 1. Load Script
+        const res = await loadRazorpayScript();
+        if (!res) throw new Error("Razorpay SDK failed to load");
+
+        // 2. Call createRazorpayOrder
+        const functions = getFunctions(app);
+        const createOrder = httpsCallable(functions, "createRazorpayOrder");
+        
+        const payload = {
+            items: items.map(item => ({
+                productId: item.id,
+                quantity: item.quantity,
+                selectedSize: item.selectedSize || null,
+                selectedColor: item.selectedColor || null,
+                customDimensions: item.customDimensions || null
+            })),
+            shippingAddress: shippingForm,
+            discountCode: discountCode || null,
+            customerName: customerForm.name,
+            customerPhone: customerForm.phone
+        };
+
+        const { data } = await createOrder(payload) as any;
+
+        // 3. Open Razorpay Checkout
+        const options = {
+            key: data.keyId,
+            amount: data.amount,
+            currency: data.currency,
+            order_id: data.razorpayOrderId,
+            name: "Rachna Creation",
+            description: "Order Payment",
+            prefill: {
+                name: customerForm.name,
+                email: user.email || "",
+                contact: customerForm.phone,
+            },
+            handler: async function (response: any) {
+                // 4. On Success Callback: Verify Payment
+                try {
+                    setLoading(true);
+                    const verifyPayment = httpsCallable(functions, "verifyRazorpayPayment");
+                    await verifyPayment({
+                        firestoreOrderId: data.firestoreOrderId,
+                        razorpay_order_id: response.razorpay_order_id,
+                        razorpay_payment_id: response.razorpay_payment_id,
+                        razorpay_signature: response.razorpay_signature,
+                    });
+
+                    // 5. Verification Success UI
+                    clearCart();
+                    setShowOrderSuccess(true);
+                    setTimeout(() => {
+                        setShowOrderSuccess(false);
+                        navigate("/orders");
+                    }, 3000);
+                } catch (verifyError) {
+                    console.error("Payment verification failed", verifyError);
+                    toast.error("Payment verification failed. If money was deducted, please contact support.");
+                    setLoading(false);
+                }
+            },
+            modal: {
+                ondismiss: function() {
+                    setLoading(false);
+                    toast.error("Payment cancelled. You can try again.");
+                }
+            }
+        };
+
+        const rzp = new (window as any).Razorpay(options);
+        rzp.on('payment.failed', function (response: any) {
+            toast.error(response.error.description || "Payment failed");
+            setLoading(false);
+        });
+        rzp.open();
+
+      } catch (error: any) {
+          console.error("Razorpay initialization failed:", error);
+          toast.error(error.message || "Could not initialize payment gateway.");
+          setLoading(false);
+      }
     }
   };
 

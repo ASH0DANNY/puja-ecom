@@ -12,14 +12,13 @@ const nodemailer = require("nodemailer");
 // Configure email transporter using Gmail SMTP
 // You'll need to:
 // 1. Enable Gmail SMTP access or use an App Password
-// 2. Set these environment variables in Firebase:
-//    firebase functions:config:set gmail.email="your-email@gmail.com" gmail.password="your-app-password"
+// 2. Set environment variables in a .env file (see .env.example)
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: functions.config().gmail?.email || process.env.GMAIL_USER,
-    pass: functions.config().gmail?.password || process.env.GMAIL_PASSWORD,
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASSWORD,
   },
 });
 
@@ -54,7 +53,7 @@ exports.sendEmail = functions.https.onCall(async (data, context) => {
 
     // Send email
     const mailOptions = {
-      from: functions.config().gmail?.email || process.env.GMAIL_USER,
+      from: process.env.GMAIL_USER,
       to,
       subject,
       html,
@@ -110,7 +109,7 @@ exports.sendEmailHttp = functions.https.onRequest(async (req, res) => {
 
     // Send email
     const mailOptions = {
-      from: functions.config().gmail?.email || process.env.GMAIL_USER,
+      from: process.env.GMAIL_USER,
       to,
       subject,
       html,
@@ -157,13 +156,13 @@ exports.onOrderStatusChange = functions.firestore
     ) {
       try {
         const mailOptions = {
-          from: functions.config().gmail?.email || process.env.GMAIL_USER,
+          from: process.env.GMAIL_USER,
           to: currentOrder.userEmail,
           subject: `Your Order Has Been Delivered - ${
-            import.meta.env.VITE_APP_NAME
+            process.env.APP_NAME || "Our Store"
           }`,
           html: generateDeliveryEmailHTML(currentOrder),
-          replyTo: process.env.REPLY_TO_EMAIL || import.meta.env.VITE_APP_EMAIL,
+          replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
         };
 
         await transporter.sendMail(mailOptions);
@@ -233,7 +232,7 @@ function generateDeliveryEmailHTML(order) {
           <p>Thank you for shopping with us! 💚</p>
 
           <div class="footer">
-            <p>© 2025 ${import.meta.env.VITE_APP_NAME}. All rights reserved.</p>
+            <p>© 2025 ${process.env.APP_NAME || "Our Store"}. All rights reserved.</p>
           </div>
         </div>
       </div>
@@ -241,3 +240,92 @@ function generateDeliveryEmailHTML(order) {
     </html>
   `;
 }
+
+/**
+ * Helper function to generate order confirmed email HTML
+ */
+function generateOrderConfirmedEmailHTML(order) {
+  const itemsList = order.items
+    .map(
+      (item) => `
+    <li style="margin-bottom: 8px;">
+      ${item.product?.name || "Product"} - Qty: ${item.quantity}
+    </li>
+  `
+    )
+    .join("");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: Arial, sans-serif; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #3b82f6; color: white; padding: 20px; text-align: center; border-radius: 5px; }
+        .content { margin-top: 20px; }
+        .status-badge { display: inline-block; background-color: #3b82f6; color: white; padding: 5px 10px; border-radius: 3px; font-weight: bold; }
+        .section { margin-top: 20px; padding: 15px; background-color: #f9fafb; border-radius: 5px; }
+        .section-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        .footer { margin-top: 30px; text-align: center; color: #666; font-size: 12px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Order Confirmed!</h1>
+        </div>
+
+        <div class="content">
+          <p>Hi ${order.customerName},</p>
+          <p>Great news! Your payment has been verified and your order is now being processed.</p>
+
+          <div class="section">
+            <div class="section-title">Order Status</div>
+            <p><strong>Order ID:</strong> ${order.orderNumber || order.id}</p>
+            <p><strong>Status:</strong> <span class="status-badge">Processing</span></p>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Order Items</div>
+            <ul>${itemsList}</ul>
+          </div>
+
+          <div class="section">
+            <div class="section-title">Order Total</div>
+            <p style="font-size: 20px; font-weight: bold; color: #3b82f6;">${order.total.toFixed(2)} INR</p>
+          </div>
+
+          <div class="footer">
+            <p>© 2025 ${process.env.APP_NAME || "Our Store"}. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Expose internal email sending for server-side order confirmations
+ */
+exports.sendInternalOrderEmail = async (orderData) => {
+  try {
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: orderData.userEmail,
+      subject: `Order Confirmed - Order #${(orderData.orderNumber || orderData.id).slice(-8).toUpperCase()} - ${process.env.APP_NAME || "Our Store"}`,
+      html: generateOrderConfirmedEmailHTML(orderData),
+      replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
+    };
+
+    const result = await transporter.sendMail(mailOptions);
+    console.log(`Order confirmation email sent internally for order ${orderData.id}`);
+    return result;
+  } catch (error) {
+    console.error("Error sending internal order confirmation email:", error);
+    return null;
+  }
+};
+

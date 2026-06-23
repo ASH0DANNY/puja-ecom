@@ -106,6 +106,18 @@ export const generateInvoicePdf = (
       country: string;
       postalCode: string;
     };
+    razorpayPaymentId?: string;
+    paymentMethodDetails?: {
+      network?: string;
+      last4?: string;
+      issuer?: string;
+      vpa?: string;
+      bank?: string;
+      wallet?: string;
+      method?: string;
+    };
+    paidAt?: Date;
+    status?: string;
     items: Array<{
       name: string;
       hsn?: string;
@@ -247,12 +259,57 @@ export const generateInvoicePdf = (
 
     yPos += 5;
 
-    // Payment Method
-    doc.setFont("helvetica", "bold");
-    doc.text("Payment Method:", margin, yPos);
-    doc.setFont("helvetica", "normal");
-    const paymentMethodText = formatPaymentMethod(invoiceData.paymentMethod);
-    doc.text(paymentMethodText, margin + 35, yPos);
+    if (invoiceData.paymentMethod === 'cod') {
+      doc.setFont("helvetica", "bold");
+      doc.text("Payment Method:", margin, yPos);
+      doc.setFont("helvetica", "normal");
+      doc.text("Cash on Delivery", margin + 35, yPos);
+    } else {
+      // Online Payment
+      doc.setFont("helvetica", "bold");
+      doc.text("Payment Status:", margin, yPos);
+      doc.setFont("helvetica", "normal");
+      
+      let statusText = "Paid";
+      if (invoiceData.paidAt) {
+        const paidDate = new Date(invoiceData.paidAt);
+        statusText += ` (on ${paidDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })})`;
+      } else if (invoiceData.status === "paid" || invoiceData.status === "processing" || invoiceData.status === "shipped" || invoiceData.status === "delivered") {
+        statusText = "Paid";
+      }
+      doc.text(statusText, margin + 35, yPos);
+      
+      yPos += 5;
+      doc.setFont("helvetica", "bold");
+      doc.text("Payment Method:", margin, yPos);
+      doc.setFont("helvetica", "normal");
+      
+      const method = invoiceData.paymentMethodDetails?.method || invoiceData.paymentMethod;
+      let methodText = formatPaymentMethod(method);
+      
+      if (invoiceData.paymentMethodDetails) {
+        const d = invoiceData.paymentMethodDetails;
+        if (d.network && d.last4) {
+          methodText += ` (${d.network} ending in ${d.last4})`;
+        } else if (d.vpa) {
+          methodText += ` (VPA: ${d.vpa})`;
+        } else if (d.bank) {
+          methodText += ` (${d.bank})`;
+        } else if (d.wallet) {
+          methodText += ` (${d.wallet})`;
+        }
+      }
+      
+      doc.text(methodText, margin + 35, yPos);
+      
+      if (invoiceData.razorpayPaymentId) {
+        yPos += 5;
+        doc.setFont("helvetica", "bold");
+        doc.text("Payment ID:", margin, yPos);
+        doc.setFont("helvetica", "normal");
+        doc.text(invoiceData.razorpayPaymentId, margin + 35, yPos);
+      }
+    }
 
     // ============ BILL TO & SHIP TO SECTION ============
     yPos += 8;
