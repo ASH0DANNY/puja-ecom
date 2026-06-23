@@ -3,18 +3,16 @@ const { onCall } = require("firebase-functions/v2/https");
 const { HttpsError } = require("firebase-functions/v2/https");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");
-const { defineSecret } = require("firebase-functions/params");
 
-// Define Firebase Secrets
-const razorpayKeyId = defineSecret("RAZORPAY_KEY_ID");
-const razorpayKeySecret = defineSecret("RAZORPAY_KEY_SECRET");
+// Secrets are automatically injected as environment variables
+// when passed to the secrets option in onCall
 
 exports.createRazorpayOrder = onCall(
-  { secrets: [razorpayKeyId, razorpayKeySecret] },
+  { secrets: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"] },
   async (request) => {
     console.log("Function invoked, checking secrets...");
-    console.log("KEY_ID present:", !!razorpayKeyId.value());
-    console.log("KEY_SECRET present:", !!razorpayKeySecret.value());
+    console.log("KEY_ID present:", !!process.env.RAZORPAY_KEY_ID);
+    console.log("KEY_SECRET present:", !!process.env.RAZORPAY_KEY_SECRET);
     
     // Validate authentication
     if (!request.auth) {
@@ -118,8 +116,8 @@ exports.createRazorpayOrder = onCall(
 
     // Initialize Razorpay
     const razorpay = new Razorpay({
-      key_id: razorpayKeyId.value(),
-      key_secret: razorpayKeySecret.value(),
+      key_id: process.env.RAZORPAY_KEY_ID,
+      key_secret: process.env.RAZORPAY_KEY_SECRET,
     });
 
     const orderRef = db.collection("orders").doc();
@@ -161,7 +159,7 @@ exports.createRazorpayOrder = onCall(
         razorpayOrderId: rzpOrder.id,
         amount: amountInPaise,
         currency: "INR",
-        keyId: razorpayKeyId.value(),
+        keyId: process.env.RAZORPAY_KEY_ID,
       };
     } catch (error) {
       console.error("Error creating Razorpay order:", error);
@@ -174,11 +172,11 @@ exports.createRazorpayOrder = onCall(
 );
 
 exports.verifyRazorpayPayment = onCall(
-  { secrets: [razorpayKeyId, razorpayKeySecret] },
+  { secrets: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"] },
   async (request) => {
     console.log("Function invoked, checking secrets...");
-    console.log("KEY_ID present:", !!razorpayKeyId.value());
-    console.log("KEY_SECRET present:", !!razorpayKeySecret.value());
+    console.log("KEY_ID present:", !!process.env.RAZORPAY_KEY_ID);
+    console.log("KEY_SECRET present:", !!process.env.RAZORPAY_KEY_SECRET);
     
     // Validate authentication
     if (!request.auth) {
@@ -213,7 +211,7 @@ exports.verifyRazorpayPayment = onCall(
     const orderRef = db.collection("orders").doc(firestoreOrderId);
 
     // 1. Verify Signature
-    const secret = razorpayKeySecret.value();
+    const secret = process.env.RAZORPAY_KEY_SECRET;
     const generated_signature = crypto
       .createHmac("sha256", secret)
       .update(razorpay_order_id + "|" + razorpay_payment_id)
@@ -242,7 +240,7 @@ exports.verifyRazorpayPayment = onCall(
     // 2. Fetch Payment Details from Razorpay
     console.log("Fetching payment details from Razorpay for payment:", razorpay_payment_id);
     const razorpay = new Razorpay({
-      key_id: razorpayKeyId.value(),
+      key_id: process.env.RAZORPAY_KEY_ID,
       key_secret: secret,
     });
 
