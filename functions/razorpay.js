@@ -8,7 +8,9 @@ const crypto = require("crypto");
 // when passed to the secrets option in onCall
 
 exports.createRazorpayOrder = onCall(
-  { secrets: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"] },
+  { secrets: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"] ,
+    region: "asia-south1"
+  },
   async (request) => {
     console.log("Function invoked, checking secrets...");
     console.log("KEY_ID present:", !!process.env.RAZORPAY_KEY_ID);
@@ -172,7 +174,9 @@ exports.createRazorpayOrder = onCall(
 );
 
 exports.verifyRazorpayPayment = onCall(
-  { secrets: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"] },
+  { secrets: ["RAZORPAY_KEY_ID", "RAZORPAY_KEY_SECRET"],
+    region: "asia-south1"
+  },
   async (request) => {
     console.log("Function invoked, checking secrets...");
     console.log("KEY_ID present:", !!process.env.RAZORPAY_KEY_ID);

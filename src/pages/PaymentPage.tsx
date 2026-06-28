@@ -300,7 +300,7 @@ const PaymentPage = () => {
         if (!res) throw new Error("Razorpay SDK failed to load");
 
         // 2. Call createRazorpayOrder
-        const functions = getFunctions(app);
+        const functions = getFunctions(app, "asia-south1");
         const createOrder = httpsCallable(functions, "createRazorpayOrder");
         
         const payload = {
