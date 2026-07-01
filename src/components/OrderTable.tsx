@@ -9,6 +9,7 @@ import {
   Filter,
   Download,
   CreditCard,
+  RotateCcw,
 } from "lucide-react";
 import { InvoiceModal } from "./InvoiceModal";
 import OrderEmailManager from "./OrderEmailManager";
@@ -36,11 +37,34 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   );
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [filteredOrders, setFilteredOrders] = useState<Order[]>(orders);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  const getOrderDate = (order: Order) => {
+    const createdAt = order.createdAt;
+
+    if (!createdAt) return null;
+    if (createdAt instanceof Date) return createdAt;
+    if (
+      typeof createdAt === "object" &&
+      createdAt !== null &&
+      "toDate" in createdAt &&
+      typeof (createdAt as { toDate?: () => Date }).toDate === "function"
+    ) {
+      return (createdAt as { toDate: () => Date }).toDate();
+    }
+    if (typeof createdAt === "string") return new Date(createdAt);
+
+    return null;
+  };
+
   useEffect(() => {
+    setPage(0);
+
     let filtered = [...orders];
 
     if (statusFilter !== "all") {
@@ -62,8 +86,31 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
       );
     }
 
+    const hasDateFilter = Boolean(dateFrom || dateTo);
+
+    if (hasDateFilter) {
+      const fromDate = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
+      const toDate = dateTo ? new Date(`${dateTo}T23:59:59.999`) : null;
+
+      filtered = filtered.filter((order) => {
+        const orderDate = getOrderDate(order);
+
+        if (!orderDate) return false;
+        if (fromDate && orderDate < fromDate) return false;
+        if (toDate && orderDate > toDate) return false;
+        return true;
+      });
+    }
+
+    filtered = [...filtered].sort((a, b) => {
+      const aDate = getOrderDate(a)?.getTime() ?? 0;
+      const bDate = getOrderDate(b)?.getTime() ?? 0;
+
+      return sortOrder === "desc" ? bDate - aDate : aDate - bDate;
+    });
+
     setFilteredOrders(filtered);
-  }, [orders, statusFilter, searchQuery]);
+  }, [orders, statusFilter, searchQuery, dateFrom, dateTo, sortOrder]);
 
   const handleStatusUpdate = async (
     orderId: string,
@@ -197,38 +244,101 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
     return method.charAt(0).toUpperCase() + method.slice(1).replace(/_/g, " ");
   };
 
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setStatusFilter("all");
+    setDateFrom("");
+    setDateTo("");
+    setSortOrder("desc");
+    setPage(0);
+  };
+
   return (
     <>
       {/* Filters and Search */}
       <div className="bg-white rounded-xl shadow-sm p-4 lg:p-6 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex items-center gap-2 flex-1">
-            <Search className="w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search orders by ID, customer name, email or product..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
-            />
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex items-center gap-2 flex-1">
+              <Search className="w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search orders by ID, customer name, email or product..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setPage(0);
+                }}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-400" />
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  setPage(0);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Filter className="w-5 h-5 text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(0);
-              }}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex items-center gap-2 flex-1">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => {
+                  setDateFrom(e.target.value);
+                  setPage(0);
+                }}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-1">
+              <Calendar className="w-5 h-5 text-gray-400" />
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => {
+                  setDateTo(e.target.value);
+                  setPage(0);
+                }}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-400" />
+              <select
+                value={sortOrder}
+                onChange={(e) => {
+                  setSortOrder(e.target.value as "desc" | "asc");
+                  setPage(0);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+              >
+                <option value="desc">Newest First</option>
+                <option value="asc">Oldest First</option>
+              </select>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="inline-flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
             >
-              <option value="all">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+              <RotateCcw className="h-4 w-4" />
+              Clear Filters
+            </button>
           </div>
         </div>
       </div>

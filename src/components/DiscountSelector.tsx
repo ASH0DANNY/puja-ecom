@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useReduxDiscount } from "../redux/useReduxDiscount";
 import { useReduxCart } from "../redux/useReduxCart";
 import { motion } from "framer-motion";
 import CelebrationEffects from "./animations/CelebrationEffects";
 import { X, Tag, Percent, Gift } from "lucide-react";
+import type { Discount } from "../types/discount";
+import { isDiscountValid } from "../utils/discount";
 
 interface DiscountSelectorProps {
   subtotal: number;
@@ -14,6 +16,7 @@ interface DiscountModalProps {
   isOpen: boolean;
   onClose: () => void;
   subtotal: number;
+  validDiscounts: Discount[];
   onDiscountApplied: (amount: number) => void;
 }
 
@@ -21,9 +24,10 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
   isOpen,
   onClose,
   subtotal,
+  validDiscounts,
   onDiscountApplied,
 }) => {
-  const { activeDiscounts, validateDiscount } = useReduxDiscount();
+  const { validateDiscount } = useReduxDiscount();
   const { applyDiscount, setDiscountCode } = useReduxCart();
   const [selectedCode, setSelectedCode] = useState<string>("");
   const [showCelebration, setShowCelebration] = useState(false);
@@ -113,7 +117,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
 
           {/* Body */}
           <div className="bg-white p-4 lg:p-6">
-            {activeDiscounts.length === 0 ? (
+            {validDiscounts.length === 0 ? (
               <div className="text-center py-12">
                 <div className="bg-gray-50 rounded-full w-24 h-24 mx-auto mb-6 flex items-center justify-center">
                   <Tag className="w-12 h-12 text-gray-400" />
@@ -127,7 +131,7 @@ const DiscountModal: React.FC<DiscountModalProps> = ({
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6 max-h-[60vh] overflow-y-auto">
-                {activeDiscounts.map((discount) => (
+                {validDiscounts.map((discount) => (
                   <motion.div
                     key={discount.id}
                     initial={{ opacity: 0, y: 20 }}
@@ -257,6 +261,11 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
     type: "success" | "error";
   } | null>(null);
 
+  const validDiscounts = useMemo(
+    () => activeDiscounts.filter((discount) => isDiscountValid(discount, subtotal)),
+    [activeDiscounts, subtotal]
+  );
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -268,15 +277,29 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center space-x-2 font-medium"
+          disabled={validDiscounts.length === 0}
+          className={`px-4 py-2 rounded-lg transition-all transform shadow-lg flex items-center space-x-2 font-medium ${
+            validDiscounts.length === 0
+              ? "bg-gray-200 text-gray-500 cursor-not-allowed"
+              : "bg-primary text-white hover:bg-primary/90 hover:scale-105 hover:shadow-xl"
+          }`}
+          title={
+            validDiscounts.length === 0
+              ? "No offers available right now"
+              : "View currently valid offers"
+          }
         >
           <Gift className="h-4 w-4" />
           <span>View Offers</span>
-          {activeDiscounts.length > 0 && (
-            <span className="bg-white text-primary rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold ml-1">
-              {activeDiscounts.length}
-            </span>
-          )}
+          <span
+            className={`rounded-full h-5 w-5 flex items-center justify-center text-xs font-bold ml-1 ${
+              validDiscounts.length === 0
+                ? "bg-white text-gray-500"
+                : "bg-white text-primary"
+            }`}
+          >
+            {validDiscounts.length}
+          </span>
         </button>
       </div>
 
@@ -321,6 +344,7 @@ const DiscountSelector: React.FC<DiscountSelectorProps> = ({
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         subtotal={subtotal}
+        validDiscounts={validDiscounts}
         onDiscountApplied={(amount) => {
           onDiscountApplied(amount);
           const discountPercent = ((amount / subtotal) * 100).toFixed(1);

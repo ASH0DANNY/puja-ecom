@@ -41,6 +41,12 @@ export const selectPromotionError = (state: RootState) =>
 export const selectPromotionEmailHistory = (state: RootState) =>
   state.promotion.emailHistory;
 
+// Address selectors
+export const selectAddresses = (state: RootState) => state.address.addresses;
+export const selectAddressLoading = (state: RootState) => state.address.loading;
+export const selectAddressFetched = (state: RootState) => state.address.fetched;
+export const selectAddressError = (state: RootState) => state.address.error;
+
 // Email subscription selectors
 export const selectSubscribers = (state: RootState) =>
   state.emailSubscription.subscribers;

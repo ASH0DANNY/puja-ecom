@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 import type { Product } from "../types/product";
@@ -14,6 +14,14 @@ import {
   TablePagination,
   Paper,
 } from "@mui/material";
+import {
+  Search,
+  Filter,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  RotateCcw,
+} from "lucide-react";
 
 interface ProductTableProps {
   products: Product[];
@@ -23,6 +31,18 @@ interface ProductTableProps {
 export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [stockFilter, setStockFilter] = useState<
+    "all" | "in-stock" | "low-stock" | "out-of-stock"
+  >("all");
+  const [suggestedFilter, setSuggestedFilter] = useState<
+    "all" | "suggested" | "not-suggested"
+  >("all");
+  const [sortKey, setSortKey] = useState<"name" | "price" | "stock" | null>(
+    null
+  );
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -84,8 +104,217 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
     }
   };
 
+  const availableCategories = useMemo(() => {
+    return Array.from(
+      new Set(products.map((product) => product.category).filter(Boolean))
+    )
+      .sort()
+      .map((categoryId) => ({
+        id: categoryId,
+        label:
+          categories.find((category) => category.id === categoryId)?.name ||
+          categoryId,
+      }));
+  }, [products]);
+
+  const getProductPrice = (product: Product) => {
+    if (product.sizesWithPrices && product.sizesWithPrices.length > 0) {
+      return Math.min(...product.sizesWithPrices.map((size) => size.price || 0));
+    }
+
+    return product.price || 0;
+  };
+
+  const getStockStatus = (product: Product) => {
+    if (product.stock === 0) return "out-of-stock";
+    if (product.stock <= 5) return "low-stock";
+    return "in-stock";
+  };
+
+  const handleSort = (key: "name" | "price" | "stock") => {
+    if (sortKey === key) {
+      setSortDirection((current) => (current === "asc" ? "desc" : "asc"));
+      return;
+    }
+
+    setSortKey(key);
+    setSortDirection("asc");
+  };
+
+  const renderSortIcon = (key: "name" | "price" | "stock") => {
+    if (sortKey !== key) {
+      return <ArrowUpDown className="h-4 w-4 text-gray-400" />;
+    }
+
+    return sortDirection === "asc" ? (
+      <ArrowUp className="h-4 w-4 text-indigo-600" />
+    ) : (
+      <ArrowDown className="h-4 w-4 text-indigo-600" />
+    );
+  };
+
+  const filteredProducts = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    const sortedProducts = [...products].filter((product) => {
+      const matchesSearch =
+        query.length === 0 ||
+        product.name.toLowerCase().includes(query) ||
+        product.category.toLowerCase().includes(query) ||
+        (
+          categories.find((category) => category.id === product.category)?.name ||
+          ""
+        )
+          .toLowerCase()
+          .includes(query);
+
+      const matchesCategory =
+        categoryFilter === "all" || product.category === categoryFilter;
+      const matchesStock =
+        stockFilter === "all" || getStockStatus(product) === stockFilter;
+      const matchesSuggested =
+        suggestedFilter === "all" ||
+        (suggestedFilter === "suggested" && product.isSuggested) ||
+        (suggestedFilter === "not-suggested" && !product.isSuggested);
+
+      return (
+        matchesSearch && matchesCategory && matchesStock && matchesSuggested
+      );
+    });
+
+    if (!sortKey) {
+      return sortedProducts;
+    }
+
+    return sortedProducts.sort((a, b) => {
+      if (sortKey === "name") {
+        return sortDirection === "asc"
+          ? a.name.localeCompare(b.name)
+          : b.name.localeCompare(a.name);
+      }
+
+      if (sortKey === "price") {
+        const aPrice = getProductPrice(a);
+        const bPrice = getProductPrice(b);
+        return sortDirection === "asc" ? aPrice - bPrice : bPrice - aPrice;
+      }
+
+      const aStock = a.stock || 0;
+      const bStock = b.stock || 0;
+      return sortDirection === "asc" ? aStock - bStock : bStock - aStock;
+    });
+  }, [
+    categoryFilter,
+    products,
+    searchQuery,
+    sortDirection,
+    sortKey,
+    stockFilter,
+    suggestedFilter,
+  ]);
+
+  useEffect(() => {
+    setPage(0);
+  }, [searchQuery, categoryFilter, stockFilter, suggestedFilter, sortKey, sortDirection]);
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setCategoryFilter("all");
+    setStockFilter("all");
+    setSuggestedFilter("all");
+    setSortKey(null);
+    setSortDirection("asc");
+  };
+
   return (
     <>
+      <div className="mb-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex-1">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Search products
+            </label>
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, category..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Category
+              </label>
+              <div className="flex items-center gap-2">
+                <Filter className="h-5 w-5 text-gray-400" />
+                <select
+                  value={categoryFilter}
+                  onChange={(event) => setCategoryFilter(event.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+                >
+                  <option value="all">All Categories</option>
+                  {availableCategories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Stock status
+              </label>
+              <select
+                value={stockFilter}
+                onChange={(event) =>
+                  setStockFilter(event.target.value as typeof stockFilter)
+                }
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="all">All</option>
+                <option value="in-stock">In Stock</option>
+                <option value="low-stock">Low Stock</option>
+                <option value="out-of-stock">Out of Stock</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Suggested
+              </label>
+              <select
+                value={suggestedFilter}
+                onChange={(event) =>
+                  setSuggestedFilter(event.target.value as typeof suggestedFilter)
+                }
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50"
+              >
+                <option value="all">All</option>
+                <option value="suggested">Suggested Only</option>
+                <option value="not-suggested">Not Suggested</option>
+              </select>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleClearFilters}
+              className="flex items-center justify-center gap-2 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Clear Filters
+            </button>
+          </div>
+        </div>
+      </div>
+
       <Paper sx={{ borderRadius: 2, overflow: "hidden", boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)" }}>
         <TableContainer>
           <Table>
@@ -95,16 +324,37 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                   Image
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
-                  Name
+                  <button
+                    type="button"
+                    onClick={() => handleSort("name")}
+                    className="flex items-center gap-1 font-semibold text-[#6b7280]"
+                  >
+                    <span>Name</span>
+                    {renderSortIcon("name")}
+                  </button>
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
                   Category
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
-                  Price
+                  <button
+                    type="button"
+                    onClick={() => handleSort("price")}
+                    className="flex items-center gap-1 font-semibold text-[#6b7280]"
+                  >
+                    <span>Price</span>
+                    {renderSortIcon("price")}
+                  </button>
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
-                  Stock
+                  <button
+                    type="button"
+                    onClick={() => handleSort("stock")}
+                    className="flex items-center gap-1 font-semibold text-[#6b7280]"
+                  >
+                    <span>Stock</span>
+                    {renderSortIcon("stock")}
+                  </button>
                 </TableCell>
                 <TableCell sx={{ fontWeight: 600, color: "#6b7280" }}>
                   Suggested
@@ -115,7 +365,7 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {products
+              {filteredProducts
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((product) => (
                   <TableRow
@@ -178,13 +428,20 @@ export const ProductTable = ({ products, onUpdate }: ProductTableProps) => {
                     </TableCell>
                   </TableRow>
                 ))}
+              {filteredProducts.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7} className="py-8 text-center text-sm text-gray-500">
+                    No products match the selected filters.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </TableContainer>
         <TablePagination
           rowsPerPageOptions={[5, 10, 25, 50]}
           component="div"
-          count={products.length}
+          count={filteredProducts.length}
           rowsPerPage={rowsPerPage}
           page={page}
           onPageChange={(_, newPage) => setPage(newPage)}

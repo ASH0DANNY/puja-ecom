@@ -163,10 +163,9 @@ const CartPage = () => {
               <div className="space-y-6">
                 {items.map((item) => (
                   <div
-                    key={`${item.id}-${item.selectedSize}-${
-                      item.selectedColor
-                    }-${JSON.stringify(item.customDimensions)}`}
-                    className="flex items-start space-x-4 p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow"
+                    key={`${item.id}-${item.selectedSize}-${item.selectedColor
+                      }-${JSON.stringify(item.customDimensions)}`}
+                    className="flex flex-col gap-4 sm:flex-row items-start p-4 border border-gray-100 rounded-lg hover:shadow-md transition-shadow overflow-hidden"
                   >
                     <div className="w-20 h-20 lg:w-24 lg:h-24 flex-shrink-0">
                       <img
@@ -175,25 +174,25 @@ const CartPage = () => {
                         className="w-full h-full object-cover rounded-lg"
                       />
                     </div>
-                    <div className="flex-grow min-w-0">
-                      <h3 className="font-semibold text-base lg:text-lg text-gray-900 truncate">
+                    <div className="flex-grow min-w-0 w-full">
+                      <h3 className="font-semibold text-base lg:text-lg text-gray-900 line-clamp-2 break-words">
                         {item.name}
                       </h3>
                       <p className="text-gray-600 text-sm lg:text-base mb-2">
                         {
                           // Get price from selected size if available
                           item.selectedSize &&
-                          item.sizesWithPrices &&
-                          item.sizesWithPrices.length > 0
+                            item.sizesWithPrices &&
+                            item.sizesWithPrices.length > 0
                             ? (
-                                item.sizesWithPrices.find(
-                                  (s) => s.size === item.selectedSize
-                                )?.price || item.price
-                              ).toFixed(2)
+                              item.sizesWithPrices.find(
+                                (s) => s.size === item.selectedSize
+                              )?.price || item.price
+                            ).toFixed(2)
                             : (item.discountPrice
-                                ? item.discountPrice
-                                : item.price
-                              ).toFixed(2)
+                              ? item.discountPrice
+                              : item.price
+                            ).toFixed(2)
                         }
                       </p>
                       {item.selectedSize && (
@@ -225,13 +224,13 @@ const CartPage = () => {
                           </span>
                         </p>
                       )}
-                      <div className="flex items-center space-x-3">
+                      <div className="flex flex-wrap items-center gap-3">
                         <select
                           value={item.quantity}
                           onChange={(e) =>
                             updateQuantity(item.id, Number(e.target.value))
                           }
-                          className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                          className="min-w-[120px] border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
                         >
                           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                             <option key={num} value={num}>
@@ -257,18 +256,18 @@ const CartPage = () => {
                         </button>
                       </div>
                     </div>
-                    <div className="text-right flex-shrink-0">
-                      <p className="font-semibold text-base lg:text-lg text-gray-900">
+                    <div className="text-right flex-shrink-0 w-full sm:w-auto min-w-0">
+                      <p className="font-semibold text-base lg:text-lg text-gray-900 truncate">
                         {(
                           (item.selectedSize &&
-                          item.sizesWithPrices &&
-                          item.sizesWithPrices.length > 0
+                            item.sizesWithPrices &&
+                            item.sizesWithPrices.length > 0
                             ? item.sizesWithPrices.find(
-                                (s) => s.size === item.selectedSize
-                              )?.price || item.price
+                              (s) => s.size === item.selectedSize
+                            )?.price || item.price
                             : item.discountPrice !== undefined
-                            ? item.discountPrice
-                            : item.price) * item.quantity
+                              ? item.discountPrice
+                              : item.price) * item.quantity
                         ).toFixed(2)}
                       </p>
                     </div>

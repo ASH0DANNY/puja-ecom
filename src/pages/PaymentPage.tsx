@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useReduxCart } from "../redux/useReduxCart";
 import {
@@ -14,6 +14,8 @@ import app, { db } from "../config/firebase";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { useReduxAuth } from "../redux/useReduxAuth";
 import { useReduxDiscount } from "../redux/useReduxDiscount";
+import { useReduxAddress } from "../redux/useReduxAddress";
+import type { SavedAddress } from "../types/address";
 import OrderSuccessAnimation from "../components/OrderSuccessAnimation";
 import { useScrollToTop } from "../utils/scrollToTop";
 import { sendOrderPlacedEmails } from "../utils/emailService";
@@ -24,6 +26,9 @@ import {
   MapPin,
   Home,
   Globe,
+  Briefcase,
+  Pencil,
+  Trash2,
   CreditCard,
   ShoppingBag,
   Loader2,
@@ -45,6 +50,45 @@ const loadRazorpayScript = () => {
   });
 };
 
+const indianStates = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry"
+];
+
 // Form interfaces
 interface ShippingForm {
   street: string;
@@ -57,6 +101,15 @@ interface ShippingForm {
 interface CustomerForm {
   name: string;
   phone: string;
+}
+
+interface FormErrors {
+  name?: string;
+  phone?: string;
+  street?: string;
+  city?: string;
+  state?: string;
+  postalCode?: string;
 }
 
 const PaymentPage = () => {
@@ -75,11 +128,50 @@ const PaymentPage = () => {
     city: "",
     state: "",
     postalCode: "",
-    country: "",
+    country: "India",
   });
+  const [customerTouched, setCustomerTouched] = useState({
+    name: false,
+    phone: false,
+  });
+  const [shippingTouched, setShippingTouched] = useState({
+    street: false,
+    city: false,
+    state: false,
+    postalCode: false,
+  });
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [pinLookupLoading, setPinLookupLoading] = useState(false);
+  const [pinLookupError, setPinLookupError] = useState("");
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [editingAddressId, setEditingAddressId] = useState<string | null>(null);
+  const [saveAddressChecked, setSaveAddressChecked] = useState(false);
+  const [saveAddressLabel, setSaveAddressLabel] = useState<"home" | "office" | "other">("home");
+  const [saveAddressCustomLabel, setSaveAddressCustomLabel] = useState("");
+  const [saveLabelError, setSaveLabelError] = useState("");
+  const [manualEntryStarted, setManualEntryStarted] = useState(false);
+  const postalCodeTimeoutRef = useRef<number | null>(null);
+  const nameRef = useRef<HTMLInputElement | null>(null);
+  const phoneRef = useRef<HTMLInputElement | null>(null);
+  const streetRef = useRef<HTMLInputElement | null>(null);
+  const cityRef = useRef<HTMLInputElement | null>(null);
+  const stateRef = useRef<HTMLSelectElement | null>(null);
+  const postalCodeRef = useRef<HTMLInputElement | null>(null);
   const { items, total, clearCart, discountCode } = useReduxCart();
   const { user } = useReduxAuth();
   const { applyDiscount } = useReduxDiscount();
+  const {
+    addresses,
+    loading: addressesLoading,
+    fetched: addressesFetched,
+    error: addressError,
+    fetchAddresses,
+    addAddress,
+    updateAddress,
+    deleteAddress,
+    setDefaultAddress,
+  } = useReduxAddress();
   const navigate = useNavigate();
   const scrollToTop = useScrollToTop();
 
@@ -87,6 +179,12 @@ const PaymentPage = () => {
     scrollToTop();
     fetchPaymentSettings();
   }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchAddresses();
+    }
+  }, [user, fetchAddresses]);
 
   const fetchPaymentSettings = async () => {
     try {
@@ -103,44 +201,179 @@ const PaymentPage = () => {
     }
   };
 
+  const validateCustomerForm = (values: CustomerForm) => {
+    const errors: FormErrors = {};
+
+    if (!values.name.trim()) {
+      errors.name = "Full name is required.";
+    } else if (values.name.trim().length < 3) {
+      errors.name = "Full name must be at least 3 characters.";
+    } else if (!/^[A-Za-z ]+$/.test(values.name.trim())) {
+      errors.name = "Full name can only contain letters and spaces.";
+    }
+
+    if (!values.phone.trim()) {
+      errors.phone = "Phone number is required.";
+    } else if (!/^[6-9]\d{9}$/.test(values.phone.trim())) {
+      errors.phone = "Enter a valid 10-digit Indian mobile number starting with 6-9.";
+    }
+
+    return errors;
+  };
+
+  const validateShippingForm = (values: ShippingForm) => {
+    const errors: FormErrors = {};
+
+    if (!values.street.trim()) {
+      errors.street = "Street address is required.";
+    } else if (values.street.trim().length < 5) {
+      errors.street = "Street address must be at least 5 characters.";
+    }
+
+    if (!values.city.trim()) {
+      errors.city = "City is required.";
+    }
+
+    if (!values.state.trim()) {
+      errors.state = "State is required.";
+    }
+
+    if (!values.postalCode.trim()) {
+      errors.postalCode = "Postal code is required.";
+    } else if (!/^[1-9][0-9]{5}$/.test(values.postalCode.trim())) {
+      errors.postalCode = "Enter a valid 6-digit PIN code that does not start with 0.";
+    }
+
+    return errors;
+  };
+
+  const focusFirstInvalidField = (errors: FormErrors) => {
+    if (errors.name && nameRef.current) {
+      nameRef.current.focus();
+      return;
+    }
+    if (errors.phone && phoneRef.current) {
+      phoneRef.current.focus();
+      return;
+    }
+    if (errors.street && streetRef.current) {
+      streetRef.current.focus();
+      return;
+    }
+    if (errors.city && cityRef.current) {
+      cityRef.current.focus();
+      return;
+    }
+    if (errors.state && stateRef.current) {
+      stateRef.current.focus();
+      return;
+    }
+    if (errors.postalCode && postalCodeRef.current) {
+      postalCodeRef.current.focus();
+      return;
+    }
+  };
+
+  const getAddressCardIcon = (label: "home" | "office" | "other") => {
+    switch (label) {
+      case "home":
+        return <Home className="w-4 h-4 text-primary" />;
+      case "office":
+        return <Briefcase className="w-4 h-4 text-primary" />;
+      default:
+        return <MapPin className="w-4 h-4 text-primary" />;
+    }
+  };
+
+  const formatAddressPreview = (address: SavedAddress) => {
+    return `${address.street}, ${address.city}, ${address.state} - ${address.postalCode}`;
+  };
+
+  const selectSavedAddress = (address: SavedAddress) => {
+    setSelectedAddressId(address.id);
+    setEditingAddressId(null);
+    setSaveAddressChecked(false);
+    setSaveAddressLabel(address.label);
+    setSaveAddressCustomLabel(address.customLabel || "");
+    setCustomerForm({ name: address.fullName, phone: address.phone });
+    setShippingForm({
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      country: address.country,
+    });
+    setManualEntryStarted(false);
+    setFormErrors({});
+  };
+
+  const editSavedAddress = (address: SavedAddress) => {
+    setSelectedAddressId(address.id);
+    setEditingAddressId(address.id);
+    setSaveAddressChecked(true);
+    setSaveAddressLabel(address.label);
+    setSaveAddressCustomLabel(address.customLabel || "");
+    setCustomerForm({ name: address.fullName, phone: address.phone });
+    setShippingForm({
+      street: address.street,
+      city: address.city,
+      state: address.state,
+      postalCode: address.postalCode,
+      country: address.country,
+    });
+    setManualEntryStarted(true);
+  };
+
+  const handleDeleteAddress = async (addressId: string) => {
+    if (!confirm("Delete this saved address?")) return;
+    try {
+      await deleteAddress(addressId);
+      if (selectedAddressId === addressId) {
+        setSelectedAddressId(null);
+      }
+      if (editingAddressId === addressId) {
+        setEditingAddressId(null);
+        setSaveAddressChecked(false);
+      }
+    } catch (err) {
+      console.error("Error deleting saved address:", err);
+      toast.error("Could not delete saved address.");
+    }
+  };
+
   const handlePaymentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormSubmitted(true);
 
-    // Validate user authentication
+    const customerErrors = validateCustomerForm(customerForm);
+    const shippingErrors = validateShippingForm(shippingForm);
+    const errors = { ...customerErrors, ...shippingErrors };
+    setFormErrors(errors);
+
+    if ((saveAddressChecked || editingAddressId) && saveAddressLabel === "other" && !saveAddressCustomLabel.trim()) {
+      setSaveLabelError("Please enter a name for this address.");
+      return;
+    }
+
     if (!user) {
       toast.error("Please login to complete your purchase");
       navigate("/login");
       return;
     }
 
-    // Validate cart items
     if (items.length === 0) {
       toast.error("Your cart is empty");
       navigate("/cart");
       return;
     }
 
-    // Validate payment method
     if (!paymentMethod) {
       toast.error("Please select a payment method");
       return;
     }
 
-    // Validate customer form
-    if (!customerForm.name || !customerForm.phone) {
-      toast.error("Please fill in all customer information");
-      return;
-    }
-
-    // Validate shipping form
-    if (
-      !shippingForm.street ||
-      !shippingForm.city ||
-      !shippingForm.state ||
-      !shippingForm.postalCode ||
-      !shippingForm.country
-    ) {
-      toast.error("Please fill in all shipping information");
+    if (Object.keys(errors).length > 0) {
+      focusFirstInvalidField(errors);
       return;
     }
 
@@ -268,6 +501,32 @@ const PaymentPage = () => {
           toast.success("Order created! Confirmation email will be sent.");
         } else {
           toast.success("Order placed successfully!");
+        }
+      }
+
+      // Save the address if requested
+      if (saveAddressChecked || editingAddressId) {
+        const addressPayload = {
+          label: saveAddressLabel,
+          customLabel: saveAddressLabel === "other" ? saveAddressCustomLabel.trim() : undefined,
+          fullName: customerForm.name,
+          phone: customerForm.phone,
+          street: shippingForm.street,
+          city: shippingForm.city,
+          state: shippingForm.state,
+          postalCode: shippingForm.postalCode,
+          country: "India" as const,
+          isDefault: addresses.length === 0 || Boolean(editingAddressId),
+        };
+
+        try {
+          if (editingAddressId) {
+            await updateAddress(editingAddressId, addressPayload);
+          } else {
+            await addAddress(addressPayload);
+          }
+        } catch (saveError) {
+          console.error("Error saving address:", saveError);
         }
       }
 
@@ -403,13 +662,158 @@ const PaymentPage = () => {
     }
   };
 
-  const handleShippingFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const lookupPinCode = async (pincode: string) => {
+    setPinLookupError("");
+    setPinLookupLoading(true);
+    try {
+      const response = await fetch(
+        `https://api.postalpincode.in/pincode/${encodeURIComponent(pincode)}`
+      );
+      const data = await response.json();
+      if (Array.isArray(data) && data[0]?.Status === "Success") {
+        const postOffice = data[0]?.PostOffice?.[0];
+        if (postOffice) {
+          const district = postOffice.District || "";
+          const stateFromApi = postOffice.State || "";
+          const normalized = stateFromApi.trim().toLowerCase();
+          const aliasMap: Record<string, string> = {
+            "jammu and kashmir": "Jammu and Kashmir",
+            "jammu & kashmir": "Jammu and Kashmir",
+            "dadra and nagar haveli": "Dadra and Nagar Haveli and Daman and Diu",
+            "daman and diu": "Dadra and Nagar Haveli and Daman and Diu",
+            "andaman & nicobar islands": "Andaman and Nicobar Islands",
+          };
+          const matchedState =
+            indianStates.find(
+              (state) => state.toLowerCase() === normalized
+            ) || aliasMap[normalized];
+
+          setShippingForm((prev) => ({
+            ...prev,
+            city: district || prev.city,
+            state: matchedState || prev.state,
+          }));
+        } else {
+          setPinLookupError(
+            "Couldn't find this PIN code, please enter city/state manually"
+          );
+        }
+      } else {
+        setPinLookupError(
+          "Couldn't find this PIN code, please enter city/state manually"
+        );
+      }
+    } catch (error) {
+      setPinLookupError(
+        "Couldn't find this PIN code, please enter city/state manually"
+      );
+    } finally {
+      setPinLookupLoading(false);
+    }
+  };
+
+  const debouncePinLookup = (postalCode: string) => {
+    if (postalCodeTimeoutRef.current) {
+      window.clearTimeout(postalCodeTimeoutRef.current);
+    }
+    postalCodeTimeoutRef.current = window.setTimeout(() => {
+      if (/^[1-9][0-9]{5}$/.test(postalCode)) {
+        lookupPinCode(postalCode);
+      } else {
+        setPinLookupError("");
+      }
+    }, 500);
+  };
+
+  const handleCustomerChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+    setCustomerForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
+    }));
+  };
+
+  const handleCustomerBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name } = e.target;
+    setCustomerTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+    const errors = validateCustomerForm(customerForm);
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: errors[name as keyof FormErrors],
+    }));
+  };
+
+  const handleShippingChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
     setShippingForm((prev) => ({
       ...prev,
       [name]: value,
     }));
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: undefined,
+    }));
+    if (!manualEntryStarted) {
+      setManualEntryStarted(true);
+      if (selectedAddressId) {
+        setEditingAddressId(selectedAddressId);
+      }
+    }
+    if (selectedAddressId) {
+      setSelectedAddressId(null);
+    }
+    if (name === "postalCode") {
+      setPinLookupError("");
+      if (/^[0-9]{6}$/.test(value)) {
+        debouncePinLookup(value);
+      } else {
+        if (postalCodeTimeoutRef.current) {
+          window.clearTimeout(postalCodeTimeoutRef.current);
+        }
+        setPinLookupLoading(false);
+      }
+    }
   };
+
+  const handleShippingBlur = (
+    e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name } = e.target;
+    setShippingTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+    const errors = validateShippingForm(shippingForm);
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: errors[name as keyof FormErrors],
+    }));
+  };
+
+  useEffect(() => {
+    return () => {
+      if (postalCodeTimeoutRef.current) {
+        window.clearTimeout(postalCodeTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const currentFormErrors = {
+    ...validateCustomerForm(customerForm),
+    ...validateShippingForm(shippingForm),
+  };
+  const isFormValid = Object.keys(currentFormErrors).length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -518,17 +922,18 @@ const PaymentPage = () => {
                       type="text"
                       id="customerName"
                       name="name"
-                      required
+                      ref={nameRef}
                       value={customerForm.name}
-                      onChange={(e) =>
-                        setCustomerForm((prev) => ({
-                          ...prev,
-                          name: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      onChange={handleCustomerChange}
+                      onBlur={handleCustomerBlur}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${
+                        formErrors.name ? "border-red-500" : "border-gray-300 focus:border-primary"
+                      }`}
                       placeholder="Enter your full name"
                     />
+                    {(formSubmitted || customerTouched.name) && formErrors.name && (
+                      <p className="mt-2 text-sm text-red-600">{formErrors.name}</p>
+                    )}
                   </div>
 
                   <div>
@@ -543,17 +948,18 @@ const PaymentPage = () => {
                       type="tel"
                       id="customerPhone"
                       name="phone"
-                      required
+                      ref={phoneRef}
                       value={customerForm.phone}
-                      onChange={(e) =>
-                        setCustomerForm((prev) => ({
-                          ...prev,
-                          phone: e.target.value,
-                        }))
-                      }
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      onChange={handleCustomerChange}
+                      onBlur={handleCustomerBlur}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${
+                        formErrors.phone ? "border-red-500" : "border-gray-300 focus:border-primary"
+                      }`}
                       placeholder="Enter your phone number"
                     />
+                    {(formSubmitted || customerTouched.phone) && formErrors.phone && (
+                      <p className="mt-2 text-sm text-red-600">{formErrors.phone}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -563,6 +969,83 @@ const PaymentPage = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Shipping Address
                 </h2>
+                {addresses.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      <div>
+                        <p className="text-base font-medium text-gray-900">
+                          Saved Addresses
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Select one to autofill your shipping details.
+                        </p>
+                      </div>
+                      {addressesLoading && (
+                        <span className="text-sm text-gray-500">Loading...</span>
+                      )}
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      {addresses.map((address) => (
+                        <button
+                          key={address.id}
+                          type="button"
+                          onClick={() => selectSavedAddress(address)}
+                          className={`relative text-left p-4 rounded-2xl border transition-colors ${
+                            selectedAddressId === address.id
+                              ? "border-primary bg-primary/5"
+                              : "border-gray-200 bg-white hover:border-primary/80"
+                          }`}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex items-center gap-3">
+                              <span className="p-2 rounded-full bg-primary/10">
+                                {getAddressCardIcon(address.label)}
+                              </span>
+                              <div>
+                                <p className="text-sm font-semibold text-gray-900">
+                                  {address.label === "other"
+                                    ? address.customLabel || "Other"
+                                    : address.label.charAt(0).toUpperCase() +
+                                      address.label.slice(1)}
+                                </p>
+                                <p className="text-sm text-gray-500">
+                                  {formatAddressPreview(address)}
+                                </p>
+                              </div>
+                            </div>
+                            {address.isDefault && (
+                              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
+                                Default
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-4 flex items-center gap-2 text-gray-500">
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                editSavedAddress(address);
+                              }}
+                              className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleDeleteAddress(address.id);
+                              }}
+                              className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-600 hover:border-red-500 hover:text-red-600"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-4">
                   <div>
                     <label
@@ -576,12 +1059,18 @@ const PaymentPage = () => {
                       type="text"
                       id="street"
                       name="street"
-                      required
+                      ref={streetRef}
                       value={shippingForm.street}
-                      onChange={handleShippingFormChange}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                      onChange={handleShippingChange}
+                      onBlur={handleShippingBlur}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${
+                        formErrors.street ? "border-red-500" : "border-gray-300 focus:border-primary"
+                      }`}
                       placeholder="House number and street name"
                     />
+                    {(formSubmitted || shippingTouched.street) && formErrors.street && (
+                      <p className="mt-2 text-sm text-red-600">{formErrors.street}</p>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -597,12 +1086,18 @@ const PaymentPage = () => {
                         type="text"
                         id="city"
                         name="city"
-                        required
+                        ref={cityRef}
                         value={shippingForm.city}
-                        onChange={handleShippingFormChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
+                        onChange={handleShippingChange}
+                        onBlur={handleShippingBlur}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${
+                          formErrors.city ? "border-red-500" : "border-gray-300 focus:border-primary"
+                        }`}
                         placeholder="City"
                       />
+                      {(formSubmitted || shippingTouched.city) && formErrors.city && (
+                        <p className="mt-2 text-sm text-red-600">{formErrors.city}</p>
+                      )}
                     </div>
 
                     <div>
@@ -613,17 +1108,106 @@ const PaymentPage = () => {
                         <MapPin className="w-4 h-4" />
                         State
                       </label>
-                      <input
-                        type="text"
+                      <select
                         id="state"
                         name="state"
-                        required
+                        ref={stateRef}
                         value={shippingForm.state}
-                        onChange={handleShippingFormChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                        placeholder="State"
-                      />
+                        onChange={handleShippingChange}
+                        onBlur={handleShippingBlur}
+                        className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${
+                          formErrors.state ? "border-red-500" : "border-gray-300 focus:border-primary"
+                        }`}
+                      >
+                        <option value="">Select state</option>
+                        {indianStates.map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
+                      </select>
+                      {(formSubmitted || shippingTouched.state) && formErrors.state && (
+                        <p className="mt-2 text-sm text-red-600">{formErrors.state}</p>
+                      )}
                     </div>
+                  </div>
+
+                  <div className="pt-4 border-t border-gray-200 mt-6">
+                    <label className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={saveAddressChecked || Boolean(editingAddressId)}
+                        onChange={(e) => {
+                          setSaveAddressChecked(e.target.checked);
+                          if (!e.target.checked && !editingAddressId) {
+                            setSaveAddressLabel("home");
+                            setSaveAddressCustomLabel("");
+                            setSaveLabelError("");
+                          }
+                        }}
+                        className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      />
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">
+                          Save this address for faster checkout
+                        </p>
+                        <p className="text-sm text-gray-500">
+                          Save the shipping details to reuse them on your next order.
+                        </p>
+                      </div>
+                    </label>
+
+                    {(saveAddressChecked || editingAddressId) && (
+                      <div className="mt-4 space-y-4">
+                        <div className="grid grid-cols-3 gap-3">
+                          {(["home", "office", "other"] as const).map((label) => (
+                            <button
+                              key={label}
+                              type="button"
+                              onClick={() => {
+                                setSaveAddressLabel(label);
+                                if (label !== "other") {
+                                  setSaveAddressCustomLabel("");
+                                  setSaveLabelError("");
+                                }
+                              }}
+                              className={`rounded-2xl border px-3 py-2 text-sm font-medium transition-colors ${
+                                saveAddressLabel === label
+                                  ? "border-primary bg-primary/10 text-primary"
+                                  : "border-gray-200 bg-white text-gray-700 hover:border-primary"
+                              }`}
+                            >
+                              {label.charAt(0).toUpperCase() + label.slice(1)}
+                            </button>
+                          ))}
+                        </div>
+
+                        {saveAddressLabel === "other" && (
+                          <div>
+                            <label
+                              htmlFor="customAddressLabel"
+                              className="text-sm font-medium text-gray-700 mb-2 block"
+                            >
+                              Custom Label
+                            </label>
+                            <input
+                              type="text"
+                              id="customAddressLabel"
+                              value={saveAddressCustomLabel}
+                              onChange={(e) => {
+                                setSaveAddressCustomLabel(e.target.value);
+                                setSaveLabelError("");
+                              }}
+                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
+                              placeholder="e.g. Parents' home, Grandma's house"
+                            />
+                            {saveLabelError && (
+                              <p className="mt-2 text-sm text-red-600">{saveLabelError}</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -635,16 +1219,31 @@ const PaymentPage = () => {
                         <MapPin className="w-4 h-4" />
                         Postal Code
                       </label>
-                      <input
-                        type="text"
-                        id="postalCode"
-                        name="postalCode"
-                        required
-                        value={shippingForm.postalCode}
-                        onChange={handleShippingFormChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                        placeholder="Postal code"
-                      />
+                      <div className="relative">
+                        <input
+                          type="text"
+                          id="postalCode"
+                          name="postalCode"
+                          ref={postalCodeRef}
+                          maxLength={6}
+                          value={shippingForm.postalCode}
+                          onChange={handleShippingChange}
+                          onBlur={handleShippingBlur}
+                          className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors ${
+                            formErrors.postalCode ? "border-red-500" : "border-gray-300 focus:border-primary"
+                          }`}
+                          placeholder="Postal code"
+                        />
+                        {pinLookupLoading && (
+                          <Loader2 className="absolute right-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400 animate-spin" />
+                        )}
+                      </div>
+                      {(formSubmitted || shippingTouched.postalCode) && formErrors.postalCode && (
+                        <p className="mt-2 text-sm text-red-600">{formErrors.postalCode}</p>
+                      )}
+                      {pinLookupError && (
+                        <p className="mt-2 text-sm text-orange-600">{pinLookupError}</p>
+                      )}
                     </div>
 
                     <div>
@@ -659,11 +1258,9 @@ const PaymentPage = () => {
                         type="text"
                         id="country"
                         name="country"
-                        required
-                        value={shippingForm.country}
-                        onChange={handleShippingFormChange}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors"
-                        placeholder="Country"
+                        value="India"
+                        disabled
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-gray-100 text-gray-700 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -734,7 +1331,7 @@ const PaymentPage = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={loading || !paymentMethod}
+                disabled={loading || !paymentMethod || !isFormValid}
                 className="w-full flex items-center justify-center gap-2 bg-primary text-white py-3 px-4 rounded-lg hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? (
