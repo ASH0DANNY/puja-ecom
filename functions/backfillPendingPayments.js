@@ -4,7 +4,6 @@ const { defineSecret } = require("firebase-functions/params");
 const admin = require("firebase-admin");
 const Razorpay = require("razorpay");
 
-admin.initializeApp();
 const db = admin.firestore();
 const backfillSecret = defineSecret("BACKFILL_SECRET");
 const allowedAdminUids = (process.env.BACKFILL_ALLOWED_ADMIN_UIDS || "")
