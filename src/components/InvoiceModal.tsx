@@ -26,16 +26,23 @@ export const InvoiceModal = ({ order, isOpen, onClose }: InvoiceModalProps) => {
     try {
       const invoiceData = {
         orderId: order.id,
-        date: new Date(order.createdAt).toLocaleDateString("en-IN", {
+        date: new Date(order.createdAt).toLocaleString("en-IN", {
           year: "numeric",
           month: "long",
           day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         }),
         customerName: order.userName || order.customerName || "Customer",
         email: order.userEmail,
         phone: order.customerPhone || "N/A",
         paymentMethod: order.paymentMethod || "N/A",
         razorpayPaymentId: order.razorpayPaymentId,
+        razorpayPaymentCreatedAt: order.razorpayPaymentCreatedAt?.toDate
+          ? order.razorpayPaymentCreatedAt.toDate()
+          : order.razorpayPaymentCreatedAt
+          ? new Date(order.razorpayPaymentCreatedAt)
+          : undefined,
         paymentMethodDetails: order.paymentMethodDetails,
         paidAt: order.paidAt?.toDate ? order.paidAt.toDate() : (order.paidAt ? new Date(order.paidAt) : undefined),
         status: order.status,
@@ -94,16 +101,23 @@ export const InvoiceModal = ({ order, isOpen, onClose }: InvoiceModalProps) => {
     try {
       const invoiceData = {
         orderId: order.id,
-        date: new Date(order.createdAt).toLocaleDateString("en-IN", {
+        date: new Date(order.createdAt).toLocaleString("en-IN", {
           year: "numeric",
           month: "long",
           day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
         }),
         customerName: order.userName || order.customerName || "Customer",
         email: order.userEmail,
         phone: order.customerPhone || "N/A",
         paymentMethod: order.paymentMethod || "N/A",
         razorpayPaymentId: order.razorpayPaymentId,
+        razorpayPaymentCreatedAt: order.razorpayPaymentCreatedAt?.toDate
+          ? order.razorpayPaymentCreatedAt.toDate()
+          : order.razorpayPaymentCreatedAt
+          ? new Date(order.razorpayPaymentCreatedAt)
+          : undefined,
         paymentMethodDetails: order.paymentMethodDetails,
         paidAt: order.paidAt?.toDate ? order.paidAt.toDate() : (order.paidAt ? new Date(order.paidAt) : undefined),
         status: order.status,
@@ -186,10 +200,12 @@ export const InvoiceModal = ({ order, isOpen, onClose }: InvoiceModalProps) => {
             <div className="flex justify-between text-sm">
               <span className="text-gray-600">Date:</span>
               <span className="font-medium text-gray-900">
-                {new Date(order.createdAt).toLocaleDateString("en-IN", {
+                {new Date(order.createdAt).toLocaleString("en-IN", {
                   year: "numeric",
                   month: "short",
                   day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
                 })}
               </span>
             </div>

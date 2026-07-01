@@ -163,7 +163,7 @@ const InvoiceTemplate = React.forwardRef<HTMLDivElement, InvoiceProps>(
                 <p>Method: Cash on Delivery</p>
             ) : (
                 <div className="space-y-1">
-                    <p><span className="font-medium">Status:</span> Paid {invoice.paidAt && `(on ${new Date(invoice.paidAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })})`}</p>
+                    <p><span className="font-medium">Status:</span> Paid {invoice.paidAt && `(on ${new Date(invoice.paidAt).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })})`}</p>
                     <p><span className="font-medium">Method:</span> {
                       (() => {
                         const method = invoice.paymentMethodDetails?.method || invoice.paymentMethod;

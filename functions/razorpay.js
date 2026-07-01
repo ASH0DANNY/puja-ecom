@@ -232,6 +232,8 @@ exports.verifyRazorpayPayment = onCall(
       // Invalid signature: Mark order as failed
       await orderRef.update({
         status: "payment_failed",
+        paymentFailureReason: "Payment signature verification failed",
+        paymentFailureAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
 
@@ -254,8 +256,25 @@ exports.verifyRazorpayPayment = onCall(
       console.log("Payment details fetched successfully:", {
         id: paymentDetails.id,
         method: paymentDetails.method,
-        status: paymentDetails.status
+        status: paymentDetails.status,
       });
+
+      if (paymentDetails.status !== "captured") {
+        const failureReason = `Razorpay payment status is ${paymentDetails.status}`;
+        await orderRef.update({
+          status: "payment_failed",
+          paymentFailureReason: failureReason,
+          paymentFailureAt: admin.firestore.FieldValue.serverTimestamp(),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          razorpayPaymentId: paymentDetails.id,
+          razorpayPaymentStatus: paymentDetails.status,
+        });
+
+        throw new HttpsError(
+          "failed-precondition",
+          "Payment was not completed successfully."
+        );
+      }
     } catch (error) {
       console.error("Failed to fetch Razorpay payment details:", error);
       // We don't fail the verification if this fails, we just won't have the rich details
@@ -263,6 +282,7 @@ exports.verifyRazorpayPayment = onCall(
 
     let paymentMethodDetails = {};
     let paymentMethod = "razorpay";
+    let razorpayPaymentCreatedAt = null;
     
     if (paymentDetails) {
       paymentMethod = paymentDetails.method; // e.g., 'card', 'upi', 'netbanking', 'wallet'
@@ -272,7 +292,7 @@ exports.verifyRazorpayPayment = onCall(
         paymentMethodDetails = {
           network: paymentDetails.card.network,
           last4: paymentDetails.card.last4,
-          issuer: paymentDetails.card.issuer
+          issuer: paymentDetails.card.issuer,
         };
       } else if (paymentMethod === "upi") {
         paymentMethodDetails = { vpa: paymentDetails.vpa };
@@ -280,6 +300,13 @@ exports.verifyRazorpayPayment = onCall(
         paymentMethodDetails = { bank: paymentDetails.bank };
       } else if (paymentMethod === "wallet") {
         paymentMethodDetails = { wallet: paymentDetails.wallet };
+      }
+
+      if (paymentDetails.created_at) {
+        const createdAtSeconds = Number(paymentDetails.created_at);
+        if (!Number.isNaN(createdAtSeconds)) {
+          razorpayPaymentCreatedAt = new Date(createdAtSeconds * 1000);
+        }
       }
     }
 
@@ -338,6 +365,8 @@ exports.verifyRazorpayPayment = onCall(
         transaction.update(orderRef, {
           status: "paid",
           razorpayPaymentId: razorpay_payment_id,
+          razorpayPaymentStatus: paymentDetails?.status || "captured",
+          razorpayPaymentCreatedAt: razorpayPaymentCreatedAt || null,
           paymentMethod: paymentMethod,
           paymentMethodDetails: paymentMethodDetails,
           paidAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -350,6 +379,7 @@ exports.verifyRazorpayPayment = onCall(
           ...orderData,
           status: "paid",
           razorpayPaymentId: razorpay_payment_id,
+          razorpayPaymentCreatedAt: razorpayPaymentCreatedAt || null,
           paymentMethod: paymentMethod,
           paymentMethodDetails: paymentMethodDetails,
         };

@@ -107,6 +107,7 @@ export const generateInvoicePdf = (
       postalCode: string;
     };
     razorpayPaymentId?: string;
+    razorpayPaymentCreatedAt?: Date;
     paymentMethodDetails?: {
       network?: string;
       last4?: string;
@@ -309,6 +310,44 @@ export const generateInvoicePdf = (
         doc.setFont("helvetica", "normal");
         doc.text(invoiceData.razorpayPaymentId, margin + 35, yPos);
       }
+
+      if (invoiceData.razorpayPaymentCreatedAt) {
+        yPos += 5;
+        const paymentCreatedAtDate = new Date(invoiceData.razorpayPaymentCreatedAt);
+        doc.setFont("helvetica", "bold");
+        doc.text("Razorpay Timestamp:", margin, yPos);
+        doc.setFont("helvetica", "normal");
+        doc.text(
+          paymentCreatedAtDate.toLocaleString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          margin + 35,
+          yPos
+        );
+      }
+    }
+
+    if (invoiceData.paidAt) {
+      yPos += 5;
+      const paidAtDate = new Date(invoiceData.paidAt);
+      doc.setFont("helvetica", "bold");
+      doc.text("System Confirmed:", margin, yPos);
+      doc.setFont("helvetica", "normal");
+      doc.text(
+        paidAtDate.toLocaleString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        margin + 35,
+        yPos
+      );
     }
 
     // ============ BILL TO & SHIP TO SECTION ============

@@ -183,7 +183,7 @@ export const OrderTable = ({ orders, onUpdate }: OrderTableProps) => {
   };
 
   const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString("en-US", {
+    return new Date(date).toLocaleString("en-IN", {
       year: "numeric",
       month: "long",
       day: "numeric",

@@ -156,6 +156,41 @@ const OrdersPage = () => {
     return method.charAt(0).toUpperCase() + method.slice(1).replace(/_/g, " ");
   };
 
+  const formatDateTime = (value?: any) => {
+    if (!value) return "N/A";
+    try {
+      const date = value?.toDate ? value.toDate() : new Date(value);
+      if (Number.isNaN(date.getTime())) return "N/A";
+      return date.toLocaleString("en-IN", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return "N/A";
+    }
+  };
+
+  const mapStatusForDisplay = (order: Order) => {
+    const raw = (order.status || "").toString().toLowerCase();
+
+    // Handle legacy/variant values like 'pending_payment' or 'Pending_payment'
+    if (raw === "pending_payment" || raw === "pending-payment") {
+      if (order.paymentFailureReason || order.razorpayPaymentStatus === "failed" || order.razorpayPaymentStatus === "failed") {
+        return "Payment Failed";
+      }
+      return "Pending Payment";
+    }
+
+    if (raw === "payment_failed") return "Payment Failed";
+
+    // Default: Title case the status
+    if (!raw) return "Pending";
+    return raw.charAt(0).toUpperCase() + raw.slice(1);
+  };
+
   const orderStats = {
     total: orders.filter((o) => o.status?.toLowerCase() !== "cancelled").length,
     delivered: orders.filter((o) => o.status?.toLowerCase() === "delivered")
@@ -376,10 +411,23 @@ const OrdersPage = () => {
                           {selectedOrder.createdAt instanceof Timestamp
                             ? selectedOrder.createdAt
                                 .toDate()
-                                .toLocaleDateString()
-                            : new Date(
-                                selectedOrder.createdAt
-                              ).toLocaleDateString()}
+                                .toLocaleString("en-IN", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                            : new Date(selectedOrder.createdAt).toLocaleString(
+                                "en-IN",
+                                {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                }
+                              )}
                         </p>
                         <p className="text-sm text-gray-900">
                           <span className="font-medium">Status:</span>{" "}
@@ -388,7 +436,7 @@ const OrdersPage = () => {
                               selectedOrder.status || "pending"
                             )}`}
                           >
-                            {selectedOrder.status || "Pending"}
+                            {mapStatusForDisplay(selectedOrder)}
                           </span>
                         </p>
                         <p className="text-sm text-gray-900 flex items-center gap-2">
@@ -396,6 +444,38 @@ const OrdersPage = () => {
                           <span className="font-medium">Payment Method:</span>{" "}
                           {formatPaymentMethod(selectedOrder.paymentMethod)}
                         </p>
+
+                        {/* Razorpay / Payment metadata */}
+                        {selectedOrder.razorpayPaymentId && (
+                          <p className="text-sm text-gray-900">
+                            <span className="font-medium">Payment ID:</span>{" "}
+                            {selectedOrder.razorpayPaymentId}
+                          </p>
+                        )}
+
+                        {selectedOrder.razorpayPaymentCreatedAt && (
+                          <p className="text-sm text-gray-900">
+                            <span className="font-medium">Razorpay Timestamp:</span>{" "}
+                            {formatDateTime(selectedOrder.razorpayPaymentCreatedAt)}
+                          </p>
+                        )}
+
+                        {selectedOrder.paidAt && (
+                          <p className="text-sm text-gray-900">
+                            <span className="font-medium">System Confirmation:</span>{" "}
+                            {formatDateTime(selectedOrder.paidAt)}
+                          </p>
+                        )}
+
+                        {selectedOrder.paymentFailureReason && (
+                          <p className="text-sm text-red-700">
+                            <span className="font-medium">Payment Failure:</span>{" "}
+                            {selectedOrder.paymentFailureReason}
+                            {selectedOrder.paymentFailureAt && (
+                              <span>{` on ${formatDateTime(selectedOrder.paymentFailureAt)}`}</span>
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div>
@@ -676,7 +756,13 @@ const OrdersPage = () => {
                                       order.createdAt instanceof Timestamp
                                         ? order.createdAt.toDate()
                                         : new Date(order.createdAt);
-                                    return date.toLocaleDateString();
+                                    return date.toLocaleString("en-IN", {
+                                      year: "numeric",
+                                      month: "long",
+                                      day: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    });
                                   } catch (e) {
                                     return "N/A";
                                   }
@@ -688,12 +774,7 @@ const OrdersPage = () => {
                             <div className="flex items-center gap-2">
                               {getStatusIcon(order.status || "pending")}
                               <Chip
-                                label={
-                                  order.status
-                                    ? order.status.charAt(0).toUpperCase() +
-                                      order.status.toLowerCase().slice(1)
-                                    : "Pending"
-                                }
+                                label={mapStatusForDisplay(order)}
                                 size="small"
                                 variant="outlined"
                                 sx={{

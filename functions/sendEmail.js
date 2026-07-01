@@ -8,20 +8,20 @@
 
 const { onCall, onRequest } = require("firebase-functions/v2/https");
 const { onDocumentUpdated } = require("firebase-functions/v2/firestore");
+const { defineSecret } = require("firebase-functions/params");
 const nodemailer = require("nodemailer");
 
-// Configure email transporter using Gmail SMTP
-// You'll need to:
-// 1. Enable Gmail SMTP access or use an App Password
-// 2. Set environment variables in a .env file (see .env.example)
+const gmailUser = defineSecret("GMAIL_USER");
+const gmailPassword = defineSecret("GMAIL_PASSWORD");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_PASSWORD,
-  },
-});
+const createTransporter = () =>
+  nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: gmailUser.value(),
+      pass: gmailPassword.value(),
+    },
+  });
 
 /**
  * HTTP Cloud Function to send emails
@@ -34,33 +34,35 @@ const transporter = nodemailer.createTransport({
  *   orderId: "order-id"
  * }
  */
-exports.sendEmail = onCall(async (request) => {
-  try {
-    // Verify the request is authenticated (optional, but recommended for security)
-    // Uncomment to require authentication:
-    // if (!request.auth) {
-    //   throw new Error('Request must be authenticated');
-    // }
+exports.sendEmail = onCall(
+  { region: "asia-south1", secrets: [gmailUser, gmailPassword] },
+  async (request) => {
+    try {
+      // Verify the request is authenticated (optional, but recommended for security)
+      // Uncomment to require authentication:
+      // if (!request.auth) {
+      //   throw new Error('Request must be authenticated');
+      // }
 
-    const { to, subject, html, type, orderId } = request.data;
+      const { to, subject, html, type, orderId } = request.data;
 
-    // Validation
-    if (!to || !subject || !html) {
-      throw new Error(
-        "Missing required fields: to, subject, html"
-      );
-    }
+      // Validation
+      if (!to || !subject || !html) {
+        throw new Error("Missing required fields: to, subject, html");
+      }
 
-    // Send email
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to,
-      subject,
-      html,
-      replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
-    };
+      const transporter = createTransporter();
 
-    const result = await transporter.sendMail(mailOptions);
+      // Send email
+      const mailOptions = {
+        from: gmailUser.value(),
+        to,
+        subject,
+        html,
+        replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
+      };
+
+      const result = await transporter.sendMail(mailOptions);
 
     console.log(
       `Email sent successfully for order ${orderId} (type: ${type}):`,
@@ -85,35 +87,39 @@ exports.sendEmail = onCall(async (request) => {
  * Call with: POST /api/send-email
  * Body: { to, subject, html, type, orderId }
  */
-exports.sendEmailHttp = onRequest(async (req, res) => {
-  // Only allow POST requests
-  if (req.method !== "POST") {
-    return res.status(405).send("Method Not Allowed");
-  }
-
-  try {
-    const { to, subject, html, type, orderId } = req.body;
-
-    // Validation
-    if (!to || !subject || !html) {
-      return res.status(400).json({
-        error: "Missing required fields: to, subject, html",
-      });
+exports.sendEmailHttp = onRequest(
+  { region: "asia-south1", secrets: [gmailUser, gmailPassword] },
+  async (req, res) => {
+    // Only allow POST requests
+    if (req.method !== "POST") {
+      return res.status(405).send("Method Not Allowed");
     }
 
-    // Optional: Verify request is from your app
-    // You could add a secret token or API key verification here
+    try {
+      const { to, subject, html, type, orderId } = req.body;
 
-    // Send email
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to,
-      subject,
-      html,
-      replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
-    };
+      // Validation
+      if (!to || !subject || !html) {
+        return res.status(400).json({
+          error: "Missing required fields: to, subject, html",
+        });
+      }
 
-    const result = await transporter.sendMail(mailOptions);
+      const transporter = createTransporter();
+
+      // Optional: Verify request is from your app
+      // You could add a secret token or API key verification here
+
+      // Send email
+      const mailOptions = {
+        from: gmailUser.value(),
+        to,
+        subject,
+        html,
+        replyTo: process.env.REPLY_TO_EMAIL || "support@example.com",
+      };
+
+      const result = await transporter.sendMail(mailOptions);
 
     console.log(
       `Email sent via HTTP for order ${orderId} (type: ${type}):`,
@@ -140,7 +146,10 @@ exports.sendEmailHttp = onRequest(async (req, res) => {
  * Firestore Trigger - Automatically send email when order status changes
  * This is an optional trigger if you want automatic emails on status updates
  */
-exports.onOrderStatusChange = onDocumentUpdated("orders/{orderId}", async (event) => {
+exports.onOrderStatusChange = onDocumentUpdated(
+  { region: "asia-south1", secrets: [gmailUser, gmailPassword] },
+  "orders/{orderId}",
+  async (event) => {
   const previousOrder = event.data.before.data();
   const currentOrder = event.data.after.data();
 
@@ -150,8 +159,9 @@ exports.onOrderStatusChange = onDocumentUpdated("orders/{orderId}", async (event
     currentOrder.status === "delivered"
   ) {
     try {
+      const transporter = createTransporter();
       const mailOptions = {
-        from: process.env.GMAIL_USER,
+        from: gmailUser.value(),
         to: currentOrder.userEmail,
         subject: `Your Order Has Been Delivered - ${
           process.env.APP_NAME || "Our Store"
@@ -307,8 +317,9 @@ function generateOrderConfirmedEmailHTML(order) {
  */
 exports.sendInternalOrderEmail = async (orderData) => {
   try {
+    const transporter = createTransporter();
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: gmailUser.value(),
       to: orderData.userEmail,
       subject: `Order Confirmed - Order #${(orderData.orderNumber || orderData.id).slice(-8).toUpperCase()} - ${process.env.APP_NAME || "Our Store"}`,
       html: generateOrderConfirmedEmailHTML(orderData),

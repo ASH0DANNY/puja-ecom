@@ -30,6 +30,32 @@ interface EmailConfig {
   adminEmail?: string;
 }
 
+const normalizeEmailDate = (
+  value?: string | number | Date | { toDate: () => Date }
+) => {
+  if (!value) return undefined;
+  if (typeof value === "object" && "toDate" in value && typeof value.toDate === "function") {
+    return value.toDate();
+  }
+  return new Date(value as string | number | Date);
+};
+
+const formatEmailDateTime = (
+  value?: string | number | Date | { toDate: () => Date }
+) => {
+  const date = normalizeEmailDate(value);
+  if (!date || Number.isNaN(date.getTime())) {
+    return "N/A";
+  }
+  return date.toLocaleString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 /**
  * Generate HTML email template for order placed
  */
@@ -87,13 +113,7 @@ export const generateOrderPlacedEmail = (order: Order): string => {
             <p><strong>Order Number:</strong> <span class="order-number">${order.id
               .slice(-8)
               .toUpperCase()}</span></p>
-            <p><strong>Order Date:</strong> ${new Date(
-              order.createdAt
-            ).toLocaleDateString("en-IN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}</p>
+            <p><strong>Order Date:</strong> ${formatEmailDateTime(order.createdAt)}</p>
             <p><strong>Status:</strong> <span style="color: #f97316;">Pending</span></p>
           </div>
 
@@ -153,6 +173,11 @@ export const generateOrderPlacedEmail = (order: Order): string => {
           <div class="section">
             <div class="section-title">Payment Method</div>
             <p>${order.paymentMethod}</p>
+            ${order.razorpayPaymentId ? `
+              <p><strong>Payment ID:</strong> ${order.razorpayPaymentId}</p>
+              <p><strong>Razorpay Timestamp:</strong> ${formatEmailDateTime(order.razorpayPaymentCreatedAt)}</p>
+              <p><strong>System Confirmation:</strong> ${formatEmailDateTime(order.paidAt)}</p>
+            ` : ""}
           </div>
 
           <p style="margin-top: 20px;">We'll notify you as soon as your order ships. You can track your order status anytime.</p>
@@ -219,6 +244,11 @@ export const generateOrderConfirmedEmail = (order: Order): string => {
               .slice(-8)
               .toUpperCase()}</p>
             <p><strong>Status:</strong> <span class="status-badge">Processing</span></p>
+            ${order.razorpayPaymentId ? `
+            <p><strong>Payment ID:</strong> ${order.razorpayPaymentId}</p>
+            <p><strong>Razorpay Timestamp:</strong> ${formatEmailDateTime(order.razorpayPaymentCreatedAt)}</p>
+            <p><strong>System Confirmation:</strong> ${formatEmailDateTime(order.paidAt)}</p>
+            ` : ""}
             <p>Your items are being carefully picked and packed for shipment.</p>
           </div>
 
@@ -293,6 +323,11 @@ export const generateOrderDeliveredEmail = (order: Order): string => {
               .slice(-8)
               .toUpperCase()}</p>
             <p><strong>Status:</strong> <span class="status-badge">Delivered</span></p>
+            ${order.razorpayPaymentId ? `
+            <p><strong>Payment ID:</strong> ${order.razorpayPaymentId}</p>
+            <p><strong>Razorpay Timestamp:</strong> ${formatEmailDateTime(order.razorpayPaymentCreatedAt)}</p>
+            <p><strong>System Confirmation:</strong> ${formatEmailDateTime(order.paidAt)}</p>
+            ` : ""}
           </div>
 
           <div class="section">
@@ -382,13 +417,7 @@ export const generateOrderCancelledEmail = (order: Order): string => {
             <p><strong>Order Number:</strong> ${order.id
               .slice(-8)
               .toUpperCase()}</p>
-            <p><strong>Order Date:</strong> ${new Date(
-              order.createdAt
-            ).toLocaleDateString("en-IN", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}</p>
+            <p><strong>Order Date:</strong> ${formatEmailDateTime(order.createdAt)}</p>
             <p><strong>Status:</strong> <span style="color: #dc2626;">Cancelled</span></p>
           </div>
 

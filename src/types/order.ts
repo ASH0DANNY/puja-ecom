@@ -45,6 +45,10 @@ export interface Order {
   };
   paymentMethod: string;
   razorpayPaymentId?: string;
+  razorpayPaymentCreatedAt?: any;
+  razorpayPaymentStatus?: string;
+  paymentFailureReason?: string;
+  paymentFailureAt?: any;
   paymentMethodDetails?: {
     network?: string;
     last4?: string;

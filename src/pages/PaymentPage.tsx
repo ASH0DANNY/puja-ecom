@@ -366,8 +366,31 @@ const PaymentPage = () => {
         };
 
         const rzp = new (window as any).Razorpay(options);
-        rzp.on('payment.failed', function (response: any) {
-            toast.error(response.error.description || "Payment failed");
+        rzp.on("payment.failed", async function (response: any) {
+            const reason =
+              response?.error?.description ||
+              response?.error?.reason ||
+              response?.error?.code ||
+              "Payment failed";
+
+            toast.error(reason);
+
+            if (data?.firestoreOrderId) {
+              try {
+                const failedOrderRef = doc(db, "orders", data.firestoreOrderId);
+                await updateDoc(failedOrderRef, {
+                  status: "payment_failed",
+                  paymentFailureReason: reason,
+                  paymentFailureAt: serverTimestamp(),
+                  updatedAt: serverTimestamp(),
+                  razorpayPaymentId:
+                    response?.error?.metadata?.payment_id || null,
+                });
+              } catch (updateError) {
+                console.error("Failed to update failed order status:", updateError);
+              }
+            }
+
             setLoading(false);
         });
         rzp.open();
