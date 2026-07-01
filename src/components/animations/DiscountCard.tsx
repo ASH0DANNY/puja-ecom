@@ -24,11 +24,10 @@ export const DiscountCard: React.FC<DiscountCardProps> = ({
                 group relative overflow-hidden 
                 border-2 rounded-lg p-6 cursor-pointer 
                 transition-all duration-300 ease-in-out
-                ${
-                  isSelected
-                    ? "border-primary bg-primary/5 shadow-lg"
-                    : "border-gray-200 hover:border-primary/50 hover:shadow-md"
-                }
+                ${isSelected
+          ? "border-primary bg-primary/5 shadow-lg"
+          : "border-gray-200 hover:border-primary/50 hover:shadow-md"
+        }
             `}
       onClick={onClick}
     >
@@ -102,7 +101,7 @@ export const DiscountCard: React.FC<DiscountCardProps> = ({
           <div className="flex items-center space-x-2 mt-3">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
               {discount.endDate
-                ? `Valid until: ${discount.endDate.toLocaleDateString()}`
+                ? `Valid until: ${new Date(discount.endDate).toLocaleDateString()}`
                 : "No expiration"}
             </span>
             {discount.usageLimit && (

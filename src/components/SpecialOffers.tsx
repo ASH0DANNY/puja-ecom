@@ -46,28 +46,28 @@ const SpecialOffers = () => {
       const discountsList = querySnapshot.docs
         .map(
           (doc) =>
-            ({
-              id: doc.id,
-              ...doc.data(),
-              startDate:
-                doc.data().startDate instanceof Timestamp
-                  ? doc.data().startDate.toDate()
-                  : new Date(doc.data().startDate),
-              endDate:
-                doc.data().endDate instanceof Timestamp
-                  ? doc.data().endDate.toDate()
-                  : doc.data().endDate
+          ({
+            id: doc.id,
+            ...doc.data(),
+            startDate:
+              doc.data().startDate instanceof Timestamp
+                ? doc.data().startDate.toDate()
+                : new Date(doc.data().startDate),
+            endDate:
+              doc.data().endDate instanceof Timestamp
+                ? doc.data().endDate.toDate()
+                : doc.data().endDate
                   ? new Date(doc.data().endDate)
                   : null,
-              createdAt:
-                doc.data().createdAt instanceof Timestamp
-                  ? doc.data().createdAt.toDate()
-                  : new Date(doc.data().createdAt),
-              updatedAt:
-                doc.data().updatedAt instanceof Timestamp
-                  ? doc.data().updatedAt.toDate()
-                  : new Date(doc.data().updatedAt),
-            } as Discount)
+            createdAt:
+              doc.data().createdAt instanceof Timestamp
+                ? doc.data().createdAt.toDate()
+                : new Date(doc.data().createdAt),
+            updatedAt:
+              doc.data().updatedAt instanceof Timestamp
+                ? doc.data().updatedAt.toDate()
+                : new Date(doc.data().updatedAt),
+          } as Discount)
         )
         .filter((discount) => {
           // Filter for valid discounts (within date range and not expired)
@@ -116,9 +116,9 @@ const SpecialOffers = () => {
 
           const daysLeft = discount.endDate
             ? Math.ceil(
-                (new Date(discount.endDate).getTime() - now.getTime()) /
-                  (1000 * 60 * 60 * 24)
-              )
+              (new Date(discount.endDate).getTime() - now.getTime()) /
+              (1000 * 60 * 60 * 24)
+            )
             : null;
 
           const displayValue =
@@ -137,7 +137,7 @@ const SpecialOffers = () => {
             borderColor: colorScheme.border,
             minPurchase: discount.minPurchase,
             isActive: discount.isActive,
-            endDate: discount.endDate,
+            endDate: discount.endDate ? new Date(discount.endDate) : null,
             daysLeft: daysLeft && daysLeft > 0 ? daysLeft : null,
           };
         }
