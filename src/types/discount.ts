@@ -6,15 +6,15 @@ export interface Discount {
     value: number;
     minPurchase?: number;
     maxDiscount?: number;
-    startDate: Date;
-    endDate: Date | null;
+    startDate: string | Date;
+    endDate: string | Date | null;
     usageLimit: number;
     currentUsage: number;
     userType: 'new' | 'all' | 'specific';
     specificUsers?: string[];
     isActive: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt: string | Date;
+    updatedAt: string | Date;
 }
 
 export interface DiscountUsage {

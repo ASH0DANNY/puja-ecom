@@ -34,6 +34,7 @@ import {
   Loader2,
   Clock,
 } from "lucide-react";
+import SavedAddressSelector from "../components/SavedAddressSelector";
 
 // Helper function to load Razorpay script
 const loadRazorpayScript = () => {
@@ -507,18 +508,19 @@ const PaymentPage = () => {
       // Save the address if requested
       if (saveAddressChecked || editingAddressId) {
         const addressPayload = {
-          label: saveAddressLabel,
-          customLabel: saveAddressLabel === "other" ? saveAddressCustomLabel.trim() : undefined,
-          fullName: customerForm.name,
-          phone: customerForm.phone,
-          street: shippingForm.street,
-          city: shippingForm.city,
-          state: shippingForm.state,
-          postalCode: shippingForm.postalCode,
-          country: "India" as const,
-          isDefault: addresses.length === 0 || Boolean(editingAddressId),
-        };
+            label: saveAddressLabel,
+            ...(saveAddressLabel === "other" && { customLabel: saveAddressCustomLabel.trim() }),
+            fullName: customerForm.name,
+            phone: customerForm.phone,
+            street: shippingForm.street,
+            city: shippingForm.city,
+            state: shippingForm.state,
+            postalCode: shippingForm.postalCode,
+            country: "India" as const,
+            isDefault: addresses.length === 0 || Boolean(editingAddressId),
+          };
 
+        console.log("Attempting to save address payload:", addressPayload);
         try {
           if (editingAddressId) {
             await updateAddress(editingAddressId, addressPayload);
@@ -526,7 +528,8 @@ const PaymentPage = () => {
             await addAddress(addressPayload);
           }
         } catch (saveError) {
-          console.error("Error saving address:", saveError);
+          console.error("Error saving address (full):", saveError);
+          toast.error("Failed to save address. See console for details.");
         }
       }
 
@@ -969,83 +972,38 @@ const PaymentPage = () => {
                 <h2 className="text-xl font-semibold text-gray-900 mb-4">
                   Shipping Address
                 </h2>
-                {addresses.length > 0 && (
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between gap-4 mb-4">
-                      <div>
-                        <p className="text-base font-medium text-gray-900">
-                          Saved Addresses
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Select one to autofill your shipping details.
-                        </p>
-                      </div>
-                      {addressesLoading && (
-                        <span className="text-sm text-gray-500">Loading...</span>
-                      )}
-                    </div>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      {addresses.map((address) => (
-                        <button
-                          key={address.id}
-                          type="button"
-                          onClick={() => selectSavedAddress(address)}
-                          className={`relative text-left p-4 rounded-2xl border transition-colors ${
-                            selectedAddressId === address.id
-                              ? "border-primary bg-primary/5"
-                              : "border-gray-200 bg-white hover:border-primary/80"
-                          }`}
-                        >
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="flex items-center gap-3">
-                              <span className="p-2 rounded-full bg-primary/10">
-                                {getAddressCardIcon(address.label)}
-                              </span>
-                              <div>
-                                <p className="text-sm font-semibold text-gray-900">
-                                  {address.label === "other"
-                                    ? address.customLabel || "Other"
-                                    : address.label.charAt(0).toUpperCase() +
-                                      address.label.slice(1)}
-                                </p>
-                                <p className="text-sm text-gray-500">
-                                  {formatAddressPreview(address)}
-                                </p>
-                              </div>
-                            </div>
-                            {address.isDefault && (
-                              <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-semibold text-green-700">
-                                Default
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-4 flex items-center gap-2 text-gray-500">
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                editSavedAddress(address);
-                              }}
-                              className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-600 hover:border-primary hover:text-primary"
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleDeleteAddress(address.id);
-                              }}
-                              className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-600 hover:border-red-500 hover:text-red-600"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <SavedAddressSelector
+                  addresses={addresses}
+                  addressesLoading={addressesLoading}
+                  selectedAddressId={selectedAddressId}
+                  onSelectAddress={selectSavedAddress}
+                  onEditAddress={editSavedAddress}
+                  onDeleteAddress={handleDeleteAddress}
+                  saveAddressChecked={saveAddressChecked}
+                  onSaveAddressCheckedChange={(checked) => {
+                    setSaveAddressChecked(checked);
+                    if (!checked && !editingAddressId) {
+                      setSaveAddressLabel("home");
+                      setSaveAddressCustomLabel("");
+                      setSaveLabelError("");
+                    }
+                  }}
+                  saveAddressLabel={saveAddressLabel}
+                  onSaveAddressLabelChange={(label) => {
+                    setSaveAddressLabel(label);
+                    if (label !== "other") {
+                      setSaveAddressCustomLabel("");
+                      setSaveLabelError("");
+                    }
+                  }}
+                  saveAddressCustomLabel={saveAddressCustomLabel}
+                  onSaveAddressCustomLabelChange={(v) => {
+                    setSaveAddressCustomLabel(v);
+                    setSaveLabelError("");
+                  }}
+                  saveLabelError={saveLabelError}
+                  editingAddressId={editingAddressId}
+                />
                 <div className="space-y-4">
                   <div>
                     <label
@@ -1132,83 +1090,7 @@ const PaymentPage = () => {
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200 mt-6">
-                    <label className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={saveAddressChecked || Boolean(editingAddressId)}
-                        onChange={(e) => {
-                          setSaveAddressChecked(e.target.checked);
-                          if (!e.target.checked && !editingAddressId) {
-                            setSaveAddressLabel("home");
-                            setSaveAddressCustomLabel("");
-                            setSaveLabelError("");
-                          }
-                        }}
-                        className="mt-1 h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                      />
-                      <div>
-                        <p className="text-sm font-semibold text-gray-900">
-                          Save this address for faster checkout
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          Save the shipping details to reuse them on your next order.
-                        </p>
-                      </div>
-                    </label>
-
-                    {(saveAddressChecked || editingAddressId) && (
-                      <div className="mt-4 space-y-4">
-                        <div className="grid grid-cols-3 gap-3">
-                          {(["home", "office", "other"] as const).map((label) => (
-                            <button
-                              key={label}
-                              type="button"
-                              onClick={() => {
-                                setSaveAddressLabel(label);
-                                if (label !== "other") {
-                                  setSaveAddressCustomLabel("");
-                                  setSaveLabelError("");
-                                }
-                              }}
-                              className={`rounded-2xl border px-3 py-2 text-sm font-medium transition-colors ${
-                                saveAddressLabel === label
-                                  ? "border-primary bg-primary/10 text-primary"
-                                  : "border-gray-200 bg-white text-gray-700 hover:border-primary"
-                              }`}
-                            >
-                              {label.charAt(0).toUpperCase() + label.slice(1)}
-                            </button>
-                          ))}
-                        </div>
-
-                        {saveAddressLabel === "other" && (
-                          <div>
-                            <label
-                              htmlFor="customAddressLabel"
-                              className="text-sm font-medium text-gray-700 mb-2 block"
-                            >
-                              Custom Label
-                            </label>
-                            <input
-                              type="text"
-                              id="customAddressLabel"
-                              value={saveAddressCustomLabel}
-                              onChange={(e) => {
-                                setSaveAddressCustomLabel(e.target.value);
-                                setSaveLabelError("");
-                              }}
-                              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50 transition-colors"
-                              placeholder="e.g. Parents' home, Grandma's house"
-                            />
-                            {saveLabelError && (
-                              <p className="mt-2 text-sm text-red-600">{saveLabelError}</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
+                  {/* save-address controls are handled by SavedAddressSelector */}
 
                   <div className="grid grid-cols-2 gap-4">
                     <div>

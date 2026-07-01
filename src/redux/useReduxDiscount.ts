@@ -209,17 +209,35 @@ export const useReduxDiscount = () => {
         where("isActive", "==", true)
       );
       const querySnapshot = await getDocs(q);
-      const discounts = querySnapshot.docs.map(
-        (doc) =>
-          ({
-            id: doc.id,
-            ...doc.data(),
-            startDate: doc.data().startDate.toDate(),
-            endDate: doc.data().endDate?.toDate() || null,
-            createdAt: doc.data().createdAt.toDate(),
-            updatedAt: doc.data().updatedAt.toDate(),
-          } as Discount)
-      );
+      const discounts = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        const start = data.startDate;
+        const end = data.endDate;
+        const created = data.createdAt;
+        const updated = data.updatedAt;
+        return {
+          id: doc.id,
+          ...data,
+          startDate:
+            start && typeof start.toDate === "function"
+              ? start.toDate().toISOString()
+              : new Date(start).toISOString(),
+          endDate:
+            end && typeof end.toDate === "function"
+              ? end.toDate().toISOString()
+              : end
+              ? new Date(end).toISOString()
+              : null,
+          createdAt:
+            created && typeof created.toDate === "function"
+              ? created.toDate().toISOString()
+              : new Date(created).toISOString(),
+          updatedAt:
+            updated && typeof updated.toDate === "function"
+              ? updated.toDate().toISOString()
+              : new Date(updated).toISOString(),
+        } as Discount;
+      });
 
       dispatch(setActiveDiscounts(discounts));
     } catch (error) {

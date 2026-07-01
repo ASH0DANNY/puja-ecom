@@ -105,7 +105,7 @@ const DiscountManager = () => {
             value: discount.value,
             minPurchase: discount.minPurchase || 0,
             maxDiscount: discount.maxDiscount || 0,
-            startDate: discount.startDate.toISOString().split('T')[0],
+            startDate: new Date(discount.startDate).toISOString().split('T')[0],
             endDate: discount.endDate ? discount.endDate.toISOString().split('T')[0] : '',
             usageLimit: discount.usageLimit,
             userType: discount.userType,

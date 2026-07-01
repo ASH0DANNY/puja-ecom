@@ -36,6 +36,7 @@ export const useReduxAddress = () => {
       if (!user) return;
       if (fetched && !forceRefresh) return;
 
+      console.log("useReduxAddress.fetchAddresses called", { uid: user.uid, fetched, forceRefresh });
       dispatch(setAddressLoading(true));
       try {
         const addressesCollection = collection(
@@ -50,6 +51,7 @@ export const useReduxAddress = () => {
           id: docSnap.id,
           ...(docSnap.data() as Omit<SavedAddress, "id">),
         }));
+        console.log("useReduxAddress.fetchAddresses result", { count: loadedAddresses.length, loadedAddresses });
         dispatch(setAddresses(loadedAddresses));
       } catch (err) {
         console.error("Error fetching saved addresses:", err);
@@ -58,6 +60,17 @@ export const useReduxAddress = () => {
     },
     [dispatch, fetched, user]
   );
+
+  const sanitizeForFirestore = <T extends Record<string, any>>(obj: T) => {
+    const out: Partial<T> = {};
+    Object.keys(obj).forEach((key) => {
+      const val = (obj as any)[key];
+      if (val !== undefined) {
+        (out as any)[key] = val;
+      }
+    });
+    return out;
+  };
 
   const setDefaultAddress = useCallback(
     async (addressId: string) => {
@@ -107,12 +120,13 @@ export const useReduxAddress = () => {
           user.uid,
           "addresses"
         );
-        const newDoc = await addDoc(addressesCollection, {
+        const firestorePayload = sanitizeForFirestore({
           ...payload,
           country: "India",
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         });
+        const newDoc = await addDoc(addressesCollection, firestorePayload as any);
         const createdAddress: SavedAddress = {
           id: newDoc.id,
           ...payload,
@@ -142,10 +156,11 @@ export const useReduxAddress = () => {
       dispatch(setAddressLoading(true));
       try {
         const addressRef = doc(db, "users", user.uid, "addresses", addressId);
-        await updateDoc(addressRef, {
+        const firestorePayload = sanitizeForFirestore({
           ...payload,
           updatedAt: serverTimestamp(),
         });
+        await updateDoc(addressRef, firestorePayload as any);
         if (payload.isDefault) {
           await setDefaultAddress(addressId);
         }
