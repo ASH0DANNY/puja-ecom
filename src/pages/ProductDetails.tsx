@@ -136,7 +136,7 @@ const ProductDetails = () => {
         {/* Product Images */}
         <div className="space-y-4">
           {/* Main Image */}
-          <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-50 shadow-lg">
+          <div className="relative aspect-square  overflow-hidden bg-gray-50 shadow-lg">
             <img
               src={images[currentImageIndex]}
               alt={`${product.name} - Image ${currentImageIndex + 1}`}
@@ -365,7 +365,7 @@ const ProductDetails = () => {
                     {/* <div className="text-primary font-bold mt-1">
                       {sizeOption.price.toFixed(2)}
                     </div> */}
-                    {sizeOption.weight && (
+                    {/* {sizeOption.weight && (
                       <div className="text-xs text-gray-600 mt-2">
                         {sizeOption.weight}
                       </div>
@@ -374,7 +374,7 @@ const ProductDetails = () => {
                       <div className="text-xs text-gray-600">
                         {sizeOption.dimensions}
                       </div>
-                    )}
+                    )} */}
                   </button>
                 ))}
               </div>

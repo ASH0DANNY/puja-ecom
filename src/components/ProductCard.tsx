@@ -42,7 +42,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
   return (
     <>
       <div
-        className="group bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md 
+        className="group bg-white  shadow-sm overflow-hidden hover:shadow-md 
           transition-all duration-300 transform hover:-translate-y-1 cursor-pointer w-full"
         onClick={() => navigate(`/product/${product.id}`)}
       >
@@ -159,13 +159,13 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
           <div className="flex flex-col mt-auto">
             <div className="mb-1 md:mb-2">
-              <span className="text-gray-600 md:text-lg font-medium">
-                {product.sizesWithPrices && product.sizesWithPrices.length > 0
+              <span className="text-gray-600 md:text-lg font-small">
+                ₹{product.sizesWithPrices && product.sizesWithPrices.length > 0
                   ? product.sizesWithPrices[0].price.toFixed(2)
                   : (product.discountPrice ?? product.price).toFixed(2)}
               </span>
               {product.discountPrice && !product.sizesWithPrices && (
-                <span className="ml-1 md:ml-2 text-xs md:text-sm line-through text-gray-400">
+                <span className="ml-1 md:ml-2 text-xs md:text-sm line-through text-gray-300">
                   {product.price.toFixed(2)}
                 </span>
               )}
