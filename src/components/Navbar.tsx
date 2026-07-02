@@ -49,9 +49,9 @@ const Navbar = ({ onMenuClick }: NavbarProps) => {
           <div className="flex items-center lg:flex-1">
             <button
               onClick={onMenuClick}
-              className="lg:hidden p-2 rounded-xl text-gray-700 hover:bg-gray-100/80 focus:outline-none transition-colors"
+              className="lg:hidden p-2 rounded-xl text-gray-700 hover:bg-gray-100/80 focus:outline-none transition-colors "
             >
-              <Menu className="w-6 h-6" />
+              <Menu className="w-6 h-6 "fontFamily="Archivo Narrow" />
             </button>
 
             <div className="hidden lg:flex items-center space-x-8">
